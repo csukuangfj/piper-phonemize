@@ -65,33 +65,6 @@ jobs:
             find . -name "libespeak-ng.so*"
             echo "----here-..-..--"
 
-            echo "build piper-phonemize"
-
-            mkdir my-build
-            cd my-build
-
-            ls -lh /project/espeak-ng/my-build/install
-
-            cmake \
-              -DESPEAK_NG_DIR=/project/espeak-ng/my-build/install \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DBUILD_PIPER_PHONMIZE_TESTS=OFF \
-              -DBUILD_PIPER_PHONMIZE_EXE=OFF \
-              ..
-
-            make -j
-            make install
-
-            pwd
-            ls -lh
-            ls -lh ./install
-            ls -lh ./install/share
-            ls -lh ..
-
-            ls -lh ./install/
-
-            cd ..
-
             curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
             tar xf espeak-ng-data.tar.bz2
             rm espeak-ng-data.tar.bz2
