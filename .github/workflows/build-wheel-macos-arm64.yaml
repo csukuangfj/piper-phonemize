@@ -33,8 +33,6 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BEFORE_BUILD: |
-            my_project=/Users/runner/work/piper-phonemize/piper-phonemize
-
             echo "Install espeak-ng"
             git clone https://github.com/csukuangfj/espeak-ng
             cd espeak-ng
@@ -62,54 +60,10 @@ jobs:
 
             cd ../..
 
-            echo "build piper-phonemize"
-
-            pwd
-            ls -lh
-
-            mkdir my-build
-
-            ls -lh
-
-            cd my-build
-            pwd
-            ls -lh
-
-            echo "espeak install dir"
-            ls -lh $my_project/espeak-ng/my-build/install
-
-            cmake \
-              -DESPEAK_NG_DIR=$my_project/espeak-ng/my-build/install \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DBUILD_PIPER_PHONMIZE_TESTS=OFF \
-              -DBUILD_PIPER_PHONMIZE_EXE=OFF \
-              ..
-
-            make -j
-            make install
-
-            cp -a $my_project/espeak-ng/my-build/install/share/espeak-ng-data ../piper_phonemize/
-            cp -a $my_project/espeak-ng/my-build/install/lib/*.dylib ../piper_phonemize/
-
-            cp -a ./install/share/*.ort ../
-            pwd
-            ls -lh
-            ls -lh ./install
-            ls -lh ./install/share
-            ls -lh ./install/lib
-            ls -lh ..
-
-            if [ -d ./install/lib64 ]; then
-              mkdir -p ./install/lib
-              cp -av ./install/lib64/* ./install/lib/
-            fi
-
-            ls -lh ./install/lib
-            cp -v ./install/lib/libonnxruntime.1*.dylib ../piper_phonemize/
-
-            cd ..
-            ls -lh
-            ls -lh ./piper_phonemize
+            echo "----here----"
+            find . -name "speak_lib.h"
+            find . -name "libespeak-ng*dylib*"
+            echo "----here-..-..--"
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "arm64"

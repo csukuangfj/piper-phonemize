@@ -30,7 +30,7 @@ jobs:
       # see https://cibuildwheel.readthedocs.io/en/stable/changelog/
       # for a list of versions
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BEFORE_BUILD: |
             echo "Install espeak-ng"
@@ -67,18 +67,9 @@ jobs:
 
             echo "build piper-phonemize"
 
-            pwd
-            ls -lh
-
             mkdir my-build
-
-            ls -lh
-
             cd my-build
-            pwd
-            ls -lh
 
-            echo "espeak install dir"
             ls -lh /project/espeak-ng/my-build/install
 
             cmake \
@@ -104,6 +95,7 @@ jobs:
             curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
             tar xf espeak-ng-data.tar.bz2
             rm espeak-ng-data.tar.bz2
+            mv espeak-ng-data ./piper_phonemize
 
             ls -lh
 

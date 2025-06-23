@@ -60,10 +60,6 @@ jobs:
 
             cd ../..
 
-            echo "build piper-phonemize"
-
-            pwd
-            ls -lh
 
             mkdir my-build
 
