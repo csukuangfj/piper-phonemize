@@ -62,6 +62,7 @@ jobs:
 
             echo "----here----"
             find . -name "speak_lib.h"
+            find . -name "libespeak-ng.so*"
             echo "----here-..-..--"
 
             echo "build piper-phonemize"

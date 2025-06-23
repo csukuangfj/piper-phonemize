@@ -50,7 +50,6 @@ setup(
         "piper_phonemize": [
             str(p) for p in (_DIR / "piper_phonemize" / "espeak-ng-data").rglob("*")
         ]
-        + [str(_DIR / "libtashkeel_model.ort")]
     },
     include_package_data=True,
     ext_modules=ext_modules,
