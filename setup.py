@@ -19,7 +19,7 @@ os.system("pwd")
 os.system("ls -lh")
 os.system("ls -lh piper_phonemize")
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 ext_modules = [
     Pybind11Extension(
@@ -51,9 +51,7 @@ setup(
         "piper_phonemize": [
             str(p) for p in (_DIR / "piper_phonemize" / "espeak-ng-data").rglob("*")
         ]
-        + [str(_DIR / "libtashkeel_model.ort")] + [
-            str(p) for p in (_DIR / "piper_phonemize").rglob("*dylib*")
-        ]
+        + [str(_DIR / "libtashkeel_model.ort")]
     },
     include_package_data=True,
     ext_modules=ext_modules,

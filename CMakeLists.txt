@@ -75,15 +75,7 @@ target_include_directories(
     piper_phonemize PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     ${ESPEAK_NG_DIR}/include
-    ${ONNXRUNTIME_DIR}/include
 )
-
-if(DEFINED ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR})
-  target_include_directories(
-      piper_phonemize PUBLIC
-      $ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}
-  )
-endif()
 
 if(EXISTS ${ESPEAK_NG_DIR}/lib)
   target_link_directories(
