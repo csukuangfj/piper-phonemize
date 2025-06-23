@@ -70,12 +70,12 @@ jobs:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "arm64"
           CIBW_BUILD_VERBOSITY: 3
-          # CIBW_ENVIRONMENT: |
-          #   DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
-          #   LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
+          CIBW_ENVIRONMENT: |
+            DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
+            LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
           #
           #  Don't repair macOS wheels
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+          # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
 
       - name: Display wheels
         shell: bash
