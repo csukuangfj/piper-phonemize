@@ -10,7 +10,7 @@
 
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
-#include "tashkeel.hpp"
+// #include "tashkeel.hpp"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -22,7 +22,7 @@ bool eSpeakInitialized = false;
 
 // Loaded when using Arabic
 // https://github.com/mush42/libtashkeel/
-std::map<std::string, tashkeel::State> tashkeelStates;
+// std::map<std::string, tashkeel::State> tashkeelStates;
 
 // ----------------------------------------------------------------------------
 
@@ -105,15 +105,15 @@ std::map<std::string, piper::PhonemeIdMap> get_codepoints_map() {
   return piper::DEFAULT_ALPHABET;
 }
 
-std::string tashkeel_run(std::string modelPath, std::string text) {
-  if (tashkeelStates.count(modelPath) < 1) {
-    tashkeel::State newState;
-    tashkeel::tashkeel_load(modelPath, newState);
-    tashkeelStates[modelPath] = std::move(newState);
-  }
-
-  return tashkeel::tashkeel_run(text, tashkeelStates[modelPath]);
-}
+// std::string tashkeel_run(std::string modelPath, std::string text) {
+//   if (tashkeelStates.count(modelPath) < 1) {
+//     tashkeel::State newState;
+//     tashkeel::tashkeel_load(modelPath, newState);
+//     tashkeelStates[modelPath] = std::move(newState);
+//   }
+//
+//   return tashkeel::tashkeel_run(text, tashkeelStates[modelPath]);
+// }
 
 // ----------------------------------------------------------------------------
 
