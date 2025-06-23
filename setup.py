@@ -11,8 +11,7 @@ if platform.system() == 'Darwin':
     extra_link_args.append('-Wl,-rpath,' + 'piper_phonemize')
 
 _DIR = Path(__file__).parent
-_ESPEAK_DIR = _DIR / "espeak-ng" / "my-build" / "install"
-_ONNXRUNTIME_DIR = _DIR / "my-build" / "install"
+_ESPEAK_DIR = _DIR / "espeak-ng" 
 
 import os
 os.system("pwd")
@@ -30,8 +29,8 @@ ext_modules = [
             "src/phoneme_ids.cpp",
         ],
         define_macros=[("VERSION_INFO", __version__)],
-        include_dirs=[str(_ESPEAK_DIR / "include")],
-        library_dirs=[str(_ESPEAK_DIR / "lib")],
+        include_dirs=[str(_ESPEAK_DIR / "src/include")],
+        library_dirs=[str(_ESPEAK_DIR / "my-build/src/libespeak-ng")],
         libraries=["espeak-ng"],
         extra_link_args = extra_link_args,
     ),
