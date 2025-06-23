@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - wheel
+      - wheels-for-sherpa-onnx
 
     tags:
       - '*'
@@ -21,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["cp37", "cp38", "cp39", "cp310", "cp311", "cp312"]
+        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp313"]
 
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +105,7 @@ jobs:
             ls -lh
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_SKIP: "cp27-* cp35-* cp36-* *-win32 pp* *-musllinux* *-manylinux_i686"
+          CIBW_SKIP: "cp27-* cp35-* cp36-* *-win32 pp* *-musllinux*"
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT_LINUX: LD_LIBRARY_PATH='/project/my-build/install/lib'
 
@@ -119,7 +120,7 @@ jobs:
           file_glob: true
           file: wheelhouse/*.whl
           overwrite: true
-          tag: 2023.12.5
+          tag: 2025.06.23
 
       - name: Publish to huggingface
         env:

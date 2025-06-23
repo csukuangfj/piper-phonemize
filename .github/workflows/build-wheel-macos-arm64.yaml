@@ -1,4 +1,4 @@
-name: build-wheels-macos-x86_64
+name: build-wheels-macos-arm64
 
 on:
   push:
@@ -11,11 +11,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-macos-x86_64-${{ github.ref }}
+  group: build-wheels-macos-arm64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_macos_x86-64:
+  build_wheels_macos_arm64:
     name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -111,7 +111,7 @@ jobs:
             ls -lh ./piper_phonemize
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_ARCHS: "x86_64"
+          CIBW_ARCHS: "arm64"
           CIBW_BUILD_VERBOSITY: 3
           # CIBW_ENVIRONMENT: |
           #   DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'

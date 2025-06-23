@@ -1,4 +1,4 @@
-name: build-wheels-macos-x86_64
+name: build-wheels-linux-aarch64
 
 on:
   push:
@@ -11,18 +11,18 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-macos-x86_64-${{ github.ref }}
+  group: build-wheels-linux-aarch64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_macos_x86-64:
+  build_wheels_linux:
     name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
-        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp13"]
+        os: [ubuntu-22.04-arm]
+        python-version: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp313"]
 
     steps:
       - uses: actions/checkout@v4
@@ -33,8 +33,6 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BEFORE_BUILD: |
-            my_project=/Users/runner/work/piper-phonemize/piper-phonemize
-
             echo "Install espeak-ng"
             git clone https://github.com/csukuangfj/espeak-ng
             cd espeak-ng
@@ -75,10 +73,10 @@ jobs:
             ls -lh
 
             echo "espeak install dir"
-            ls -lh $my_project/espeak-ng/my-build/install
+            ls -lh /project/espeak-ng/my-build/install
 
             cmake \
-              -DESPEAK_NG_DIR=$my_project/espeak-ng/my-build/install \
+              -DESPEAK_NG_DIR=/project/espeak-ng/my-build/install \
               -DCMAKE_INSTALL_PREFIX=./install \
               -DBUILD_PIPER_PHONMIZE_TESTS=OFF \
               -DBUILD_PIPER_PHONMIZE_EXE=OFF \
@@ -87,9 +85,7 @@ jobs:
             make -j
             make install
 
-            cp -a $my_project/espeak-ng/my-build/install/share/espeak-ng-data ../piper_phonemize/
-            cp -a $my_project/espeak-ng/my-build/install/lib/*.dylib ../piper_phonemize/
-
+            cp -a /project/espeak-ng/my-build/install/share/espeak-ng-data ../piper_phonemize/
             cp -a ./install/share/*.ort ../
             pwd
             ls -lh
@@ -104,45 +100,19 @@ jobs:
             fi
 
             ls -lh ./install/lib
-            cp -v ./install/lib/libonnxruntime.1*.dylib ../piper_phonemize/
 
             cd ..
             ls -lh
-            ls -lh ./piper_phonemize
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_ARCHS: "x86_64"
+          CIBW_SKIP: "cp27-* cp35-* cp36-* *-win32 pp* *-musllinux* *-manylinux_i686"
           CIBW_BUILD_VERBOSITY: 3
-          # CIBW_ENVIRONMENT: |
-          #   DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
-          #   LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
-
-          #  Don't repair macOS wheels
-          # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+          CIBW_ENVIRONMENT_LINUX: LD_LIBRARY_PATH='/project/my-build/install/lib'
 
       - name: Display wheels
         shell: bash
         run: |
           ls -lh ./wheelhouse/
-
-      - name: Remove extra files
-        shell: bash
-        run: |
-          cd ./wheelhouse/
-
-          ls -lh
-          filename=$(ls)
-          echo "filename is $filename"
-          mkdir t
-          cd t
-          unzip ../$filename
-          ls -lh piper_phonemize
-          rm -v piper_phonemize/*dylib*
-          zip -r $filename .
-          mv $filename ../
-          cd ..
-          rm -rf t
-          ls -lh
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
