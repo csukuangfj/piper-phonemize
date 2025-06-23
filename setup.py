@@ -11,12 +11,13 @@ if platform.system() == 'Darwin':
     extra_link_args.append('-Wl,-rpath,' + 'piper_phonemize')
 
 _DIR = Path(__file__).parent
-_ESPEAK_DIR = _DIR / "espeak-ng" 
+_ESPEAK_DIR = _DIR / "espeak-ng"
+print('_ESPEAK_DIR: ', _ESPEAK_DIR)
 
 import os
 os.system("pwd")
 os.system("ls -lh")
-os.system("ls -lh piper_phonemize")
+os.system("ls -lh piper_phonemize; echo '---here---'")
 
 __version__ = "1.3.0"
 
