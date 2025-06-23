@@ -166,9 +166,9 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
         Get maximum number of phonemes in id maps
     )pbdoc");
 
-  m.def("tashkeel_run", &tashkeel_run, R"pbdoc(
-        Add diacritics to Arabic text (must call tashkeel_load first)
-    )pbdoc");
+  // m.def("tashkeel_run", &tashkeel_run, R"pbdoc(
+  //       Add diacritics to Arabic text (must call tashkeel_load first)
+  //   )pbdoc");
 
 #ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
