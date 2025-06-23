@@ -91,23 +91,20 @@ jobs:
             make -j
             make install
 
-            cp -a /project/espeak-ng/my-build/install/share/espeak-ng-data ../piper_phonemize/
-            cp -a ./install/share/*.ort ../
             pwd
             ls -lh
             ls -lh ./install
             ls -lh ./install/share
-            ls -lh ./install/lib
             ls -lh ..
 
-            if [ -d ./install/lib64 ]; then
-              mkdir -p ./install/lib
-              cp -av ./install/lib64/* ./install/lib/
-            fi
-
-            ls -lh ./install/lib
+            ls -lh ./install/
 
             cd ..
+
+            curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+            tar xf espeak-ng-data.tar.bz2
+            rm espeak-ng-data.tar.bz2
+
             ls -lh
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
