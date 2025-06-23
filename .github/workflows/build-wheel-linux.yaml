@@ -59,6 +59,8 @@ jobs:
 
             cd ../..
 
+            find . -name "speak_lib.h"
+
             echo "build piper-phonemize"
 
             pwd
