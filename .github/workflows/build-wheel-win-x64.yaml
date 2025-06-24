@@ -128,9 +128,7 @@ jobs:
       - name: Show files
         shell: bash
         run: |
-          unzip -l ./wheelhouse/*i686*.whl | grep -v espeak-ng-data
-          echo "----"
-          unzip -l ./wheelhouse/*x86_64*.whl | grep -v espeak-ng-data
+          unzip -l ./wheelhouse/*.whl | grep -v espeak-ng-data
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
