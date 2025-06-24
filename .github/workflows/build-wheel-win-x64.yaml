@@ -86,7 +86,7 @@ jobs:
           find . -name "ucd*dll"
 
           cmake --build . --config Release --target espeak-ng
-          cmake --build . --config Release --target ALL
+          cmake --build . --config Release --target install
 
           cd ../..
 
