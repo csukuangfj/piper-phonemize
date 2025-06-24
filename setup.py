@@ -34,7 +34,6 @@ ext_modules = [
         library_dirs=[str(_ESPEAK_DIR / "my-build/src/libespeak-ng"), str(_ESPEAK_DIR / "my-build/src/ucd-tools")],
         libraries=["espeak-ng", 'ucd'],
         extra_link_args = extra_link_args,
-        extra_compile_args=["-std=c++17"],
     ),
 ]
 
