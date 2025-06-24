@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - wheel
-      # - wheels-for-sherpa-onnx
+      - wheels-for-sherpa-onnx
 
     tags:
       - '*'
@@ -44,7 +44,7 @@ jobs:
             cmake \
               -DBUILD_ESPEAK_NG_TESTS=OFF \
               -DBUILD_ESPEAK_NG_EXE=OFF \
-              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_SHARED_LIBS=OFF \
               -DCMAKE_INSTALL_PREFIX=./install \
               -DUSE_MBROLA=OFF \
               -DUSE_LIBSONIC=OFF \
@@ -62,7 +62,7 @@ jobs:
 
             echo "----here----"
             find . -name "speak_lib.h"
-            find . -name "libespeak-ng.so*"
+            find . -name "libespeak-ng*"
             echo "----here-..-..--"
 
             curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
