@@ -27,6 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Show
+        shell: bash
+        run: |
+          cd src
+          file phoneme_ids.hpp
+          git diff .
+
       - name: Convert files
         shell: pwsh
         run: |
@@ -34,10 +41,11 @@ jobs:
           Get-Content .\phoneme_ids.hpp | Set-Content -Encoding utf8 phoneme_ids.hpp.bak
 
       - name: Rename
-        shell: shell
+        shell: bash
         run: |
           cd src
           mv phoneme_ids.hpp.bak phoneme_ids.hpp
+          file phoneme_ids.hpp
           git diff .
 
       - name: Setup Python ${{ matrix.python-version }}
