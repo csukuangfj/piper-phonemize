@@ -79,7 +79,9 @@ jobs:
             -DEXTRA_cmn=ON \
             -DEXTRA_ru=ON \
             ..
-          cmake --build . --config Release --target install
+          cmake --build . --config Release --target ucd
+          cmake --build . --config Release --target espeak-ng
+          cmake --build . --config Release --target ALL
 
           cd ../..
 
