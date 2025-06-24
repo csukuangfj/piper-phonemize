@@ -68,8 +68,10 @@ jobs:
           cmake \
             -DBUILD_ESPEAK_NG_TESTS=OFF \
             -DBUILD_ESPEAK_NG_EXE=OFF \
-            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_INSTALL_PREFIX=./install \
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON \
             -DUSE_MBROLA=OFF \
             -DUSE_LIBSONIC=OFF \
             -DUSE_LIBPCAUDIO=OFF \
@@ -84,7 +86,7 @@ jobs:
           find . -name "ucd*dll"
 
           cmake --build . --config Release --target espeak-ng
-          # cmake --build . --config Release --target ALL
+          cmake --build . --config Release --target ALL
 
           cd ../..
 
