@@ -44,7 +44,8 @@ jobs:
             cmake \
               -DBUILD_ESPEAK_NG_TESTS=OFF \
               -DBUILD_ESPEAK_NG_EXE=OFF \
-              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_INSTALL_PREFIX=./install \
               -DUSE_MBROLA=OFF \
               -DUSE_LIBSONIC=OFF \
@@ -81,6 +82,11 @@ jobs:
         shell: bash
         run: |
           ls -lh ./wheelhouse/
+
+      - name: Show files
+        shell: bash
+        run: |
+          unzip -l ./wheelhouse/*.whl | grep -v espeak-ng-data
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
