@@ -63,6 +63,7 @@ jobs:
             echo "----here----"
             find . -name "speak_lib.h"
             find . -name "libespeak-ng*"
+            find . -name "libucd*"
             echo "----here-..-..--"
 
             curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
@@ -85,9 +86,9 @@ jobs:
       - name: Show files
         shell: bash
         run: |
-          unzip -l ./wheelhouse/*i686*.whl
+          unzip -l ./wheelhouse/*i686*.whl | grep -v espeak-ng-data
           echo "----"
-          unzip -l ./wheelhouse/*x86_64*.whl
+          unzip -l ./wheelhouse/*x86_64*.whl | grep -v espeak-ng-data
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
