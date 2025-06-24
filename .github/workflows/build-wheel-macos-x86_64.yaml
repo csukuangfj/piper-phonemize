@@ -44,7 +44,8 @@ jobs:
             cmake \
               -DBUILD_ESPEAK_NG_TESTS=OFF \
               -DBUILD_ESPEAK_NG_EXE=OFF \
-              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_INSTALL_PREFIX=./install \
               -DUSE_MBROLA=OFF \
               -DUSE_LIBSONIC=OFF \
@@ -75,9 +76,9 @@ jobs:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "x86_64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_ENVIRONMENT: |
-            DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
-            LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
+          # CIBW_ENVIRONMENT: |
+          #   DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
+          #   LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
 
           # Don't repair macOS wheels
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
@@ -86,25 +87,6 @@ jobs:
         shell: bash
         run: |
           ls -lh ./wheelhouse/
-
-      - name: Remove extra files
-        shell: bash
-        run: |
-          cd ./wheelhouse/
-
-          ls -lh
-          filename=$(ls)
-          echo "filename is $filename"
-          mkdir t
-          cd t
-          unzip ../$filename
-          ls -lh piper_phonemize
-          rm -v piper_phonemize/*dylib*
-          zip -r $filename .
-          mv $filename ../
-          cd ..
-          rm -rf t
-          ls -lh
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
