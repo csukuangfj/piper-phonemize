@@ -1,59 +1,43 @@
 name: test
 
 on:
+  push:
+    branches:
+      - wheel
+      # - wheels-for-sherpa-onnx
+
+    tags:
+      - '*'
   workflow_dispatch:
-  pull_request:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test_linux:
-    name: "linux test"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
-      - name: build
-        run: |
-          docker buildx build . --platform linux/amd64,linux/arm64,linux/arm/v7
-  test_windows:
-    runs-on: windows-latest
-    name: "windows build: ${{ matrix.arch }}"
+  test:
+    name: ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        arch: [x64]
+        os: [ubuntu-latest, macos-latest, macos-13, ubuntu-22.04-arm]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
     steps:
-      - uses: actions/checkout@v3
-      - name: configure
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install piper-phonemize
+        shell: bash
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
+          pip install piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.html
+
+      - name: Test piper-phonemize
+        shell: bash
         run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: check
-        run: |
-          _install/piper-phonemize/bin/piper_phonemize_exe --help
-  test_mac:
-    name: "mac test: ${{ matrix.arch }}"
-    runs-on: macos-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64, aarch64]
-    steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: test
-        run: |
-          DYLD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
+          python3 -c "from piper_phonemize import phonemize_espeak; tokens_list = phonemize_espeak('how are you doing', 'en-us'); print(tokens_list)"
