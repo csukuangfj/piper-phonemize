@@ -44,6 +44,7 @@ jobs:
             cmake \
               -DBUILD_ESPEAK_NG_TESTS=OFF \
               -DBUILD_ESPEAK_NG_EXE=OFF \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DBUILD_SHARED_LIBS=OFF \
               -DCMAKE_INSTALL_PREFIX=./install \
               -DUSE_MBROLA=OFF \
