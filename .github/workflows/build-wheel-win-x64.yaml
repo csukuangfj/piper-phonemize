@@ -27,12 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show
-        shell: shell
-        run: |
-          cd src
-          file phoneme_ids.hpp
-
       - name: Convert files
         shell: pwsh
         run: |
@@ -44,7 +38,6 @@ jobs:
         run: |
           cd src
           mv phoneme_ids.hpp.bak phoneme_ids.hpp
-          file phoneme_ids.hpp
           git diff .
 
       - name: Setup Python ${{ matrix.python-version }}
