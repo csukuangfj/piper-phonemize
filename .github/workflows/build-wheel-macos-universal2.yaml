@@ -1,4 +1,4 @@
-name: build-wheels-macos-arm64
+name: build-wheels-macos-universal2
 
 on:
   push:
@@ -11,11 +11,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-macos-arm64-${{ github.ref }}
+  group: build-wheels-macos-universal2-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_macos_arm64:
+  build_wheels_macos_universal2:
     name: ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -42,6 +42,7 @@ jobs:
             cd my-build
 
             cmake \
+              -D CMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
               -DBUILD_ESPEAK_NG_TESTS=OFF \
               -DBUILD_ESPEAK_NG_EXE=OFF \
               -DBUILD_SHARED_LIBS=OFF \
@@ -64,30 +65,29 @@ jobs:
             echo "----here----"
             find . -name "speak_lib.h"
             find . -name "libespeak-ng*dylib*"
-            find . -name "libucd*dylib*"
             echo "----here-..-..--"
-            #  /Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/src/include/espeak/speak_lib.h
-            #  /Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng/libespeak-ng.dylib
+
+            curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+            tar xf espeak-ng-data.tar.bz2
+            rm espeak-ng-data.tar.bz2
+            mv espeak-ng-data ./piper_phonemize
+
+            ls -lh
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_ARCHS: "arm64"
+          CIBW_ARCHS: "universal2"
           CIBW_BUILD_VERBOSITY: 3
           # CIBW_ENVIRONMENT: |
           #   DYLD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
           #   LD_LIBRARY_PATH='/Users/runner/work/piper-phonemize/piper-phonemize/espeak-ng/my-build/src/libespeak-ng:/Users/runner/work/piper-phonemize/piper-phonemize/my-build/install/lib'
-          #
-          #  Don't repair macOS wheels
+
+          # Don't repair macOS wheels
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
 
       - name: Display wheels
         shell: bash
         run: |
           ls -lh ./wheelhouse/
-
-      - name: Show files
-        shell: bash
-        run: |
-          unzip -l ./wheelhouse/*.whl | grep -v espeak-ng-data
 
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
