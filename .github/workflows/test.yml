@@ -45,13 +45,13 @@ jobs:
           python3 -c "import os; from pathlib import Path; import piper_phonemize; os.system(f'ls -lh {Path(piper_phonemize.__file__).parent}')"
 
       - name: Test piper-phonemize
-        if: matrix.os != "windows-latest"
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           python3 -c "from piper_phonemize import phonemize_espeak; tokens_list = phonemize_espeak('how are you doing', 'en-us'); print(tokens_list)"
 
       - name: Test piper-phonemize
-        if: matrix.os == "windows-latest"
+        if: matrix.os == 'windows-latest'
         shell: cmd
         run: |
           chcp 65001
