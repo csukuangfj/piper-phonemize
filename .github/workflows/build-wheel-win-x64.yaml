@@ -97,6 +97,13 @@ jobs:
 
           ls -lh
 
+      - name: Show libs
+        shell: bash
+        run: |
+          find . -name "speak_lib.h"
+          find . -name "espeak-ng*lib"
+          find . -name "ucd*lib"
+
       - name: Build wheels
         shell: bash
         run: |
