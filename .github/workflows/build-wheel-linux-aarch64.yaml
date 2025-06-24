@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - wheel
-      - wheels-for-sherpa-onnx
+      # - wheels-for-sherpa-onnx
 
     tags:
       - '*'
