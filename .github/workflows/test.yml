@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-13, ubuntu-22.04-arm]
+        os: [ubuntu-latest, macos-latest, macos-13, ubuntu-22.04-arm, windows-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
@@ -34,7 +34,12 @@ jobs:
       - name: Install piper-phonemize
         shell: bash
         run: |
-          pip install piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.html
+          python3 -m pip install piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.html
+
+      - name: Show
+        shell: bash
+        run: |
+          python3 -c "import piper_phonemize; print(piper_phonemize.__file__)"
 
       - name: Test piper-phonemize
         shell: bash
