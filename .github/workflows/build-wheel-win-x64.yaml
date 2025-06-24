@@ -1,0 +1,136 @@
+name: build-wheels-win-x64
+
+on:
+  push:
+    branches:
+      - wheel
+      - wheels-for-sherpa-onnx
+
+    tags:
+      - '*'
+  workflow_dispatch:
+
+concurrency:
+  group: build-wheels-win-x64-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_wheels_win_x64:
+    name: ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build espeak-ng
+        shell: bash
+        run: |
+          echo "Install espeak-ng"
+          git clone https://github.com/csukuangfj/espeak-ng
+          cd espeak-ng
+          git fetch
+          git checkout sherpa-onnx
+          mkdir my-build
+          cd my-build
+
+          cmake \
+            -DBUILD_ESPEAK_NG_TESTS=OFF \
+            -DBUILD_ESPEAK_NG_EXE=OFF \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DUSE_MBROLA=OFF \
+            -DUSE_LIBSONIC=OFF \
+            -DUSE_LIBPCAUDIO=OFF \
+            -DUSE_KLATT=OFF \
+            -DUSE_SPEECHPLAYER=OFF \
+            -DESPEAK_COMPAT=OFF \
+            -DEXTRA_cmn=ON \
+            -DEXTRA_ru=ON \
+            ..
+          cmake --build . --config Release --target install
+
+          cd ../..
+
+          echo "----here----"
+          find . -name "speak_lib.h"
+          find . -name "espeak-ng*lib"
+          find . -name "ucd*lib"
+          echo "----here-..-..--"
+
+          curl -SL -O https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xf espeak-ng-data.tar.bz2
+          rm espeak-ng-data.tar.bz2
+          mv espeak-ng-data ./piper_phonemize
+
+          ls -lh
+
+      - name: Build wheels
+        shell: bash
+        run: |
+          pip install setuptools wheel
+
+          python3 setup.py bdist_wheel
+
+          ls -lh ./dist/
+
+          mv dist wheelhouse
+
+      - name: Display wheels
+        shell: bash
+        run: |
+          ls -lh ./wheelhouse/
+
+      - name: Show files
+        shell: bash
+        run: |
+          unzip -l ./wheelhouse/*i686*.whl | grep -v espeak-ng-data
+          echo "----"
+          unzip -l ./wheelhouse/*x86_64*.whl | grep -v espeak-ng-data
+
+      - name: Release to csukuangfj/piper-phonemize
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          file: wheelhouse/*.whl
+          overwrite: true
+          tag: 2025.06.23
+
+      - name: Publish to huggingface
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 20
+          timeout_seconds: 200
+          shell: bash
+          command: |
+            git config --global user.email "csukuangfj@gmail.com"
+            git config --global user.name "Fangjun Kuang"
+
+            rm -rf huggingface
+            export GIT_LFS_SKIP_SMUDGE=1
+
+            git clone https://huggingface.co/csukuangfj/piper-phonemize-wheels huggingface
+            cd huggingface
+            git lfs track "*.whl"
+            git fetch
+            git pull
+            git merge -m "merge remote" --ff origin main
+
+            cp -v ../wheelhouse/*.whl .
+
+            git status
+            git add .
+            git commit -m "add more wheels"
+            git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
