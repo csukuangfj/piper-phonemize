@@ -82,6 +82,13 @@ jobs:
         run: |
           ls -lh ./wheelhouse/
 
+      - name: Show files
+        shell: bash
+        run: |
+          unzip -l ./wheelhouse/*i686*.whl
+          echo "----"
+          unzip -l ./wheelhouse/*x86_64*.whl
+
       - name: Release to csukuangfj/piper-phonemize
         uses: svenstaro/upload-release-action@v2
         with:
