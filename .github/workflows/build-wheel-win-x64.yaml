@@ -44,7 +44,8 @@ jobs:
         shell: bash
         run: |
           cd src
-          mv phoneme_ids.hpp.bak phoneme_ids.hpp
+          file phoneme_ids.hpp phoneme_ids.hpp.bak
+          mv -v phoneme_ids.hpp.bak phoneme_ids.hpp
           file phoneme_ids.hpp
           git diff .
 
