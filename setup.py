@@ -1,3 +1,4 @@
+import distutils.sysconfig
 import platform
 from pathlib import Path
 
@@ -5,16 +6,22 @@ from pathlib import Path
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
+
+def is_windows():
+    return platform.system() == "Windows"
+
+
 extra_link_args = []
 
-if platform.system() == 'Darwin':
-    extra_link_args.append('-Wl,-rpath,' + 'piper_phonemize')
+if platform.system() == "Darwin":
+    extra_link_args.append("-Wl,-rpath," + "piper_phonemize")
 
 _DIR = Path(__file__).parent
 _ESPEAK_DIR = _DIR / "espeak-ng"
-print('_ESPEAK_DIR: ', _ESPEAK_DIR)
+print("_ESPEAK_DIR: ", _ESPEAK_DIR)
 
 import os
+
 os.system("pwd")
 os.system("ls -lh")
 os.system("ls -lh piper_phonemize; echo '---here---'")
@@ -36,11 +43,18 @@ ext_modules = [
             str(_ESPEAK_DIR / "my-build/src/ucd-tools"),
             str(_ESPEAK_DIR / "my-build/src/libespeak-ng/Release"),
             str(_ESPEAK_DIR / "my-build/src/ucd-tools/Release"),
-                      ],
-        libraries=["espeak-ng", 'ucd'],
-        extra_link_args = extra_link_args,
+        ],
+        libraries=["espeak-ng", "ucd"],
+        extra_link_args=extra_link_args,
     ),
 ]
+
+
+def get_binaries_to_install():
+    if not is_windows():
+        return None
+    return ["./espeak-ng.dll", "./ucd.dll"]
+
 
 setup(
     name="piper_phonemize",
@@ -61,4 +75,7 @@ setup(
     cmdclass={"build_ext": build_ext},
     zip_safe=False,
     python_requires=">=3.7",
+    data_files=[(distutils.sysconfig.get_python_lib(), get_binaries_to_install())]
+    if get_binaries_to_install()
+    else None,
 )

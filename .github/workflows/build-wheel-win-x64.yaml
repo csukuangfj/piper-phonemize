@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +108,12 @@ jobs:
           find . -name "speak_lib.h"
           find . -name "espeak-ng*lib"
           find . -name "ucd*lib"
+
+          cp -v ./espeak-ng/my-build/src/libespeak-ng/Release/espeak-ng.dll ./
+          cp -v ./espeak-ng/my-build/src/ucd-tools/Release/ucd.dll ./
+
+          echo "pwd: $PWD"
+          ls -lh
 
       - name: Build wheels
         shell: bash
