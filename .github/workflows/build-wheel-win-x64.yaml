@@ -38,7 +38,7 @@ jobs:
         shell: pwsh
         run: |
           cd src
-          Get-Content .\phoneme_ids.hpp | Set-Content -Encoding utf8 phoneme_ids.hpp.bak
+          Get-Content .\phoneme_ids.hpp | Set-Content -Encoding utf8BOM phoneme_ids.hpp.bak
 
       - name: Rename
         shell: bash
