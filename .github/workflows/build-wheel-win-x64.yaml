@@ -80,8 +80,11 @@ jobs:
             -DEXTRA_ru=ON \
             ..
           cmake --build . --config Release --target ucd
+          find . -name "ucd*lib"
+          find . -name "ucd*dll"
+
           cmake --build . --config Release --target espeak-ng
-          cmake --build . --config Release --target ALL
+          # cmake --build . --config Release --target ALL
 
           cd ../..
 
