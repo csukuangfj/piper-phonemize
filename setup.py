@@ -31,8 +31,8 @@ ext_modules = [
         ],
         define_macros=[("VERSION_INFO", __version__)],
         include_dirs=[str(_ESPEAK_DIR / "src/include")],
-        library_dirs=[str(_ESPEAK_DIR / "my-build/src/libespeak-ng")],
-        libraries=["espeak-ng"],
+        library_dirs=[str(_ESPEAK_DIR / "my-build/src/libespeak-ng"), str(_ESPEAK_DIR / "my-build/src/ucd-tools")],
+        libraries=["espeak-ng", 'ucd'],
         extra_link_args = extra_link_args,
     ),
 ]
