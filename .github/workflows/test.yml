@@ -39,6 +39,7 @@ jobs:
       - name: Show
         shell: bash
         run: |
+          rm -rf piper_phonemize
           python3 -c "import piper_phonemize; print(piper_phonemize.__file__)"
 
       - name: Test piper-phonemize
