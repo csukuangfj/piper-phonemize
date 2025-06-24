@@ -30,7 +30,7 @@ jobs:
       # see https://cibuildwheel.readthedocs.io/en/stable/changelog/
       # for a list of versions
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.0.0
         env:
           CIBW_BEFORE_BUILD: |
             echo "Install espeak-ng"

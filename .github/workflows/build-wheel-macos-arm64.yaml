@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13]
+        os: [macos-latest]
         python-version: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp13"]
 
     steps:
@@ -30,7 +30,7 @@ jobs:
       # see https://cibuildwheel.readthedocs.io/en/stable/changelog/
       # for a list of versions
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.0.0
         env:
           CIBW_BEFORE_BUILD: |
             echo "Install espeak-ng"
