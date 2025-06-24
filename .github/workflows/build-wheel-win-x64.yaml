@@ -78,7 +78,7 @@ jobs:
       - name: Build wheels
         shell: bash
         run: |
-          pip install setuptools wheel
+          pip install setuptools wheel pybind11
 
           python3 setup.py bdist_wheel
 
