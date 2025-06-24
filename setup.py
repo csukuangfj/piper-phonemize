@@ -1,4 +1,3 @@
-import distutils.sysconfig
 import platform
 from pathlib import Path
 
@@ -75,7 +74,5 @@ setup(
     cmdclass={"build_ext": build_ext},
     zip_safe=False,
     python_requires=">=3.7",
-    data_files=[(distutils.sysconfig.get_python_lib(), get_binaries_to_install())]
-    if get_binaries_to_install()
-    else None,
+    data_files=[("", get_binaries_to_install())] if get_binaries_to_install() else None,
 )
