@@ -118,7 +118,9 @@ install(
     PATTERN "*.h"
     PATTERN "*.hpp")
 
-# Dependencies
-install(
-    DIRECTORY ${ESPEAK_NG_DIR}/
-    DESTINATION ${CMAKE_INSTALL_PREFIX})
+if(EXISTS ${ESPEAK_NG_DIR})
+  # Dependencies
+  install(
+      DIRECTORY ${ESPEAK_NG_DIR}/
+      DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
