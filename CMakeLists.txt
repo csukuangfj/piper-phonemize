@@ -62,13 +62,15 @@ endif()
 
 if(NOT APPLE)
   set(PIPER_PHONEMIZE_RPATH_ORIGIN "$ORIGIN")
+  set(PIPER_PHONEMIZE_RPATH_ORIGIN_PARENT "$ORIGIN/../lib")
 else()
   set(PIPER_PHONEMIZE_RPATH_ORIGIN "@loader_path")
+  set(PIPER_PHONEMIZE_RPATH_ORIGIN_PARENT "@loader_path/../lib")
 endif()
 
 if(UNIX)
   set(CMAKE_INSTALL_RPATH ${PIPER_PHONEMIZE_RPATH_ORIGIN})
-  set(CMAKE_BUILD_RPATH ${PIPER_PHONEMIZE_RPATH_ORIGIN})
+  set(CMAKE_BUILD_RPATH "${PIPER_PHONEMIZE_RPATH_ORIGIN};${PIPER_PHONEMIZE_RPATH_ORIGIN_PARENT}")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -304,23 +306,59 @@ if(BUILD_SHARED_LIBS)
   endif()
 endif()
 
+# ---- CXX API library ----
+
+add_library(
+    piper_phonemize_cxx_api
+    src/cxx-api.cpp
+)
+
+target_compile_definitions(piper_phonemize_cxx_api
+  PRIVATE
+    PIPER_PHONEMIZE_BUILD_MAIN_LIB
+)
+
+target_link_libraries(piper_phonemize_cxx_api
+    piper_phonemize_core
+)
+
+set_target_properties(
+    piper_phonemize_cxx_api
+  PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+)
+
+if(ENABLE_PIPER_PHONEMIZE_CORE_SONAME)
+  set_target_properties(piper_phonemize_cxx_api PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+endif()
+
 # ---- Declare install targets ----
 
 include(GNUInstallDirs)
 
 install(
-    TARGETS piper_phonemize_core
+    TARGETS piper_phonemize_core piper_phonemize_cxx_api
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
-    FILES ${CMAKE_SOURCE_DIR}/src/c-api.h
+    FILES
+      ${CMAKE_SOURCE_DIR}/src/c-api.h
+      ${CMAKE_SOURCE_DIR}/src/cxx-api.h
     DESTINATION include/piper-phonemize)
 
-# ---- Test for C API ----
+# ---- Tests ----
 
 if(BUILD_PIPER_PHONEMIZE_CORE_TESTS)
   add_executable(test-c-api src/test-c-api.cpp)
   target_link_libraries(test-c-api piper_phonemize_core)
+
+  add_executable(test-cxx-api src/test-cxx-api.cpp)
+  target_link_libraries(test-cxx-api piper_phonemize_cxx_api)
 endif()

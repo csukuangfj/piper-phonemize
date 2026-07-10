@@ -5,6 +5,7 @@ on:
     branches:
       - api
       - c-api
+      - cxx-api
   workflow_dispatch:
 
 jobs:
@@ -42,7 +43,10 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
       - name: test c-api
         run: |
-          LD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-c-api espeak-ng-data
+          ./build/bin/test-c-api espeak-ng-data
+      - name: test cxx-api
+        run: |
+          ./build/bin/test-cxx-api espeak-ng-data
   test_windows:
     runs-on: windows-latest
     name: "windows build: ${{ matrix.arch }}"
@@ -68,6 +72,9 @@ jobs:
       - name: test c-api
         run: |
           .\build\bin\Release\test-c-api.exe espeak-ng-data
+      - name: test cxx-api
+        run: |
+          .\build\bin\Release\test-cxx-api.exe espeak-ng-data
   test_mac:
     name: "mac test: ${{ matrix.arch }}"
     runs-on: macos-latest
@@ -92,4 +99,7 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
       - name: test c-api
         run: |
-          DYLD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-c-api espeak-ng-data
+          ./build/bin/test-c-api espeak-ng-data
+      - name: test cxx-api
+        run: |
+          ./build/bin/test-cxx-api espeak-ng-data
