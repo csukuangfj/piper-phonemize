@@ -233,7 +233,6 @@ add_library(
     src/phoneme_ids.cpp
     src/shared.cpp
     src/c-api.cpp
-    src/cxx-api.cc
 )
 
 target_compile_definitions(piper_phonemize_core
@@ -305,12 +304,50 @@ if(BUILD_SHARED_LIBS)
   endif()
 endif()
 
+# ---- CXX API library ----
+
+add_library(
+    piper_phonemize_cxx_api
+    src/cxx-api.cc
+)
+
+target_link_libraries(piper_phonemize_cxx_api
+    piper_phonemize_core
+)
+
+set_target_properties(
+    piper_phonemize_cxx_api
+  PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+)
+
+if(ENABLE_PIPER_PHONEMIZE_CORE_SONAME)
+  set_target_properties(piper_phonemize_cxx_api PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+endif()
+
+if(BUILD_SHARED_LIBS)
+  if(ANDROID OR (UNIX AND NOT APPLE))
+    set_target_properties(piper_phonemize_cxx_api PROPERTIES
+      LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-cxx.lds"
+    )
+  elseif(APPLE)
+    set_target_properties(piper_phonemize_cxx_api PROPERTIES
+      LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-cxx.exp"
+    )
+  endif()
+endif()
+
 # ---- Declare install targets ----
 
 include(GNUInstallDirs)
 
 install(
-    TARGETS piper_phonemize_core
+    TARGETS piper_phonemize_core piper_phonemize_cxx_api
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -328,5 +365,5 @@ if(BUILD_PIPER_PHONEMIZE_CORE_TESTS)
   target_link_libraries(test-c-api piper_phonemize_core)
 
   add_executable(test-cxx-api src/test-cxx-api.cpp)
-  target_link_libraries(test-cxx-api piper_phonemize_core)
+  target_link_libraries(test-cxx-api piper_phonemize_cxx_api)
 endif()
