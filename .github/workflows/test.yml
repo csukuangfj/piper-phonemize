@@ -5,6 +5,7 @@ on:
     branches:
       - api
       - c-api
+      - cxx-api
   workflow_dispatch:
 
 jobs:
