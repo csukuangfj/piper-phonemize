@@ -8,8 +8,6 @@
  * This header provides a lightweight C++ interface on top of `c-api.h`. The
  * wrapper follows a few simple design rules:
  *
- * - Runtime handles are move-only RAII classes that automatically release the
- *   underlying C handle
  * - Result objects are copied into standard C++ containers so callers do not
  *   need to manage C-allocated memory manually
  * - The API mirrors the C API closely, while offering a more idiomatic C++
