@@ -1,0 +1,7 @@
+_PiperPhonemizeGetVersionStr
+_PiperPhonemizeInitialize
+_PiperPhonemizeText
+_PiperPhonemizeResultGetNumSentences
+_PiperPhonemizeResultGetNumPhonemes
+_PiperPhonemizeResultGetPhonemes
+_PiperPhonemizeDestroyResult
