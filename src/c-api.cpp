@@ -35,6 +35,10 @@ PiperPhonemizeResult *PiperPhonemizeText(const char *text, const char *voice) {
 
   auto *result = new PiperPhonemizeResult();
 
+  if (text[0] == '\0') {
+    return result;  // empty result with 0 sentences
+  }
+
   piper::eSpeakPhonemeConfig config;
   if (voice && voice[0] != '\0') {
     config.voice = voice;
