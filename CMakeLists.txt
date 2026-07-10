@@ -311,6 +311,11 @@ add_library(
     src/cxx-api.cc
 )
 
+target_compile_definitions(piper_phonemize_cxx_api
+  PRIVATE
+    PIPER_PHONEMIZE_BUILD_MAIN_LIB
+)
+
 target_link_libraries(piper_phonemize_cxx_api
     piper_phonemize_core
 )
