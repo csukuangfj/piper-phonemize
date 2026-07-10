@@ -52,7 +52,8 @@ static std::string PhonemesToString(const PiperPhonemizeResult *result,
     }                                                                    \
   } while (0)
 
-static void PrintResult(const PiperPhonemizeResult *result) {
+static void PrintResult(const char *text, const PiperPhonemizeResult *result) {
+  printf("  text: \"%s\"\n", text);
   int32_t num_sentences = PiperPhonemizeResultGetNumSentences(result);
   for (int32_t i = 0; i < num_sentences; ++i) {
     printf("    sentence %d: %s\n", i, PhonemesToString(result, i).c_str());
@@ -80,53 +81,54 @@ static void test_initialize(const char *data_dir) {
 static void test_english_basic() {
   printf("test_english_basic:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText("hello", "en-us");
+  const char *text1 = "hello";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text1, "en-us");
   CHECK(result != nullptr, "'hello' returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 1,
         "'hello' has at least 1 sentence");
-  PrintResult(result);
+  PrintResult(text1, result);
   PiperPhonemizeDestroyResult(result);
 
   // Multiple sentences
-  result = PiperPhonemizeText(
+  const char *text2 =
       "The quick brown fox jumps over the lazy dog. "
       "Pack my box with five dozen liquor jugs. "
-      "How vexingly quick daft zebras jump.",
-      "en-us");
+      "How vexingly quick daft zebras jump.";
+  result = PiperPhonemizeText(text2, "en-us");
   CHECK(result != nullptr, "multi-sentence English returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text2, result);
   PiperPhonemizeDestroyResult(result);
 
   // British English
-  result = PiperPhonemizeText(
+  const char *text3 =
       "The colour of the harbour is beautiful. "
-      "He organised the theatre programme.",
-      "en");
+      "He organised the theatre programme.";
+  result = PiperPhonemizeText(text3, "en");
   CHECK(result != nullptr, "British English returns non-null");
-  PrintResult(result);
+  PrintResult(text3, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_punctuation() {
   printf("test_punctuation:\n");
 
-  PiperPhonemizeResult *result =
-      PiperPhonemizeText("this, is: a; test.", "en-us");
+  const char *text1 = "this, is: a; test.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text1, "en-us");
   CHECK(result != nullptr, "punctuation returns non-null");
-  PrintResult(result);
+  PrintResult(text1, result);
   PiperPhonemizeDestroyResult(result);
 
-  result = PiperPhonemizeText(
+  const char *text2 =
       "Hello! How are you? I'm fine, thanks. "
       "The price is $3.50; not bad, right? "
-      "Yes: it's a great deal!",
-      "en-us");
+      "Yes: it's a great deal!";
+  result = PiperPhonemizeText(text2, "en-us");
   CHECK(result != nullptr, "mixed punctuation returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "multiple sentences split on . ? !");
-  PrintResult(result);
+  PrintResult(text2, result);
   PiperPhonemizeDestroyResult(result);
 }
 
@@ -134,12 +136,12 @@ static void test_sentence_splitting() {
   printf("test_sentence_splitting:\n");
 
   // Capitalization is required for espeak to split sentences
-  PiperPhonemizeResult *result =
-      PiperPhonemizeText("Test one. Test two. Test three.", "en-us");
+  const char *text = "Test one. Test two. Test three.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "en-us");
   CHECK(result != nullptr, "3 sentences returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) == 3,
         "3 sentences expected");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
@@ -147,92 +149,92 @@ static void test_german() {
   printf("test_german:\n");
 
   // "licht" has the ç phoneme (decomposed into two codepoints)
-  PiperPhonemizeResult *result = PiperPhonemizeText("licht!", "de");
+  const char *text1 = "licht!";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text1, "de");
   CHECK(result != nullptr, "German 'licht!' returns non-null");
-  PrintResult(result);
+  PrintResult(text1, result);
   PiperPhonemizeDestroyResult(result);
 
-  result = PiperPhonemizeText(
+  const char *text2 =
       "Guten Morgen, wie geht es Ihnen? "
       "Danke, mir geht es sehr gut. "
-      "Das Wetter ist heute schön!",
-      "de");
+      "Das Wetter ist heute schön!";
+  result = PiperPhonemizeText(text2, "de");
   CHECK(result != nullptr, "German multi-sentence returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "German has at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text2, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_french() {
   printf("test_french:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "Bonjour, comment allez-vous? "
       "Je vais très bien, merci! "
-      "Le français est une belle langue.",
-      "fr");
+      "Le français est une belle langue.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "fr");
   CHECK(result != nullptr, "French multi-sentence returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "French has at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_spanish() {
   printf("test_spanish:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "Buenos días, ¿cómo estás? "
       "Muy bien, gracias! "
-      "El español es un idioma muy bonito.",
-      "es");
+      "El español es un idioma muy bonito.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "es");
   CHECK(result != nullptr, "Spanish multi-sentence returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "Spanish has at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_chinese_pinyin() {
   printf("test_chinese_pinyin:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
-      "你好世界。今天天气很好。我很高兴认识你。",
-      "cmn");
+  const char *text = "你好世界。今天天气很好。我很高兴认识你。";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "cmn");
   CHECK(result != nullptr, "Chinese multi-sentence returns non-null");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_russian() {
   printf("test_russian:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "Привет, мир! "
       "Как у тебя дела? "
-      "Сегодня хорошая погода.",
-      "ru");
+      "Сегодня хорошая погода.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "ru");
   CHECK(result != nullptr, "Russian multi-sentence returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "Russian has at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
 static void test_numbers() {
   printf("test_numbers:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "I have 42 apples and 3.14 pies. "
       "The year is 2025. "
       "Call me at 555-1234. "
-      "The price is $9.99!",
-      "en-us");
+      "The price is $9.99!";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "en-us");
   CHECK(result != nullptr, "numbers in text returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 4,
         "numbers text has at least 4 sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
@@ -240,15 +242,15 @@ static void test_special_characters() {
   printf("test_special_characters:\n");
 
   // Contractions and hyphenated words
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "I can't believe it! Don't you agree? "
       "The well-known scientist won't attend. "
-      "She said: 'It's a twenty-one day trip.'",
-      "en-us");
+      "She said: 'It's a twenty-one day trip.'";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "en-us");
   CHECK(result != nullptr, "contractions and hyphens returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "special chars has at least 3 sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
@@ -269,16 +271,16 @@ static void test_empty_and_whitespace() {
 static void test_long_text() {
   printf("test_long_text:\n");
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(
+  const char *text =
       "In the beginning God created the heaven and the earth. "
       "And the earth was without form, and void; and darkness was upon "
       "the face of the deep. And the Spirit of God moved upon the face "
-      "of the waters. And God said, Let there be light: and there was light.",
-      "en-us");
+      "of the waters. And God said, Let there be light: and there was light.";
+  PiperPhonemizeResult *result = PiperPhonemizeText(text, "en-us");
   CHECK(result != nullptr, "long text returns non-null");
   CHECK(PiperPhonemizeResultGetNumSentences(result) >= 3,
         "long text has multiple sentences");
-  PrintResult(result);
+  PrintResult(text, result);
   PiperPhonemizeDestroyResult(result);
 }
 
