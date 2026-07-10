@@ -233,6 +233,7 @@ add_library(
     src/phoneme_ids.cpp
     src/shared.cpp
     src/c-api.cpp
+    src/cxx-api.cc
 )
 
 target_compile_definitions(piper_phonemize_core
@@ -315,12 +316,17 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
-    FILES ${CMAKE_SOURCE_DIR}/src/c-api.h
+    FILES
+      ${CMAKE_SOURCE_DIR}/src/c-api.h
+      ${CMAKE_SOURCE_DIR}/src/cxx-api.h
     DESTINATION include/piper-phonemize)
 
-# ---- Test for C API ----
+# ---- Tests ----
 
 if(BUILD_PIPER_PHONEMIZE_CORE_TESTS)
   add_executable(test-c-api src/test-c-api.cpp)
   target_link_libraries(test-c-api piper_phonemize_core)
+
+  add_executable(test-cxx-api src/test-cxx-api.cpp)
+  target_link_libraries(test-cxx-api piper_phonemize_core)
 endif()
