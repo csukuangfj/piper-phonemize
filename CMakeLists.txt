@@ -310,7 +310,7 @@ endif()
 
 add_library(
     piper_phonemize_cxx_api
-    src/cxx-api.cc
+    src/cxx-api.cpp
 )
 
 target_compile_definitions(piper_phonemize_cxx_api
