@@ -43,10 +43,10 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
       - name: test c-api
         run: |
-          LD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-c-api espeak-ng-data
+          ./build/bin/test-c-api espeak-ng-data
       - name: test cxx-api
         run: |
-          LD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-cxx-api espeak-ng-data
+          ./build/bin/test-cxx-api espeak-ng-data
   test_windows:
     runs-on: windows-latest
     name: "windows build: ${{ matrix.arch }}"
@@ -99,7 +99,7 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
       - name: test c-api
         run: |
-          DYLD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-c-api espeak-ng-data
+          ./build/bin/test-c-api espeak-ng-data
       - name: test cxx-api
         run: |
-          DYLD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-cxx-api espeak-ng-data
+          ./build/bin/test-cxx-api espeak-ng-data
