@@ -9,7 +9,7 @@ jobs:
     name: "linux test"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
       - name: build
@@ -23,19 +23,23 @@ jobs:
       matrix:
         arch: [x64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: configure
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=ON
       - name: build
         run: |
           cmake --build build --config Release
       - name: install
         run: |
           cmake --install build
-      - name: check
+      - name: Download espeak-ng-data
         run: |
-          _install/piper-phonemize/bin/piper_phonemize_exe --help
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+      - name: test c-api
+        run: |
+          .\build\bin\Release\test-c-api.exe espeak-ng-data
   test_mac:
     name: "mac test: ${{ matrix.arch }}"
     runs-on: macos-latest
@@ -44,16 +48,20 @@ jobs:
       matrix:
         arch: [x64, aarch64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: configure
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=ON
       - name: build
         run: |
           cmake --build build --config Release
       - name: install
         run: |
           cmake --install build
-      - name: test
+      - name: Download espeak-ng-data
         run: |
-          DYLD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+      - name: test c-api
+        run: |
+          DYLD_LIBRARY_PATH=$PWD/build/lib ./build/bin/test-c-api espeak-ng-data

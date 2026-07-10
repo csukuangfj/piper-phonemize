@@ -232,7 +232,20 @@ add_library(
     src/phonemize.cpp
     src/phoneme_ids.cpp
     src/shared.cpp
+    src/c-api.cpp
 )
+
+target_compile_definitions(piper_phonemize_core
+  PRIVATE
+    PIPER_PHONEMIZE_BUILD_MAIN_LIB
+)
+
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(piper_phonemize_core
+    PUBLIC
+      PIPER_PHONEMIZE_BUILD_SHARED_LIBS
+  )
+endif()
 
 set_target_properties(
     piper_phonemize_core
@@ -277,7 +290,19 @@ if(ANDROID_NDK)
   target_link_libraries(piper_phonemize_core android log)
 endif()
 
-target_compile_features(piper_phonemize_core PUBLIC cxx_std_17)
+target_compile_features(piper_phonemize_core PUBLIC cxx_std_11)
+
+if(BUILD_SHARED_LIBS)
+  if(ANDROID OR (UNIX AND NOT APPLE))
+    set_target_properties(piper_phonemize_core PROPERTIES
+      LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-c.lds"
+    )
+  elseif(APPLE)
+    set_target_properties(piper_phonemize_core PROPERTIES
+      LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-c.exp"
+    )
+  endif()
+endif()
 
 # ---- Declare install targets ----
 
@@ -290,8 +315,12 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/src/
-    DESTINATION include/piper-phonemize
-    FILES_MATCHING
-    PATTERN "*.h"
-    PATTERN "*.hpp")
+    FILES ${CMAKE_SOURCE_DIR}/src/c-api.h
+    DESTINATION include/piper-phonemize)
+
+# ---- Test for C API ----
+
+if(BUILD_PIPER_PHONEMIZE_CORE_TESTS)
+  add_executable(test-c-api src/test-c-api.cpp)
+  target_link_libraries(test-c-api piper_phonemize_core)
+endif()
