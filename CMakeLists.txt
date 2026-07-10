@@ -335,18 +335,6 @@ if(ENABLE_PIPER_PHONEMIZE_CORE_SONAME)
   )
 endif()
 
-if(BUILD_SHARED_LIBS)
-  if(ANDROID OR (UNIX AND NOT APPLE))
-    set_target_properties(piper_phonemize_cxx_api PROPERTIES
-      LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-cxx.lds"
-    )
-  elseif(APPLE)
-    set_target_properties(piper_phonemize_cxx_api PROPERTIES
-      LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/src/piper-phonemize-symbols-cxx.exp"
-    )
-  endif()
-endif()
-
 # ---- Declare install targets ----
 
 include(GNUInstallDirs)
