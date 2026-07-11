@@ -229,6 +229,8 @@ function basic() {
 
   cd piper-phonemize-go
 
+  local ver="v$PIPER_PHONEMIZE_VERSION"
+
   # Create go.mod
   cat > go.mod << GOMOD
 module github.com/csukuangfj/piper-phonemize-go
