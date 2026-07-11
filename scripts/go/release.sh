@@ -85,6 +85,9 @@ function linux() {
   cp -v ./_internal/c-api.h ./piper-phonemize-go-linux/
   cp -v ./build_linux_*.go ./piper-phonemize-go-linux/
 
+  # Create lib directories
+  mkdir -p piper-phonemize-go-linux/lib/{x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,arm-unknown-linux-gnueabihf}
+
   # Build for x86_64
   build_libs linux-x86_64 "-DCMAKE_SYSTEM_NAME=Linux"
   dst=$(realpath piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu)
@@ -128,6 +131,9 @@ function osx() {
   cp -v ./_internal/c-api.h ./piper-phonemize-go-macos/
   cp -v ./build_darwin_*.go ./piper-phonemize-go-macos/
 
+  # Create lib directories
+  mkdir -p piper-phonemize-go-macos/lib/{x86_64-apple-darwin,aarch64-apple-darwin}
+
   # Build for x86_64
   build_libs osx-x86_64 "-DCMAKE_OSX_ARCHITECTURES=x86_64"
   dst=$(realpath piper-phonemize-go-macos/lib/x86_64-apple-darwin/)
@@ -160,6 +166,9 @@ function windows() {
   cp -v ./piper_phonemize.go ./piper-phonemize-go-windows/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-windows/
   cp -v ./build_windows_*.go ./piper-phonemize-go-windows/
+
+  # Create lib directories
+  mkdir -p piper-phonemize-go-windows/lib/{x86_64-pc-windows-gnu,i686-pc-windows-gnu}
 
   # Windows cross-compilation from Linux using mingw
   if command -v x86_64-w64-mingw32-gcc &> /dev/null; then
