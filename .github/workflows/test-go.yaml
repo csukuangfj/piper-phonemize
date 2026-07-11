@@ -30,7 +30,8 @@ jobs:
         run: |
           cd scripts/go/_internal
           mkdir -p lib/x86_64-unknown-linux-gnu
-          cp -v ../../build/lib/libpiper_phonemize* lib/x86_64-unknown-linux-gnu/
+          ls -la $GITHUB_WORKSPACE/build/lib/
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/x86_64-unknown-linux-gnu/
           export LD_LIBRARY_PATH=$PWD/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
           cat > test.go << 'EOF'
           package main
@@ -91,7 +92,7 @@ jobs:
         run: |
           cd scripts/go/_internal
           mkdir -p lib/aarch64-apple-darwin
-          cp -v ../../build/lib/libpiper_phonemize* lib/aarch64-apple-darwin/
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/aarch64-apple-darwin/
           export DYLD_LIBRARY_PATH=$PWD/lib/aarch64-apple-darwin:$DYLD_LIBRARY_PATH
           cat > test.go << 'EOF'
           package main
