@@ -15,16 +15,15 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Install espeak-ng
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y espeak-ng
-
       - name: Build piper-phonemize
         run: |
           cmake -Bbuild -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release -j$(nproc)
-          ls -la build/lib/
+
+      - name: Download espeak-ng-data
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
 
       - name: Test Go API
         run: |
@@ -48,7 +47,7 @@ jobs:
           func main() {
           	fmt.Println("Version:", pp.GetVersionStr())
 
-          	dataDir := "/usr/share/espeak-ng-data"
+          	dataDir := "$GITHUB_WORKSPACE/espeak-ng-data"
           	if len(os.Args) > 1 {
           		dataDir = os.Args[1]
           	}
