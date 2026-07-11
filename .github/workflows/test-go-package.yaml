@@ -28,7 +28,7 @@ jobs:
 
           import (
           	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
+          	pp "github.com/csukuangfj/piper-phonemize-go/v2/piper_phonemize"
           )
 
           func main() {
@@ -75,7 +75,7 @@ jobs:
 
           import (
           	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
+          	pp "github.com/csukuangfj/piper-phonemize-go/v2/piper_phonemize"
           )
 
           func main() {

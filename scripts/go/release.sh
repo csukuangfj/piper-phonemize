@@ -83,8 +83,14 @@ function linux() {
 
   cp -v ./piper_phonemize.go ./piper-phonemize-go-linux/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-linux/
-  cp -v ./_internal/go.mod ./piper-phonemize-go-linux/
   cp -v ./build_linux_*.go ./piper-phonemize-go-linux/
+
+  # Create go.mod with v2 module path
+  cat > piper-phonemize-go-linux/go.mod << 'GOMOD'
+module github.com/csukuangfj/piper-phonemize-go-linux/v2
+
+go 1.17
+GOMOD
 
   # Create lib directories
   mkdir -p piper-phonemize-go-linux/lib/{x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,arm-unknown-linux-gnueabihf}
@@ -120,7 +126,7 @@ function linux() {
   git tag v$PIPER_PHONEMIZE_VERSION && \
   git push origin v$PIPER_PHONEMIZE_VERSION || true
   cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-linux" "v$PIPER_PHONEMIZE_VERSION"
+  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-linux/v2" "v$PIPER_PHONEMIZE_VERSION"
   rm -rf piper-phonemize-go-linux
 }
 
@@ -130,8 +136,14 @@ function osx() {
   rm -v ./piper-phonemize-go-macos/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-macos/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-macos/
-  cp -v ./_internal/go.mod ./piper-phonemize-go-macos/
   cp -v ./build_darwin_*.go ./piper-phonemize-go-macos/
+
+  # Create go.mod with v2 module path
+  cat > piper-phonemize-go-macos/go.mod << 'GOMOD'
+module github.com/csukuangfj/piper-phonemize-go-macos/v2
+
+go 1.17
+GOMOD
 
   # Create lib directories
   mkdir -p piper-phonemize-go-macos/lib/{x86_64-apple-darwin,aarch64-apple-darwin}
@@ -157,7 +169,7 @@ function osx() {
   git tag v$PIPER_PHONEMIZE_VERSION && \
   git push origin v$PIPER_PHONEMIZE_VERSION || true
   cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-macos" "v$PIPER_PHONEMIZE_VERSION"
+  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-macos/v2" "v$PIPER_PHONEMIZE_VERSION"
   rm -rf piper-phonemize-go-macos
 }
 
@@ -167,8 +179,14 @@ function windows() {
   rm -v ./piper-phonemize-go-windows/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-windows/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-windows/
-  cp -v ./_internal/go.mod ./piper-phonemize-go-windows/
   cp -v ./build_windows_*.go ./piper-phonemize-go-windows/
+
+  # Create go.mod with v2 module path
+  cat > piper-phonemize-go-windows/go.mod << 'GOMOD'
+module github.com/csukuangfj/piper-phonemize-go-windows/v2
+
+go 1.17
+GOMOD
 
   # Create lib directories
   mkdir -p piper-phonemize-go-windows/lib/{x86_64-pc-windows-gnu,i686-pc-windows-gnu}
@@ -199,7 +217,7 @@ function windows() {
   git tag v$PIPER_PHONEMIZE_VERSION && \
   git push origin v$PIPER_PHONEMIZE_VERSION || true
   cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-windows" "v$PIPER_PHONEMIZE_VERSION"
+  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-windows/v2" "v$PIPER_PHONEMIZE_VERSION"
   rm -rf piper-phonemize-go-windows
 }
 
@@ -211,27 +229,18 @@ function basic() {
 
   cd piper-phonemize-go
 
-  # Create go.mod if it doesn't exist (first release)
-  if [ ! -f go.mod ]; then
-    cat > go.mod << 'GOMOD'
-module github.com/csukuangfj/piper-phonemize-go
+  # Create go.mod with v2 module path
+  cat > go.mod << GOMOD
+module github.com/csukuangfj/piper-phonemize-go/v2
 
 go 1.17
 
 require (
-	github.com/csukuangfj/piper-phonemize-go-linux v0.0.0
-	github.com/csukuangfj/piper-phonemize-go-macos v0.0.0
-	github.com/csukuangfj/piper-phonemize-go-windows v0.0.0
+	github.com/csukuangfj/piper-phonemize-go-linux/v2 v$PIPER_PHONEMIZE_VERSION
+	github.com/csukuangfj/piper-phonemize-go-macos/v2 v$PIPER_PHONEMIZE_VERSION
+	github.com/csukuangfj/piper-phonemize-go-windows/v2 v$PIPER_PHONEMIZE_VERSION
 )
 GOMOD
-  fi
-
-  local ver="v$PIPER_PHONEMIZE_VERSION"
-  sed -i.bak \
-    -e "s|github.com/csukuangfj/piper-phonemize-go-linux .*|github.com/csukuangfj/piper-phonemize-go-linux $ver|" \
-    -e "s|github.com/csukuangfj/piper-phonemize-go-macos .*|github.com/csukuangfj/piper-phonemize-go-macos $ver|" \
-    -e "s|github.com/csukuangfj/piper-phonemize-go-windows .*|github.com/csukuangfj/piper-phonemize-go-windows $ver|" \
-    go.mod
   rm -f go.mod.bak
 
   echo "--- Updated go.mod ---"
@@ -240,7 +249,7 @@ GOMOD
 
   # Wait for the Go module proxy to index all three platform packages
   local pkg
-  for pkg in piper-phonemize-go-linux piper-phonemize-go-macos piper-phonemize-go-windows; do
+  for pkg in piper-phonemize-go-linux/v2 piper-phonemize-go-macos/v2 piper-phonemize-go-windows/v2; do
     wait_for_go_proxy "github.com/csukuangfj/$pkg" "$ver"
   done
 
