@@ -19,7 +19,7 @@ os.system("pwd")
 os.system("ls -lh")
 os.system("ls -lh piper_phonemize")
 
-__version__ = "2.0.0"
+__version__ = "1.4.0"
 
 ext_modules = [
     Pybind11Extension(
