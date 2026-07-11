@@ -71,6 +71,7 @@ jobs:
           }
           EOF
           go mod edit -replace piper_phonemize=$GITHUB_WORKSPACE/scripts/go/_internal
+          go get piper_phonemize
           go run main.go
 
   test-go-macos:
@@ -136,4 +137,5 @@ jobs:
           }
           EOF
           go mod edit -replace piper_phonemize=$GITHUB_WORKSPACE/scripts/go/_internal
+          go get piper_phonemize
           go run main.go
