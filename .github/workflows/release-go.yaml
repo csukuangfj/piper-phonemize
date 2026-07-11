@@ -1,0 +1,50 @@
+name: release-go
+
+on:
+  push:
+    branches:
+      - release
+      - release-go
+      - go-api
+  workflow_dispatch:
+
+jobs:
+  release-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential python3 python3-pip
+          pip3 install jinja2
+
+      - name: Install cross-compilation toolchains
+        run: |
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+            gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 \
+            gcc-mingw-w64-i686 g++-mingw-w64-i686
+
+      - name: Set up SSH key
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MY_GITHUB_SSH_KEY }}" > ~/.ssh/github
+          chmod 600 ~/.ssh/github
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add ~/.ssh/github
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          cat scripts/go/ssh_config >> ~/.ssh/config
+
+      - name: Release Go packages
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd scripts/go
+          bash release.sh
