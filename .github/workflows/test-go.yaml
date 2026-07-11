@@ -35,7 +35,7 @@ jobs:
           mkdir -p /tmp/test-go-app
           cd /tmp/test-go-app
           go mod init test-go-app
-          cat > main.go << 'EOF'
+          cat > main.go << EOF
           package main
 
           import (
@@ -101,7 +101,7 @@ jobs:
           mkdir -p /tmp/test-go-app
           cd /tmp/test-go-app
           go mod init test-go-app
-          cat > main.go << 'EOF'
+          cat > main.go << EOF
           package main
 
           import (
