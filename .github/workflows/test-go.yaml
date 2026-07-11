@@ -22,15 +22,15 @@ jobs:
 
       - name: Build piper-phonemize
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install -DBUILD_SHARED_LIBS=ON
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release -j$(nproc)
-          cmake --install build
+          ls -la build/lib/
 
       - name: Test Go API
         run: |
           cd scripts/go/_internal
           mkdir -p lib/x86_64-unknown-linux-gnu
-          cp -v ../../_install/lib/libpiper_phonemize* lib/x86_64-unknown-linux-gnu/
+          cp -v ../../build/lib/libpiper_phonemize* lib/x86_64-unknown-linux-gnu/
           export LD_LIBRARY_PATH=$PWD/lib/x86_64-unknown-linux-gnu:$LD_LIBRARY_PATH
           cat > test.go << 'EOF'
           package main
@@ -78,9 +78,9 @@ jobs:
 
       - name: Build piper-phonemize
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install -DBUILD_SHARED_LIBS=ON
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
           cmake --build build --config Release
-          cmake --install build
+          ls -la build/lib/
 
       - name: Download espeak-ng-data
         run: |
@@ -91,7 +91,7 @@ jobs:
         run: |
           cd scripts/go/_internal
           mkdir -p lib/aarch64-apple-darwin
-          cp -v ../../_install/lib/libpiper_phonemize* lib/aarch64-apple-darwin/
+          cp -v ../../build/lib/libpiper_phonemize* lib/aarch64-apple-darwin/
           export DYLD_LIBRARY_PATH=$PWD/lib/aarch64-apple-darwin:$DYLD_LIBRARY_PATH
           cat > test.go << 'EOF'
           package main
