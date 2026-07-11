@@ -208,6 +208,21 @@ function basic() {
 
   cd piper-phonemize-go
 
+  # Create go.mod if it doesn't exist (first release)
+  if [ ! -f go.mod ]; then
+    cat > go.mod << 'GOMOD'
+module github.com/csukuangfj/piper-phonemize-go
+
+go 1.17
+
+require (
+	github.com/csukuangfj/piper-phonemize-go-linux v0.0.0
+	github.com/csukuangfj/piper-phonemize-go-macos v0.0.0
+	github.com/csukuangfj/piper-phonemize-go-windows v0.0.0
+)
+GOMOD
+  fi
+
   local ver="v$PIPER_PHONEMIZE_VERSION"
   sed -i.bak \
     -e "s|github.com/csukuangfj/piper-phonemize-go-linux .*|github.com/csukuangfj/piper-phonemize-go-linux $ver|" \
