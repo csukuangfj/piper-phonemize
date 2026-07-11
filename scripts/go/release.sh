@@ -83,6 +83,7 @@ function linux() {
 
   cp -v ./piper_phonemize.go ./piper-phonemize-go-linux/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-linux/
+  cp -v ./_internal/go.mod ./piper-phonemize-go-linux/
   cp -v ./build_linux_*.go ./piper-phonemize-go-linux/
 
   # Create lib directories
@@ -129,6 +130,7 @@ function osx() {
   rm -v ./piper-phonemize-go-macos/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-macos/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-macos/
+  cp -v ./_internal/go.mod ./piper-phonemize-go-macos/
   cp -v ./build_darwin_*.go ./piper-phonemize-go-macos/
 
   # Create lib directories
@@ -165,6 +167,7 @@ function windows() {
   rm -v ./piper-phonemize-go-windows/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-windows/
   cp -v ./_internal/c-api.h ./piper-phonemize-go-windows/
+  cp -v ./_internal/go.mod ./piper-phonemize-go-windows/
   cp -v ./build_windows_*.go ./piper-phonemize-go-windows/
 
   # Create lib directories
