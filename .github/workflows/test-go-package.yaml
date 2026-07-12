@@ -7,17 +7,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-go-package-linux:
+  test-go-package-linux-x64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
 
-      - name: Install espeak-ng
+      - name: Download espeak-ng-data
         run: |
-          sudo apt-get update
-          sudo apt-get install -y espeak-ng
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
 
       - name: Test released Go package
         run: |
@@ -34,7 +34,7 @@ jobs:
           func main() {
           	fmt.Println("Version:", pp.GetVersionStr())
 
-          	ret := pp.Initialize("/usr/share/espeak-ng-data")
+          	ret := pp.Initialize("./espeak-ng-data")
           	fmt.Println("Initialize:", ret)
 
           	result := pp.Phonemize("hello world", "en-us")
@@ -54,8 +54,55 @@ jobs:
           go mod tidy
           go run main.go
 
-  test-go-package-macos:
+  test-go-package-macos-arm64:
     runs-on: macos-latest
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Download espeak-ng-data
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+
+      - name: Test released Go package
+        run: |
+          mkdir test-app && cd test-app
+          go mod init test-app
+          cat > main.go << 'EOF'
+          package main
+
+          import (
+          	"fmt"
+          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
+          )
+
+          func main() {
+          	fmt.Println("Version:", pp.GetVersionStr())
+
+          	ret := pp.Initialize("./espeak-ng-data")
+          	fmt.Println("Initialize:", ret)
+
+          	result := pp.Phonemize("hello world", "en-us")
+          	if result == nil {
+          		fmt.Println("Phonemize returned nil")
+          		return
+          	}
+          	defer pp.DeletePhonemizeResult(result)
+
+          	fmt.Println("Sentences:", result.GetNumSentences())
+          	for i := 0; i < result.GetNumSentences(); i++ {
+          		phonemes := result.GetPhonemes(i)
+          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
+          	}
+          }
+          EOF
+          go mod tidy
+          go run main.go
+
+  test-go-package-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/setup-go@v5
         with:
