@@ -163,7 +163,55 @@ jobs:
           sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
-  test-go-windows:
+  test-go-linux-armv7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm
+
+      - name: Build and test Go API (armv7)
+        run: |
+          docker run --rm --platform linux/arm/v7 \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            arm32v7/debian:bullseye \
+            bash -c '
+              set -ex
+              apt-get update
+              apt-get install -y cmake build-essential curl git golang-go ca-certificates
+
+              # Download espeak-ng-data
+              curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+              tar xvf espeak-ng-data.tar.bz2
+
+              # Build piper-phonemize
+              cmake -Bbuild -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+              cmake --build build --config Release -j$(nproc)
+
+              # Set up Go test
+              cd scripts/go/_internal
+              mkdir -p lib/arm-unknown-linux-gnueabihf
+              cp -v /workspace/build/lib/libpiper_phonemize* lib/arm-unknown-linux-gnueabihf/
+
+              mkdir -p /tmp/test-go-app
+              cp /workspace/go-api-examples/main.go /tmp/test-go-app/
+              cd /tmp/test-go-app
+              cat > go.mod << EOF
+              module test-go-app
+
+              go 1.17
+
+              require piper_phonemize v0.0.0
+
+              replace piper_phonemize => /workspace/scripts/go/_internal
+              EOF
+              sed -i "s|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g" main.go
+              go run main.go /workspace/espeak-ng-data
+            '
+
+  test-go-windows-x64:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -190,6 +238,49 @@ jobs:
           find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
           ls -la lib/x86_64-pc-windows-gnu/
           export PATH=$PWD/lib/x86_64-pc-windows-gnu:$PATH
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+
+  test-go-windows-x86:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize (Win32)
+        run: |
+          cmake -Bbuild -A Win32 -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release
+
+      - name: Download espeak-ng-data
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+
+      - name: Test Go API
+        shell: bash
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/i686-pc-windows-gnu
+          find $GITHUB_WORKSPACE/build -name "*.dll" -exec cp -v {} lib/i686-pc-windows-gnu/ \;
+          find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/i686-pc-windows-gnu/ \;
+          ls -la lib/i686-pc-windows-gnu/
+          export PATH=$PWD/lib/i686-pc-windows-gnu:$PATH
 
           mkdir -p /tmp/test-go-app
           cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
