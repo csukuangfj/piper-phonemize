@@ -151,8 +151,8 @@ jobs:
           cd scripts/go/_internal
           mkdir -p lib/x86_64-pc-windows-gnu
           # Copy DLLs and import libraries (.lib)
-          cp -v $GITHUB_WORKSPACE/build/bin/Release/*.dll lib/x86_64-pc-windows-gnu/ 2>/dev/null || true
-          cp -v $GITHUB_WORKSPACE/build/lib/Release/*.lib lib/x86_64-pc-windows-gnu/ 2>/dev/null || true
+          find $GITHUB_WORKSPACE/build -name "*.dll" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
+          find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
           ls -la lib/x86_64-pc-windows-gnu/
 
           cd $GITHUB_WORKSPACE/go-api-examples
