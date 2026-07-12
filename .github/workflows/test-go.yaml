@@ -154,6 +154,7 @@ jobs:
           find $GITHUB_WORKSPACE/build -name "*.dll" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
           find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
           ls -la lib/x86_64-pc-windows-gnu/
+          export PATH=$PWD/lib/x86_64-pc-windows-gnu:$PATH
 
           cd $GITHUB_WORKSPACE/go-api-examples
           go mod init go-api-examples
