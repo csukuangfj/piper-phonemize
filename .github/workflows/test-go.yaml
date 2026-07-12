@@ -150,8 +150,9 @@ jobs:
         run: |
           cd scripts/go/_internal
           mkdir -p lib/x86_64-pc-windows-gnu
+          # Copy DLLs and import libraries (.lib)
           cp -v $GITHUB_WORKSPACE/build/bin/Release/*.dll lib/x86_64-pc-windows-gnu/ 2>/dev/null || true
-          cp -v $GITHUB_WORKSPACE/build/lib/Release/*.dll lib/x86_64-pc-windows-gnu/ 2>/dev/null || true
+          cp -v $GITHUB_WORKSPACE/build/lib/Release/*.lib lib/x86_64-pc-windows-gnu/ 2>/dev/null || true
           ls -la lib/x86_64-pc-windows-gnu/
 
           cd $GITHUB_WORKSPACE/go-api-examples
