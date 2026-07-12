@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	pp "piper_phonemize"
+	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
 )
 
 func phonemesToString(phonemes []uint32) string {
