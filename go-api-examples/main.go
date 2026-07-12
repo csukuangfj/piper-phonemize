@@ -3,9 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	pp "piper_phonemize"
 )
+
+func phonemesToString(phonemes []uint32) string {
+	var sb strings.Builder
+	for _, cp := range phonemes {
+		sb.WriteRune(rune(cp))
+	}
+	return sb.String()
+}
 
 func main() {
 	fmt.Println("Version:", pp.GetVersionStr())
@@ -36,7 +45,7 @@ func main() {
 		fmt.Printf("  Sentences: %d\n", result.GetNumSentences())
 		for i := 0; i < result.GetNumSentences(); i++ {
 			phonemes := result.GetPhonemes(i)
-			fmt.Printf("    sentence %d: %d phonemes %v\n", i, len(phonemes), phonemes)
+			fmt.Printf("    sentence %d: %s\n", i, phonemesToString(phonemes))
 		}
 		pp.DeletePhonemizeResult(result)
 	}
