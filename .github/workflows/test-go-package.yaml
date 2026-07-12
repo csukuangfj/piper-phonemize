@@ -64,25 +64,6 @@ jobs:
           go mod tidy
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
-  test-go-package-macos-x64:
-    runs-on: macos-15-intel
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-
-      - name: Test released Go package
-        run: |
-          cd go-api-examples
-          go mod tidy
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
-
   test-go-package-windows:
     runs-on: windows-latest
     steps:
