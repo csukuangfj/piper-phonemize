@@ -10,6 +10,9 @@ PIPER_PHONEMIZE_DIR=$(realpath $SCRIPT_DIR/../..)
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "PIPER_PHONEMIZE_DIR: $PIPER_PHONEMIZE_DIR"
 
+# LIBS_DIR is set by CI workflow - contains pre-built libraries from artifacts
+LIBS_DIR=${LIBS_DIR:-$PIPER_PHONEMIZE_DIR/libs}
+echo "LIBS_DIR: $LIBS_DIR"
 
 PIPER_PHONEMIZE_VERSION=$(grep "project(" $PIPER_PHONEMIZE_DIR/CMakeLists.txt -A 3 | grep "VERSION" | head -1 | awk '{print $2}')
 echo "PIPER_PHONEMIZE_VERSION $PIPER_PHONEMIZE_VERSION"
@@ -26,7 +29,7 @@ kick_go_proxy() {
   echo ""
 }
 
-# Wait for Go proxy to index newly published packages.
+# Wait for Go module proxy to index newly published packages.
 wait_for_go_proxy() {
   local pkg="$1"
   local version="$2"
@@ -63,18 +66,6 @@ run_go_mod_tidy() {
   return 1
 }
 
-build_libs() {
-  echo "Building piper-phonemize from source for $1"
-  local build_dir=$PIPER_PHONEMIZE_DIR/build-go-$1
-  cmake -B $build_dir -S $PIPER_PHONEMIZE_DIR \
-    -DCMAKE_INSTALL_PREFIX=$build_dir/install \
-    -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_BUILD_TYPE=Release \
-    $2
-  cmake --build $build_dir --config Release -j$(nproc)
-  cmake --install $build_dir
-}
-
 function linux() {
   echo "Process linux"
   git clone git@github.com:csukuangfj/piper-phonemize-go-linux.git
@@ -92,30 +83,18 @@ module github.com/csukuangfj/piper-phonemize-go-linux
 go 1.17
 GOMOD
 
-  # Create lib directories
-  mkdir -p piper-phonemize-go-linux/lib/{x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,arm-unknown-linux-gnueabihf}
+  # Copy pre-built libraries from artifacts
+  mkdir -p piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu
+  cp -v $LIBS_DIR/linux-libs/linux-x86_64/libpiper_phonemize* \
+    piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu/
 
-  # Build for x86_64
-  build_libs linux-x86_64 "-DCMAKE_SYSTEM_NAME=Linux"
-  dst=$(realpath piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu)
-  rm -fv $dst/lib*
-  cp -v $PIPER_PHONEMIZE_DIR/build-go-linux-x86_64/install/lib/libpiper_phonemize* $dst/
+  mkdir -p piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
+  cp -v $LIBS_DIR/linux-libs/linux-aarch64/libpiper_phonemize* \
+    piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu/
 
-  # Build for aarch64 (cross-compile if possible, otherwise use native)
-  if command -v aarch64-linux-gnu-gcc &> /dev/null; then
-    build_libs linux-aarch64 "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++"
-    dst=$(realpath piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu)
-    rm -fv $dst/lib*
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-linux-aarch64/install/lib/libpiper_phonemize* $dst/
-  fi
-
-  # Build for armv7 (cross-compile if possible, otherwise use native)
-  if command -v arm-linux-gnueabihf-gcc &> /dev/null; then
-    build_libs linux-armv7 "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++"
-    dst=$(realpath piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf)
-    rm -fv $dst/lib*
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-linux-armv7/install/lib/libpiper_phonemize* $dst/
-  fi
+  mkdir -p piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
+  cp -v $LIBS_DIR/linux-libs/linux-armv7/libpiper_phonemize* \
+    piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf/
 
   echo "------------------------------"
   cd piper-phonemize-go-linux
@@ -145,20 +124,14 @@ module github.com/csukuangfj/piper-phonemize-go-macos
 go 1.17
 GOMOD
 
-  # Create lib directories
-  mkdir -p piper-phonemize-go-macos/lib/{x86_64-apple-darwin,aarch64-apple-darwin}
+  # Copy pre-built libraries from artifacts
+  mkdir -p piper-phonemize-go-macos/lib/x86_64-apple-darwin
+  cp -v $LIBS_DIR/macos-libs/macos-x86_64/libpiper_phonemize* \
+    piper-phonemize-go-macos/lib/x86_64-apple-darwin/
 
-  # Build for x86_64
-  build_libs osx-x86_64 "-DCMAKE_OSX_ARCHITECTURES=x86_64"
-  dst=$(realpath piper-phonemize-go-macos/lib/x86_64-apple-darwin/)
-  rm -fv $dst/lib*
-  cp -v $PIPER_PHONEMIZE_DIR/build-go-osx-x86_64/install/lib/libpiper_phonemize* $dst/
-
-  # Build for arm64
-  build_libs osx-arm64 "-DCMAKE_OSX_ARCHITECTURES=arm64"
-  dst=$(realpath piper-phonemize-go-macos/lib/aarch64-apple-darwin)
-  rm -fv $dst/lib*
-  cp -v $PIPER_PHONEMIZE_DIR/build-go-osx-arm64/install/lib/libpiper_phonemize* $dst/
+  mkdir -p piper-phonemize-go-macos/lib/aarch64-apple-darwin
+  cp -v $LIBS_DIR/macos-libs/macos-arm64/libpiper_phonemize* \
+    piper-phonemize-go-macos/lib/aarch64-apple-darwin/
 
   echo "------------------------------"
   cd piper-phonemize-go-macos
@@ -188,25 +161,10 @@ module github.com/csukuangfj/piper-phonemize-go-windows
 go 1.17
 GOMOD
 
-  # Create lib directories
-  mkdir -p piper-phonemize-go-windows/lib/{x86_64-pc-windows-gnu,i686-pc-windows-gnu}
-
-  # Windows cross-compilation from Linux using mingw
-  if command -v x86_64-w64-mingw32-gcc &> /dev/null; then
-    build_libs windows-x86_64 "-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++"
-    dst=$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)
-    rm -fv $dst/*
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-windows-x86_64/install/bin/*.dll $dst/ 2>/dev/null || true
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-windows-x86_64/install/lib/*.dll $dst/ 2>/dev/null || true
-  fi
-
-  if command -v i686-w64-mingw32-gcc &> /dev/null; then
-    build_libs windows-i686 "-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++"
-    dst=$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)
-    rm -fv $dst/*
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-windows-i686/install/bin/*.dll $dst/ 2>/dev/null || true
-    cp -v $PIPER_PHONEMIZE_DIR/build-go-windows-i686/install/lib/*.dll $dst/ 2>/dev/null || true
-  fi
+  # Copy pre-built libraries from artifacts
+  mkdir -p piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
+  cp -v $LIBS_DIR/windows-libs/windows-x64/* \
+    piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu/
 
   echo "------------------------------"
   cd piper-phonemize-go-windows
