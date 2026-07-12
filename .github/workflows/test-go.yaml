@@ -43,7 +43,7 @@ jobs:
 
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
-          sed -i 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-linux-arm64:
@@ -82,7 +82,7 @@ jobs:
 
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
-          sed -i 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-macos-arm64:
@@ -121,7 +121,7 @@ jobs:
 
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
-          sed -i 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-macos-x64:
@@ -160,7 +160,7 @@ jobs:
 
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
-          sed -i 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-windows:
@@ -203,5 +203,5 @@ jobs:
 
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
-          sed -i 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
