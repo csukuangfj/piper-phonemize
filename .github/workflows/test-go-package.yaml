@@ -10,6 +10,7 @@ jobs:
   test-go-package-linux-x64:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -21,42 +22,14 @@ jobs:
 
       - name: Test released Go package
         run: |
-          mkdir test-app && cd test-app
-          go mod init test-app
-          cat > main.go << 'EOF'
-          package main
-
-          import (
-          	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
-          )
-
-          func main() {
-          	fmt.Println("Version:", pp.GetVersionStr())
-
-          	ret := pp.Initialize("./espeak-ng-data")
-          	fmt.Println("Initialize:", ret)
-
-          	result := pp.Phonemize("hello world", "en-us")
-          	if result == nil {
-          		fmt.Println("Phonemize returned nil")
-          		return
-          	}
-          	defer pp.DeletePhonemizeResult(result)
-
-          	fmt.Println("Sentences:", result.GetNumSentences())
-          	for i := 0; i < result.GetNumSentences(); i++ {
-          		phonemes := result.GetPhonemes(i)
-          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
-          	}
-          }
-          EOF
+          cd go-api-examples
           go mod tidy
-          go run main.go
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-package-linux-arm64:
     runs-on: ubuntu-22.04-arm
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -68,42 +41,14 @@ jobs:
 
       - name: Test released Go package
         run: |
-          mkdir test-app && cd test-app
-          go mod init test-app
-          cat > main.go << 'EOF'
-          package main
-
-          import (
-          	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
-          )
-
-          func main() {
-          	fmt.Println("Version:", pp.GetVersionStr())
-
-          	ret := pp.Initialize("./espeak-ng-data")
-          	fmt.Println("Initialize:", ret)
-
-          	result := pp.Phonemize("hello world", "en-us")
-          	if result == nil {
-          		fmt.Println("Phonemize returned nil")
-          		return
-          	}
-          	defer pp.DeletePhonemizeResult(result)
-
-          	fmt.Println("Sentences:", result.GetNumSentences())
-          	for i := 0; i < result.GetNumSentences(); i++ {
-          		phonemes := result.GetPhonemes(i)
-          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
-          	}
-          }
-          EOF
+          cd go-api-examples
           go mod tidy
-          go run main.go
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-package-macos-arm64:
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -115,42 +60,14 @@ jobs:
 
       - name: Test released Go package
         run: |
-          mkdir test-app && cd test-app
-          go mod init test-app
-          cat > main.go << 'EOF'
-          package main
-
-          import (
-          	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
-          )
-
-          func main() {
-          	fmt.Println("Version:", pp.GetVersionStr())
-
-          	ret := pp.Initialize("./espeak-ng-data")
-          	fmt.Println("Initialize:", ret)
-
-          	result := pp.Phonemize("hello world", "en-us")
-          	if result == nil {
-          		fmt.Println("Phonemize returned nil")
-          		return
-          	}
-          	defer pp.DeletePhonemizeResult(result)
-
-          	fmt.Println("Sentences:", result.GetNumSentences())
-          	for i := 0; i < result.GetNumSentences(); i++ {
-          		phonemes := result.GetPhonemes(i)
-          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
-          	}
-          }
-          EOF
+          cd go-api-examples
           go mod tidy
-          go run main.go
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-package-macos-x64:
     runs-on: macos-15-intel
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -162,42 +79,14 @@ jobs:
 
       - name: Test released Go package
         run: |
-          mkdir test-app && cd test-app
-          go mod init test-app
-          cat > main.go << 'EOF'
-          package main
-
-          import (
-          	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
-          )
-
-          func main() {
-          	fmt.Println("Version:", pp.GetVersionStr())
-
-          	ret := pp.Initialize("./espeak-ng-data")
-          	fmt.Println("Initialize:", ret)
-
-          	result := pp.Phonemize("hello world", "en-us")
-          	if result == nil {
-          		fmt.Println("Phonemize returned nil")
-          		return
-          	}
-          	defer pp.DeletePhonemizeResult(result)
-
-          	fmt.Println("Sentences:", result.GetNumSentences())
-          	for i := 0; i < result.GetNumSentences(); i++ {
-          		phonemes := result.GetPhonemes(i)
-          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
-          	}
-          }
-          EOF
+          cd go-api-examples
           go mod tidy
-          go run main.go
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-package-windows:
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -208,36 +97,8 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
 
       - name: Test released Go package
+        shell: bash
         run: |
-          mkdir test-app && cd test-app
-          go mod init test-app
-          cat > main.go << 'EOF'
-          package main
-
-          import (
-          	"fmt"
-          	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
-          )
-
-          func main() {
-          	fmt.Println("Version:", pp.GetVersionStr())
-
-          	ret := pp.Initialize("./espeak-ng-data")
-          	fmt.Println("Initialize:", ret)
-
-          	result := pp.Phonemize("hello world", "en-us")
-          	if result == nil {
-          		fmt.Println("Phonemize returned nil")
-          		return
-          	}
-          	defer pp.DeletePhonemizeResult(result)
-
-          	fmt.Println("Sentences:", result.GetNumSentences())
-          	for i := 0; i < result.GetNumSentences(); i++ {
-          		phonemes := result.GetPhonemes(i)
-          		fmt.Printf("  Sentence %d: %d phonemes\n", i, len(phonemes))
-          	}
-          }
-          EOF
+          cd go-api-examples
           go mod tidy
-          go run main.go
+          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
