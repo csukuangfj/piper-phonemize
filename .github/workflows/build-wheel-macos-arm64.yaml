@@ -20,7 +20,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "cp38"
           - "cp39"
           - "cp310"
           - "cp311"
@@ -32,60 +31,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.1.4
         env:
-          CIBW_BEFORE_BUILD: |
-            my_project=$PWD
-
-            echo "Install espeak-ng"
-            git clone --depth 1 https://github.com/csukuangfj/espeak-ng
-            cd espeak-ng
-            git fetch
-            git checkout master
-            mkdir my-build
-            cd my-build
-
-            cmake \
-              -DBUILD_ESPEAK_NG_TESTS=OFF \
-              -DBUILD_SHARED_LIBS=ON \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DUSE_MBROLA=OFF \
-              -DUSE_LIBSONIC=OFF \
-              -DUSE_LIBPCAUDIO=OFF \
-              -DUSE_KLATT=OFF \
-              -DUSE_SPEECHPLAYER=OFF \
-              -DESPEAK_COMPAT=OFF \
-              -DEXTRA_cmn=ON \
-              -DEXTRA_ru=ON \
-              ..
-            make -j$(sysctl -n hw.ncpu)
-            make install
-
-            cd $my_project
-
-            echo "build piper-phonemize"
-            mkdir -p my-build
-            cd my-build
-
-            cmake \
-              -DESPEAK_NG_DIR=$my_project/espeak-ng/my-build/install \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DBUILD_SHARED_LIBS=ON \
-              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
-              -DCMAKE_OSX_ARCHITECTURES=arm64 \
-              ..
-            make -j$(sysctl -n hw.ncpu)
-            make install
-
-            cd $my_project
-            cp -a espeak-ng/my-build/install/share/espeak-ng-data piper_phonemize/
-            cp -a my-build/install/lib/lib*.dylib piper_phonemize/ 2>/dev/null || true
-
-            ls -lh piper_phonemize/
-
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "arm64"
           CIBW_BUILD_VERBOSITY: 3
+          CIBW_BEFORE_BUILD: pip install pybind11
+          CIBW_ENVIRONMENT: PIPER_PHONEMIZE_MAKE_ARGS="-j$(sysctl -n hw.ncpu)"
 
       - name: Display wheels
         shell: bash

@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_wheels_linux_arm64:
+  build_wheels:
     name: ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -35,70 +35,16 @@ jobs:
         with:
           platforms: arm64
 
-      - name: Build wheel
-        shell: bash
-        run: |
-          docker run --rm \
-            --platform linux/arm64 \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            quay.io/pypa/manylinux2014_aarch64 \
-            bash -c '
-              set -ex
-
-              case "${{ matrix.python-version }}" in
-                cp38)  PY_VER="3.8"  ;;
-                cp39)  PY_VER="3.9"  ;;
-                cp310) PY_VER="3.10" ;;
-                cp311) PY_VER="3.11" ;;
-                cp312) PY_VER="3.12" ;;
-                cp313) PY_VER="3.13" ;;
-                cp314) PY_VER="3.14" ;;
-                *) echo "Unknown python version: ${{ matrix.python-version }}"; exit 1 ;;
-              esac
-
-              PY_PATH=$(ls -d /opt/_internal/cpython-${PY_VER}*/bin 2>/dev/null | grep -v nogil | head -1)
-              if [ -z "$PY_PATH" ] || [ ! -d "$PY_PATH" ]; then
-                PY_PATH=/usr/bin
-              fi
-              export PATH=$PY_PATH:$PATH
-              python3 --version
-
-              python3 -m pip install setuptools wheel pybind11
-
-              cd /workspace
-              mkdir -p my-build
-              cd my-build
-
-              cmake \
-                -DCMAKE_INSTALL_PREFIX=./install \
-                -DBUILD_SHARED_LIBS=ON \
-                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
-                ..
-              make -j$(nproc)
-              make install
-
-              cd /workspace
-
-              # Copy espeak-ng headers and libs to where setup.py expects them
-              mkdir -p espeak-ng/my-build/install/include
-              cp -a my-build/_deps/espeak_ng-src/src/include/espeak espeak-ng/my-build/install/include/
-              cp -a my-build/_deps/espeak_ng-src/src/include/espeak-ng espeak-ng/my-build/install/include/
-              mkdir -p espeak-ng/my-build/install/lib
-              cp -a my-build/_deps/espeak_ng-build/src/libespeak-ng/*.a espeak-ng/my-build/install/lib/ 2>/dev/null || true
-              cp -a my-build/_deps/espeak_ng-build/src/libespeak-ng/*.so espeak-ng/my-build/install/lib/ 2>/dev/null || true
-
-              cp -a my-build/_deps/espeak_ng-src/espeak-ng-data piper_phonemize/ 2>/dev/null || true
-              cp -a my-build/install/lib/lib*.so piper_phonemize/ 2>/dev/null || true
-
-              ls -lh piper_phonemize/
-
-              python3 setup.py bdist_wheel --plat-name=manylinux2014_aarch64
-
-              ls -lh dist/
-              mkdir -p wheelhouse
-              cp -v dist/*.whl wheelhouse/
-            '
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.1.4
+        env:
+          CIBW_BUILD: "${{ matrix.python-version}}-* "
+          CIBW_SKIP: "cp27-* cp35-* cp36-* cp37-* cp38-* pp* *-musllinux*"
+          CIBW_ARCHS: "aarch64"
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux2014_aarch64
+          CIBW_BEFORE_BUILD: pip install pybind11
+          CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
