@@ -185,10 +185,11 @@ jobs:
         run: |
           cd go-api-examples
           go mod tidy
-          # On Windows, DLLs must be in PATH. The Go module cache has them.
+          # On Windows, DLLs must be in PATH or current directory.
+          # Copy them from the Go module cache to the current directory.
           VERSION=$(grep 'piper-phonemize-go ' go.mod | awk '{print $NF}')
           DLL_DIR=$(go env GOMODCACHE)/github.com/csukuangfj/piper-phonemize-go-windows@$VERSION/lib/x86_64-pc-windows-gnu
-          export PATH="$DLL_DIR:$PATH"
+          cp -v "$DLL_DIR"/*.dll . 2>/dev/null || true
           go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-package-windows-x86:
