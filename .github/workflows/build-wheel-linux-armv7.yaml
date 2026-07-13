@@ -1,4 +1,4 @@
-name: build-wheels-linux
+name: build-wheels-linux-armv7
 
 on:
   push:
@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-linux-${{ github.ref }}
+  group: build-wheels-linux-armv7-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_linux:
+  build_wheels_linux_armv7:
     name: ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -31,17 +31,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm
+
       - name: Build wheel
         shell: bash
         run: |
           docker run --rm \
+            --platform linux/arm/v7 \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            quay.io/pypa/manylinux2010_x86_64 \
+            quay.io/pypa/manylinux_2_31_armv7l \
             bash -c '
               set -ex
 
-              # Map cibuildwheel python tags to cpython paths
               case "${{ matrix.python-version }}" in
                 cp38)  PY_VER="3.8"  ;;
                 cp39)  PY_VER="3.9"  ;;
@@ -53,19 +58,15 @@ jobs:
                 *) echo "Unknown python version: ${{ matrix.python-version }}"; exit 1 ;;
               esac
 
-              # Find the python binary
               PY_PATH=$(find /opt/_internal -name "cpython-${PY_VER}*" -type d | head -1)/bin
               if [ ! -d "$PY_PATH" ]; then
-                echo "Python $PY_VER not found, trying system python"
                 PY_PATH=/usr/bin
               fi
               export PATH=$PY_PATH:$PATH
               python3 --version
 
-              # Install build tools
               python3 -m pip install setuptools wheel pybind11
 
-              # Build espeak-ng
               cd /workspace
               git clone --depth 1 https://github.com/csukuangfj/espeak-ng
               cd espeak-ng
@@ -91,8 +92,6 @@ jobs:
               make install
 
               cd /workspace
-
-              # Build piper-phonemize
               mkdir -p my-build
               cd my-build
 
@@ -106,20 +105,12 @@ jobs:
               make install
 
               cd /workspace
-
-              # Copy shared libs and data into the package directory
               cp -a espeak-ng/my-build/install/share/espeak-ng-data piper_phonemize/
               cp -a my-build/install/lib/lib*.so piper_phonemize/ 2>/dev/null || true
 
-              if [ -d my-build/install/lib64 ]; then
-                cp -a my-build/install/lib64/lib*.so piper_phonemize/ 2>/dev/null || true
-              fi
-
               ls -lh piper_phonemize/
 
-              # Build the wheel
-              cd /workspace
-              python3 setup.py bdist_wheel --plat-name=manylinux2010_x86_64
+              python3 setup.py bdist_wheel --plat-name=manylinux_2_31_armv7l
 
               ls -lh dist/
               mkdir -p wheelhouse
@@ -133,7 +124,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-linux-${{ matrix.python-version }}
+          name: wheel-linux-armv7-${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
       - name: Publish to huggingface
@@ -148,19 +139,15 @@ jobs:
           command: |
             git config --global user.email "csukuangfj@gmail.com"
             git config --global user.name "Fangjun Kuang"
-
             rm -rf huggingface
             export GIT_LFS_SKIP_SMUDGE=1
-
             git clone https://huggingface.co/csukuangfj/piper-phonemize-wheels huggingface
             cd huggingface
             git lfs track "*.whl"
             git fetch
             git pull
             git merge -m "merge remote" --ff origin main
-
             cp -v ../wheelhouse/*.whl .
-
             git status
             git add .
             git commit -m "add more wheels"

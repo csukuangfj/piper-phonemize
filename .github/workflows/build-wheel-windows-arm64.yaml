@@ -1,4 +1,4 @@
-name: build-wheels-macos-x86_64
+name: build-wheels-windows-arm64
 
 on:
   push:
@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-macos-x86_64-${{ github.ref }}
+  group: build-wheels-windows-arm64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_macos_x86_64:
+  build_wheels_windows_arm64:
     name: ${{ matrix.python-version }}
-    runs-on: macos-15-intel
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
@@ -35,9 +35,6 @@ jobs:
         uses: pypa/cibuildwheel@v2.22
         env:
           CIBW_BEFORE_BUILD: |
-            my_project=$PWD
-
-            echo "Install espeak-ng"
             git clone --depth 1 https://github.com/csukuangfj/espeak-ng
             cd espeak-ng
             git fetch
@@ -45,46 +42,49 @@ jobs:
             mkdir my-build
             cd my-build
 
-            cmake \
-              -DBUILD_ESPEAK_NG_TESTS=OFF \
-              -DBUILD_SHARED_LIBS=ON \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DUSE_MBROLA=OFF \
-              -DUSE_LIBSONIC=OFF \
-              -DUSE_LIBPCAUDIO=OFF \
-              -DUSE_KLATT=OFF \
-              -DUSE_SPEECHPLAYER=OFF \
-              -DESPEAK_COMPAT=OFF \
-              -DEXTRA_cmn=ON \
-              -DEXTRA_ru=ON \
+            cmake ^
+              -DBUILD_ESPEAK_NG_TESTS=OFF ^
+              -DBUILD_SHARED_LIBS=ON ^
+              -DCMAKE_INSTALL_PREFIX=./install ^
+              -A ARM64 ^
+              -DUSE_MBROLA=OFF ^
+              -DUSE_LIBSONIC=OFF ^
+              -DUSE_LIBPCAUDIO=OFF ^
+              -DUSE_KLATT=OFF ^
+              -DUSE_SPEECHPLAYER=OFF ^
+              -DESPEAK_COMPAT=OFF ^
+              -DEXTRA_cmn=ON ^
+              -DEXTRA_ru=ON ^
               ..
-            make -j$(sysctl -n hw.ncpu)
-            make install
+            cmake --build . --config Release
+            cmake --install . --config Release
 
-            cd $my_project
+            cd /d/a/piper-phonemize/piper-phonemize
 
-            echo "build piper-phonemize"
-            mkdir -p my-build
+            mkdir my-build
             cd my-build
 
-            cmake \
-              -DESPEAK_NG_DIR=$my_project/espeak-ng/my-build/install \
-              -DCMAKE_INSTALL_PREFIX=./install \
-              -DBUILD_SHARED_LIBS=ON \
-              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            cmake ^
+              -DESPEAK_NG_DIR=/d/a/piper-phonemize/piper-phonemize/espeak-ng/my-build/install ^
+              -DCMAKE_INSTALL_PREFIX=./install ^
+              -DBUILD_SHARED_LIBS=ON ^
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF ^
+              -A ARM64 ^
               ..
-            make -j$(sysctl -n hw.ncpu)
-            make install
+            cmake --build . --config Release
+            cmake --install . --config Release
 
-            cd $my_project
-            cp -a espeak-ng/my-build/install/share/espeak-ng-data piper_phonemize/
-            cp -a my-build/install/lib/lib*.dylib piper_phonemize/ 2>/dev/null || true
+            cd /d/a/piper-phonemize/piper-phonemize
+            xcopy /E /I espeak-ng\my-build\install\share\espeak-ng-data piper_phonemize\espeak-ng-data
+            copy my-build\install\bin\*.dll piper_phonemize\ 2>nul
+            copy my-build\install\lib\*.dll piper_phonemize\ 2>nul
 
-            ls -lh piper_phonemize/
+            dir piper_phonemize\
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_ARCHS: "x86_64"
+          CIBW_ARCHS: "ARM64"
           CIBW_BUILD_VERBOSITY: 3
+          CIBW_SKIP: "*-win_amd64 *-win32"
 
       - name: Display wheels
         shell: bash
@@ -93,7 +93,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-macos-x86_64-${{ matrix.python-version }}
+          name: wheel-windows-arm64-${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
       - name: Publish to huggingface

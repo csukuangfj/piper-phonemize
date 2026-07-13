@@ -1,4 +1,4 @@
-name: build-wheels-macos-x86_64
+name: build-wheels-macos-arm64
 
 on:
   push:
@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: build-wheels-macos-x86_64-${{ github.ref }}
+  group: build-wheels-macos-arm64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_wheels_macos_x86_64:
+  build_wheels_macos_arm64:
     name: ${{ matrix.python-version }}
-    runs-on: macos-15-intel
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -72,6 +72,7 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=./install \
               -DBUILD_SHARED_LIBS=ON \
               -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+              -DCMAKE_OSX_ARCHITECTURES=arm64 \
               ..
             make -j$(sysctl -n hw.ncpu)
             make install
@@ -83,7 +84,7 @@ jobs:
             ls -lh piper_phonemize/
 
           CIBW_BUILD: "${{ matrix.python-version}}-* "
-          CIBW_ARCHS: "x86_64"
+          CIBW_ARCHS: "arm64"
           CIBW_BUILD_VERBOSITY: 3
 
       - name: Display wheels
@@ -93,7 +94,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-macos-x86_64-${{ matrix.python-version }}
+          name: wheel-macos-arm64-${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
       - name: Publish to huggingface
