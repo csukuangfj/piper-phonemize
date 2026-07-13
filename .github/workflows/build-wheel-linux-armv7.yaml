@@ -79,6 +79,15 @@ jobs:
               make install
 
               cd /workspace
+
+              # Copy espeak-ng headers and libs to where setup.py expects them
+              mkdir -p espeak-ng/my-build/install/include
+              cp -a my-build/_deps/espeak_ng-src/src/include/espeak espeak-ng/my-build/install/include/
+              cp -a my-build/_deps/espeak_ng-src/src/include/espeak-ng espeak-ng/my-build/install/include/
+              mkdir -p espeak-ng/my-build/install/lib
+              cp -a my-build/_deps/espeak_ng-build/src/libespeak-ng/*.a espeak-ng/my-build/install/lib/ 2>/dev/null || true
+              cp -a my-build/_deps/espeak_ng-build/src/libespeak-ng/*.so espeak-ng/my-build/install/lib/ 2>/dev/null || true
+
               cp -a my-build/_deps/espeak_ng-src/espeak-ng-data piper_phonemize/ 2>/dev/null || true
               cp -a my-build/install/lib/lib*.so piper_phonemize/ 2>/dev/null || true
 
