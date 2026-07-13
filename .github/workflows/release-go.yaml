@@ -106,6 +106,15 @@ jobs:
           cp -v build-x86/bin/Release/*.dll artifacts/windows-x86/ 2>/dev/null || true
           cp -v build-x86/lib/Release/*.lib artifacts/windows-x86/ 2>/dev/null || true
 
+      - name: Build ARM64
+        shell: bash
+        run: |
+          cmake -Bbuild-arm64 -A ARM64 -DBUILD_SHARED_LIBS=ON
+          cmake --build build-arm64 --config Release
+          mkdir -p artifacts/windows-arm64
+          cp -v build-arm64/bin/Release/*.dll artifacts/windows-arm64/ 2>/dev/null || true
+          cp -v build-arm64/lib/Release/*.lib artifacts/windows-arm64/ 2>/dev/null || true
+
       - uses: actions/upload-artifact@v4
         with:
           name: windows-libs

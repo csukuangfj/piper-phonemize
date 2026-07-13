@@ -170,6 +170,10 @@ GOMOD
   cp -v $LIBS_DIR/windows-libs/windows-x86/* \
     piper-phonemize-go-windows/lib/i686-pc-windows-gnu/
 
+  mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
+  cp -v $LIBS_DIR/windows-libs/windows-arm64/* \
+    piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu/
+
   echo "------------------------------"
   cd piper-phonemize-go-windows
   git status
