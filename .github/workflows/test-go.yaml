@@ -176,7 +176,7 @@ jobs:
           docker run --rm --platform linux/arm/v7 \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            arm32v7/debian:bullseye \
+            arm32v7/debian:bookworm \
             bash -c '
               set -ex
               apt-get update
