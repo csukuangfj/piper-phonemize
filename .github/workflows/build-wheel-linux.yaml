@@ -37,7 +37,7 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            quay.io/pypa/manylinux2010_x86_64 \
+            quay.io/pypa/manylinux2014_x86_64 \
             bash -c '
               set -ex
 
@@ -67,9 +67,8 @@ jobs:
 
               # Build espeak-ng
               cd /workspace
-              git clone --depth 1 https://github.com/csukuangfj/espeak-ng
+              git clone https://github.com/csukuangfj/espeak-ng
               cd espeak-ng
-              git fetch
               git checkout sherpa-onnx
               mkdir my-build
               cd my-build
@@ -119,7 +118,7 @@ jobs:
 
               # Build the wheel
               cd /workspace
-              python3 setup.py bdist_wheel --plat-name=manylinux2010_x86_64
+              python3 setup.py bdist_wheel --plat-name=manylinux2014_x86_64
 
               ls -lh dist/
               mkdir -p wheelhouse

@@ -68,9 +68,8 @@ jobs:
               python3 -m pip install setuptools wheel pybind11
 
               cd /workspace
-              git clone --depth 1 https://github.com/csukuangfj/espeak-ng
+              git clone https://github.com/csukuangfj/espeak-ng
               cd espeak-ng
-              git fetch
               git checkout sherpa-onnx
               mkdir my-build
               cd my-build
