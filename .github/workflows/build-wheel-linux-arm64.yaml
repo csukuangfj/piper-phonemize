@@ -67,36 +67,10 @@ jobs:
               python3 -m pip install setuptools wheel pybind11
 
               cd /workspace
-              git clone https://github.com/csukuangfj/espeak-ng
-              cd espeak-ng
-              git checkout master
-              mkdir my-build
-              cd my-build
-
-              cmake \
-                -DBUILD_ESPEAK_NG_TESTS=OFF \
-                -DBUILD_SHARED_LIBS=ON \
-                -DCMAKE_INSTALL_PREFIX=./install \
-                -DUSE_MBROLA=OFF \
-                -DUSE_LIBSONIC=OFF \
-                -DUSE_LIBPCAUDIO=OFF \
-                -DUSE_KLATT=OFF \
-                -DUSE_SPEECHPLAYER=OFF \
-                -DESPEAK_COMPAT=OFF \
-                -DEXTRA_cmn=ON \
-                -DEXTRA_ru=ON \
-                -DCMAKE_C_FLAGS="-lpthread" \
-                -DCMAKE_EXE_LINKER_FLAGS="-lpthread" \
-                ..
-              make -j$(nproc)
-              make install
-
-              cd /workspace
               mkdir -p my-build
               cd my-build
 
               cmake \
-                -DESPEAK_NG_DIR=/workspace/espeak-ng/my-build/install \
                 -DCMAKE_INSTALL_PREFIX=./install \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
@@ -105,7 +79,7 @@ jobs:
               make install
 
               cd /workspace
-              cp -a espeak-ng/my-build/install/share/espeak-ng-data piper_phonemize/
+              cp -a my-build/_deps/espeak_ng-src/espeak-ng-data piper_phonemize/ 2>/dev/null || true
               cp -a my-build/install/lib/lib*.so piper_phonemize/ 2>/dev/null || true
 
               ls -lh piper_phonemize/
