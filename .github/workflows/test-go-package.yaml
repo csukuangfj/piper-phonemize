@@ -196,6 +196,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install 32-bit MinGW
+        run: |
+          choco install mingw --x86 --force -y
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
