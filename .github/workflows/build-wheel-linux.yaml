@@ -20,7 +20,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "cp38"
           - "cp39"
           - "cp310"
           - "cp311"
@@ -53,10 +52,10 @@ jobs:
                 *) echo "Unknown python version: ${{ matrix.python-version }}"; exit 1 ;;
               esac
 
-              # Find the python binary
-              PY_PATH=$(echo /opt/_internal/cpython-${PY_VER}*/bin)
-              if [ ! -d "$PY_PATH" ]; then
-                echo "Python $PY_VER not found at $PY_PATH, trying system python"
+              # Find the python binary (use head -1 to handle multiple matches like cpython-3.14-nogil)
+              PY_PATH=$(ls -d /opt/_internal/cpython-${PY_VER}*/bin 2>/dev/null | grep -v nogil | head -1)
+              if [ -z "$PY_PATH" ] || [ ! -d "$PY_PATH" ]; then
+                echo "Python $PY_VER not found, trying system python"
                 PY_PATH=/usr/bin
               fi
               export PATH=$PY_PATH:$PATH
