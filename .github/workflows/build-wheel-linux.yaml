@@ -54,9 +54,9 @@ jobs:
               esac
 
               # Find the python binary
-              PY_PATH=$(find /opt/_internal -name "cpython-${PY_VER}*" -type d | head -1)/bin
+              PY_PATH=$(echo /opt/_internal/cpython-${PY_VER}*/bin)
               if [ ! -d "$PY_PATH" ]; then
-                echo "Python $PY_VER not found, trying system python"
+                echo "Python $PY_VER not found at $PY_PATH, trying system python"
                 PY_PATH=/usr/bin
               fi
               export PATH=$PY_PATH:$PATH

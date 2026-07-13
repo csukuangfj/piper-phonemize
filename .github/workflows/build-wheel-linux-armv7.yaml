@@ -58,7 +58,7 @@ jobs:
                 *) echo "Unknown python version: ${{ matrix.python-version }}"; exit 1 ;;
               esac
 
-              PY_PATH=$(find /opt/_internal -name "cpython-${PY_VER}*" -type d | head -1)/bin
+              PY_PATH=$(echo /opt/_internal/cpython-${PY_VER}*/bin)
               if [ ! -d "$PY_PATH" ]; then
                 PY_PATH=/usr/bin
               fi
