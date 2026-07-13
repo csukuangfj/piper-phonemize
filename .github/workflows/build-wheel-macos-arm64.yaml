@@ -41,7 +41,7 @@ jobs:
             git clone --depth 1 https://github.com/csukuangfj/espeak-ng
             cd espeak-ng
             git fetch
-            git checkout sherpa-onnx
+            git checkout api
             mkdir my-build
             cd my-build
 

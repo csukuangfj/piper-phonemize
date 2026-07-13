@@ -69,7 +69,7 @@ jobs:
               cd /workspace
               git clone https://github.com/csukuangfj/espeak-ng
               cd espeak-ng
-              git checkout sherpa-onnx
+              git checkout api
               mkdir my-build
               cd my-build
 
