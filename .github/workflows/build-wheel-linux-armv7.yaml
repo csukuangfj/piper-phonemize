@@ -43,7 +43,7 @@ jobs:
             --platform linux/arm/v7 \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            quay.io/pypa/manylinux_2_31_armv7l \
+            quay.io/pypa/manylinux2014_armv7l \
             bash -c '
               set -ex
 
@@ -110,7 +110,7 @@ jobs:
 
               ls -lh piper_phonemize/
 
-              python3 setup.py bdist_wheel --plat-name=manylinux_2_31_armv7l
+              python3 setup.py bdist_wheel --plat-name=manylinux2014_armv7l
 
               ls -lh dist/
               mkdir -p wheelhouse
