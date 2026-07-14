@@ -44,7 +44,7 @@ jobs:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_ARCHS: "armv7l"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_MANYLINUX_ARMV7L_IMAGE: manylinux2014
+          CIBW_MANYLINUX_ARMV7L_IMAGE: quay.io/pypa/manylinux_2_31_armv7l
           CIBW_BEFORE_BUILD: pip install pybind11
           CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
