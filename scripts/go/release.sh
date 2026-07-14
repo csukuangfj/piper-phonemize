@@ -74,6 +74,15 @@ download_libs() {
   echo "Downloading $url ..."
   mkdir -p t && cd t
   curl -L -o wheel.whl "$url"
+
+  # Check if download was successful (file should be > 100 bytes)
+  if [ ! -f wheel.whl ] || [ $(stat -c%s wheel.whl 2>/dev/null || stat -f%z wheel.whl 2>/dev/null || echo 0) -lt 100 ]; then
+    echo "WARNING: Failed to download $wheel_name, skipping"
+    cd ..
+    rm -rf t
+    return 0
+  fi
+
   unzip -o wheel.whl
 
   # Copy shared libs (.so, .dylib, .dll) from the wheel
