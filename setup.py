@@ -27,7 +27,7 @@ setuptools.setup(
     author_email="mike@rhasspy.org",
     url="https://github.com/rhasspy/piper-phonemize",
     description="Phonemization library used by Piper text to speech system",
-    packages=["piper_phonemize"],
+    packages=["piper_phonemize", "piper_phonemize_build"],
     ext_modules=[cmake_extension("_piper_phonemize")],
     cmdclass={"build_ext": BuildExtension, "bdist_wheel": bdist_wheel},
     zip_safe=False,
