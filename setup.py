@@ -106,6 +106,6 @@ setuptools.setup(
     ext_modules=[cmake_extension("_piper_phonemize")],
     cmdclass={"build_ext": BuildExtension, "bdist_wheel": bdist_wheel},
     zip_safe=False,
-    python_requires=">=3.8.0",
+    python_requires=">=3.7.0",
     license="MIT",
 )
