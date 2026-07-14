@@ -6,7 +6,7 @@ import re
 
 import setuptools
 
-from cmake.cmake_extension import BuildExtension, bdist_wheel, cmake_extension
+from piper_phonemize_build.cmake_extension import BuildExtension, bdist_wheel, cmake_extension
 
 
 def get_package_version():
