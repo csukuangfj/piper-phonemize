@@ -88,7 +88,7 @@ def get_package_version():
     with open("CMakeLists.txt") as f:
         content = f.read()
 
-    match = re.search(r"VERSION\s+(\S+)", content)
+    match = re.search(r"project\([^)]*VERSION\s+(\S+)", content, re.DOTALL)
     return match.group(1)
 
 
