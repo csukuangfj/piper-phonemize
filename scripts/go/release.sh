@@ -10,12 +10,10 @@ PIPER_PHONEMIZE_DIR=$(realpath $SCRIPT_DIR/../..)
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "PIPER_PHONEMIZE_DIR: $PIPER_PHONEMIZE_DIR"
 
-# LIBS_DIR is set by CI workflow - contains pre-built libraries from artifacts
-LIBS_DIR=${LIBS_DIR:-$PIPER_PHONEMIZE_DIR/libs}
-echo "LIBS_DIR: $LIBS_DIR"
-
 PIPER_PHONEMIZE_VERSION=$(grep "project(" $PIPER_PHONEMIZE_DIR/CMakeLists.txt -A 3 | grep "VERSION" | head -1 | awk '{print $2}')
 echo "PIPER_PHONEMIZE_VERSION $PIPER_PHONEMIZE_VERSION"
+
+GITHUB_RELEASE_URL="https://github.com/csukuangfj/piper-phonemize/releases/download/v${PIPER_PHONEMIZE_VERSION}"
 
 GO_PROXY_WAIT_SECS=30
 GO_PROXY_MAX_RETRIES=40
@@ -66,6 +64,27 @@ run_go_mod_tidy() {
   return 1
 }
 
+# Download a wheel, extract shared libs, and copy to destination.
+# Usage: download_libs <wheel_filename> <dst_dir>
+download_libs() {
+  local wheel_name="$1"
+  local dst="$2"
+  local url="${GITHUB_RELEASE_URL}/${wheel_name}"
+
+  echo "Downloading $url ..."
+  mkdir -p t && cd t
+  curl -L -o wheel.whl "$url"
+  unzip -o wheel.whl
+
+  # Copy shared libs (.so, .dylib, .dll) from the wheel
+  find . -name "*.so" -o -name "*.dylib" -o -name "*.dll" | while read f; do
+    cp -v "$f" "$dst/"
+  done
+
+  cd ..
+  rm -rf t
+}
+
 function linux() {
   echo "Process linux"
   git clone git@github.com:csukuangfj/piper-phonemize-go-linux.git
@@ -83,18 +102,21 @@ module github.com/csukuangfj/piper-phonemize-go-linux
 go 1.17
 GOMOD
 
-  # Copy pre-built libraries from artifacts
+  # Download and extract libs from wheels
   mkdir -p piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu
-  cp -v $LIBS_DIR/linux-libs/linux-x86_64/libpiper_phonemize* \
-    piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl" \
+    "$(realpath piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu)"
 
   mkdir -p piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
-  cp -v $LIBS_DIR/linux-libs/linux-aarch64/libpiper_phonemize* \
-    piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl" \
+    "$(realpath piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu)"
 
   mkdir -p piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
-  cp -v $LIBS_DIR/linux-libs/linux-armv7/libpiper_phonemize* \
-    piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux_2_31_armv7l.whl" \
+    "$(realpath piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf)"
 
   echo "------------------------------"
   cd piper-phonemize-go-linux
@@ -124,14 +146,16 @@ module github.com/csukuangfj/piper-phonemize-go-macos
 go 1.17
 GOMOD
 
-  # Copy pre-built libraries from artifacts
+  # Download and extract libs from wheels
   mkdir -p piper-phonemize-go-macos/lib/x86_64-apple-darwin
-  cp -v $LIBS_DIR/macos-libs/macos-x86_64/libpiper_phonemize* \
-    piper-phonemize-go-macos/lib/x86_64-apple-darwin/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_10_14_x86_64.whl" \
+    "$(realpath piper-phonemize-go-macos/lib/x86_64-apple-darwin)"
 
   mkdir -p piper-phonemize-go-macos/lib/aarch64-apple-darwin
-  cp -v $LIBS_DIR/macos-libs/macos-arm64/libpiper_phonemize* \
-    piper-phonemize-go-macos/lib/aarch64-apple-darwin/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_11_0_arm64.whl" \
+    "$(realpath piper-phonemize-go-macos/lib/aarch64-apple-darwin)"
 
   echo "------------------------------"
   cd piper-phonemize-go-macos
@@ -161,18 +185,21 @@ module github.com/csukuangfj/piper-phonemize-go-windows
 go 1.17
 GOMOD
 
-  # Copy pre-built libraries from artifacts
+  # Download and extract libs from wheels
   mkdir -p piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
-  cp -v $LIBS_DIR/windows-libs/windows-x64/* \
-    piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl" \
+    "$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)"
 
   mkdir -p piper-phonemize-go-windows/lib/i686-pc-windows-gnu
-  cp -v $LIBS_DIR/windows-libs/windows-x86/* \
-    piper-phonemize-go-windows/lib/i686-pc-windows-gnu/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl" \
+    "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)"
 
   mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
-  cp -v $LIBS_DIR/windows-libs/windows-arm64/* \
-    piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu/
+  download_libs \
+    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_arm64.whl" \
+    "$(realpath piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu)"
 
   echo "------------------------------"
   cd piper-phonemize-go-windows
