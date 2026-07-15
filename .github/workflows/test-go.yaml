@@ -258,9 +258,17 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install 32-bit MinGW
+        shell: bash
+        run: |
+          choco install mingw --x86 --force -y
+          echo "C:/mingw32/bin" >> $GITHUB_PATH
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+          architecture: '386'
 
       - name: Build piper-phonemize (Win32)
         run: |
@@ -295,7 +303,7 @@ jobs:
           replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
           EOF
           sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+          CGO_ENABLED=1 GOARCH=386 go run main.go $GITHUB_WORKSPACE/espeak-ng-data
 
   test-go-windows-arm64:
     runs-on: windows-latest
