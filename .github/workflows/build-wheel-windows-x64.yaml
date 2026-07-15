@@ -13,14 +13,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_wheels_windows_x64:
+  build_wheels_old:
+    name: ${{ matrix.python-version }} (cibuildwheel v2)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "cp37"
+          - "cp38"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheel
+        uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_BUILD: "${{ matrix.python-version}}-* "
+          CIBW_ARCHS: "AMD64"
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_BEFORE_BUILD: pip install pybind11
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+
+      - name: Display wheels
+        shell: bash
+        run: |
+          ls -lh ./wheelhouse/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-windows-x64-${{ matrix.python-version }}
+          path: wheelhouse/*.whl
+
+      - name: Publish to huggingface
+        if: github.ref_name == 'wheel'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 20
+          timeout_seconds: 200
+          shell: bash
+          command: |
+            git config --global user.email "csukuangfj@gmail.com"
+            git config --global user.name "Fangjun Kuang"
+            rm -rf huggingface
+            export GIT_LFS_SKIP_SMUDGE=1
+            git clone https://huggingface.co/csukuangfj/piper-phonemize-wheels huggingface
+            cd huggingface
+            git lfs track "*.whl"
+            git fetch
+            git pull
+            git merge -m "merge remote" --ff origin main
+            cp -v ../wheelhouse/*.whl .
+            git status
+            git add .
+            git commit -m "add more wheels"
+            git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
+
+  build_wheels:
     name: ${{ matrix.python-version }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - "cp38"
           - "cp39"
           - "cp310"
           - "cp311"
@@ -32,57 +89,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.1.4
         env:
-          CIBW_BEFORE_BUILD: |
-            git clone --depth 1 https://github.com/csukuangfj/espeak-ng
-            cd espeak-ng
-            git fetch
-            git checkout master
-            mkdir my-build
-            cd my-build
-
-            cmake ^
-              -DBUILD_ESPEAK_NG_TESTS=OFF ^
-              -DBUILD_SHARED_LIBS=ON ^
-              -DCMAKE_INSTALL_PREFIX=./install ^
-              -DUSE_MBROLA=OFF ^
-              -DUSE_LIBSONIC=OFF ^
-              -DUSE_LIBPCAUDIO=OFF ^
-              -DUSE_KLATT=OFF ^
-              -DUSE_SPEECHPLAYER=OFF ^
-              -DESPEAK_COMPAT=OFF ^
-              -DEXTRA_cmn=ON ^
-              -DEXTRA_ru=ON ^
-              ..
-            cmake --build . --config Release
-            cmake --install . --config Release
-
-            cd /d/a/piper-phonemize/piper-phonemize
-
-            mkdir my-build
-            cd my-build
-
-            cmake ^
-              -DESPEAK_NG_DIR=/d/a/piper-phonemize/piper-phonemize/espeak-ng/my-build/install ^
-              -DCMAKE_INSTALL_PREFIX=./install ^
-              -DBUILD_SHARED_LIBS=ON ^
-              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF ^
-              ..
-            cmake --build . --config Release
-            cmake --install . --config Release
-
-            cd /d/a/piper-phonemize/piper-phonemize
-            xcopy /E /I espeak-ng\my-build\install\share\espeak-ng-data piper_phonemize\espeak-ng-data
-            copy my-build\install\bin\*.dll piper_phonemize\ 2>nul
-            copy my-build\install\lib\*.dll piper_phonemize\ 2>nul
-
-            dir piper_phonemize\
-
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "AMD64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_SKIP: "*-win32 *-win_arm64"
+          CIBW_BEFORE_BUILD: pip install pybind11
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
