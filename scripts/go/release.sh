@@ -127,11 +127,13 @@ GOMOD
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl" \
     "$(realpath piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu)"
 
+  rm -rf piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
   mkdir -p piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl" \
     "$(realpath piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu)"
 
+  rm -rf piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
   mkdir -p piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux_2_31_armv7l.whl" \
@@ -166,11 +168,13 @@ go 1.17
 GOMOD
 
   # Download and extract libs from wheels
+  rm -rf piper-phonemize-go-macos/lib/x86_64-apple-darwin
   mkdir -p piper-phonemize-go-macos/lib/x86_64-apple-darwin
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_10_14_x86_64.whl" \
     "$(realpath piper-phonemize-go-macos/lib/x86_64-apple-darwin)"
 
+  rm -rf piper-phonemize-go-macos/lib/aarch64-apple-darwin
   mkdir -p piper-phonemize-go-macos/lib/aarch64-apple-darwin
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_11_0_arm64.whl" \
@@ -206,18 +210,21 @@ GOMOD
 
   # Download and extract libs from wheels
   # Use "win32" filter to only copy MSVC-built DLLs (no lib prefix)
+  rm -rf piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
   mkdir -p piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl" \
     "$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)" \
     "win32"
 
+  rm -rf piper-phonemize-go-windows/lib/i686-pc-windows-gnu
   mkdir -p piper-phonemize-go-windows/lib/i686-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl" \
     "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)" \
     "win32"
 
+  rm -rf piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
   mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_arm64.whl" \
