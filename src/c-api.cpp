@@ -18,7 +18,7 @@ struct PiperPhonemizeResult {
 
 static std::once_flag g_init_flag;
 
-const char *PiperPhonemizeGetVersionStr() { return "1.4.2"; }
+const char *PiperPhonemizeGetVersionStr() { return "1.4.3"; }
 
 int32_t PiperPhonemizeInitialize(const char *data_dir) {
   int32_t result = 0;
