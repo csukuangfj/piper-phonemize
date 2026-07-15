@@ -65,10 +65,12 @@ run_go_mod_tidy() {
 }
 
 # Download a wheel, extract shared libs, and copy to destination.
-# Usage: download_libs <wheel_filename> <dst_dir>
+# Usage: download_libs <wheel_filename> <dst_dir> [filter]
+# filter: "win32" to only copy non-prefixed DLLs (for MSVC-built wheels)
 download_libs() {
   local wheel_name="$1"
   local dst="$2"
+  local filter="${3:-}"
   local url="${GITHUB_RELEASE_URL}/${wheel_name}"
 
   echo "Downloading $url ..."
@@ -85,10 +87,18 @@ download_libs() {
 
   unzip -o wheel.whl
 
-  # Copy shared libs (.so, .dylib, .dll) from the wheel
-  find . -name "*.so" -o -name "*.dylib" -o -name "*.dll" | while read f; do
-    cp -v "$f" "$dst/"
-  done
+  # Copy shared libs from the wheel
+  if [ "$filter" = "win32" ]; then
+    # For Windows MSVC wheels: only copy non-prefixed DLLs (piper_phonemize_*.dll)
+    # and their import libraries (.lib)
+    find . -name "piper_phonemize_*.dll" -o -name "piper_phonemize_*.lib" -o -name "espeak-ng.lib" -o -name "ucd.lib" | while read f; do
+      cp -v "$f" "$dst/"
+    done
+  else
+    find . -name "*.so" -o -name "*.dylib" -o -name "*.dll" | while read f; do
+      cp -v "$f" "$dst/"
+    done
+  fi
 
   cd ..
   rm -rf t
@@ -195,20 +205,24 @@ go 1.17
 GOMOD
 
   # Download and extract libs from wheels
+  # Use "win32" filter to only copy MSVC-built DLLs (no lib prefix)
   mkdir -p piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl" \
-    "$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)"
+    "$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)" \
+    "win32"
 
   mkdir -p piper-phonemize-go-windows/lib/i686-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl" \
-    "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)"
+    "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)" \
+    "win32"
 
   mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_arm64.whl" \
-    "$(realpath piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu)"
+    "$(realpath piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu)" \
+    "win32"
 
   echo "------------------------------"
   cd piper-phonemize-go-windows
