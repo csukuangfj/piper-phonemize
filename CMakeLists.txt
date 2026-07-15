@@ -13,7 +13,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment ve
 
 project(
     piper_phonemize
-    VERSION 1.4.3
+    VERSION 1.4.4
     DESCRIPTION "Phonemization library for Piper text to speech system"
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES C CXX
