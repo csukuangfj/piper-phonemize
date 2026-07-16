@@ -1,0 +1,191 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width" />
+  <title>piper-phonemize WebAssembly Demo</title>
+  <style>
+    h1,div {
+      text-align: center;
+    }
+    textarea {
+      width:100%;
+      font-family: monospace;
+    }
+    select, button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
+    .loading {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body style="font-family: 'Source Sans Pro', sans-serif; background-color: #f9fafb; color: #333; display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0;">
+  <h1>
+    piper-phonemize WebAssembly Demo<br/>
+    <a href="https://github.com/csukuangfj/piper-phonemize">GitHub</a>
+  </h1>
+
+  <div style="width: 100%; max-width: 900px; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); flex: 1;">
+    <div id="status">Loading WASM module...</div>
+
+    <div id="content" style="margin-top: 1rem;">
+      <div style="margin-bottom: 1rem;">
+        <label for="voice">Voice: </label>
+        <select id="voice">
+          <option value="af">0-af Afrikaans</option>
+          <option value="sq">1-sq Albanian</option>
+          <option value="am">2-am Amharic</option>
+          <option value="ar">3-ar Arabic</option>
+          <option value="an">4-an Aragonese</option>
+          <option value="hy">5-hy Armenian</option>
+          <option value="as">6-as Assamese</option>
+          <option value="az">7-az Azerbaijani</option>
+          <option value="ba">8-ba Bashkir</option>
+          <option value="eu">9-eu Basque</option>
+          <option value="be">10-be Belarusian</option>
+          <option value="bn">11-bn Bengali</option>
+          <option value="bpy">12-bpy Bishnupriya Manipuri</option>
+          <option value="bs">13-bs Bosnian</option>
+          <option value="bg">14-bg Bulgarian</option>
+          <option value="my">15-my Burmese</option>
+          <option value="ca">16-ca Catalan</option>
+          <option value="chr">17-chr Cherokee</option>
+          <option value="cmn">18-cmn Chinese (Mandarin)</option>
+          <option value="yue">19-yue Chinese (Cantonese)</option>
+          <option value="hak">20-hak Chinese (Hakka)</option>
+          <option value="cv">21-cv Chuvash</option>
+          <option value="hr">22-hr Croatian</option>
+          <option value="cs">23-cs Czech</option>
+          <option value="da">24-da Danish</option>
+          <option value="nl">25-nl Dutch</option>
+          <option value="en-us" selected>26-en-us English (US)</option>
+          <option value="en">27-en English (UK)</option>
+          <option value="eo">28-eo Esperanto</option>
+          <option value="et">29-et Estonian</option>
+          <option value="fi">30-fi Finnish</option>
+          <option value="fr">31-fr French</option>
+          <option value="gl">32-gl Galician</option>
+          <option value="ka">33-ka Georgian</option>
+          <option value="de">34-de German</option>
+          <option value="el">35-el Greek</option>
+          <option value="grc">36-grc Greek (Ancient)</option>
+          <option value="gn">37-gn Guarani</option>
+          <option value="gu">38-gu Gujarati</option>
+          <option value="ht">39-ht Haitian Creole</option>
+          <option value="haw">40-haw Hawaiian</option>
+          <option value="he">41-he Hebrew</option>
+          <option value="hi">42-hi Hindi</option>
+          <option value="hu">43-hu Hungarian</option>
+          <option value="is">44-is Icelandic</option>
+          <option value="id">45-id Indonesian</option>
+          <option value="ia">46-ia Interlingua</option>
+          <option value="io">47-io Ido</option>
+          <option value="ga">48-ga Irish</option>
+          <option value="it">49-it Italian</option>
+          <option value="ja">50-ja Japanese</option>
+          <option value="jbo">51-jbo Lojban</option>
+          <option value="kn">52-kn Kannada</option>
+          <option value="kk">53-kk Kazakh</option>
+          <option value="km">54-km Khmer</option>
+          <option value="kl">55-kl Kalaallisut</option>
+          <option value="ko">56-ko Korean</option>
+          <option value="kok">57-kok Konkani</option>
+          <option value="ku">58-ku Kurdish</option>
+          <option value="ky">59-ky Kyrgyz</option>
+          <option value="la">60-la Latin</option>
+          <option value="lfn">61-lfn Lingua Franca Nova</option>
+          <option value="lv">62-lv Latvian</option>
+          <option value="lt">63-lt Lithuanian</option>
+          <option value="lb">64-lb Luxembourgish</option>
+          <option value="mk">65-mk Macedonian</option>
+          <option value="ms">66-ms Malay</option>
+          <option value="ml">67-ml Malayalam</option>
+          <option value="mt">68-mt Maltese</option>
+          <option value="mi">69-mi Maori</option>
+          <option value="mr">70-mr Marathi</option>
+          <option value="nci">71-nci Nahuatl</option>
+          <option value="ne">72-ne Nepali</option>
+          <option value="no">73-no Norwegian</option>
+          <option value="or">74-or Oriya</option>
+          <option value="om">75-om Oromo</option>
+          <option value="pa">76-pa Punjabi</option>
+          <option value="pap">77-pap Papiamento</option>
+          <option value="fa">78-fa Persian</option>
+          <option value="piqd">79-piqd Klingon</option>
+          <option value="pl">80-pl Polish</option>
+          <option value="pt">81-pt Portuguese</option>
+          <option value="qu">82-qu Quechua</option>
+          <option value="ro">83-ro Romanian</option>
+          <option value="ru">84-ru Russian</option>
+          <option value="gd">85-gd Scottish Gaelic</option>
+          <option value="sd">86-sd Sindhi</option>
+          <option value="si">87-si Sinhala</option>
+          <option value="sjn">88-sjn Sindarin</option>
+          <option value="sk">89-sk Slovak</option>
+          <option value="sl">90-sl Slovenian</option>
+          <option value="es">91-es Spanish</option>
+          <option value="sr">92-sr Serbian</option>
+          <option value="sw">93-sw Swahili</option>
+          <option value="sv">94-sv Swedish</option>
+          <option value="ta">95-ta Tamil</option>
+          <option value="tt">96-tt Tatar</option>
+          <option value="te">97-te Telugu</option>
+          <option value="th">98-th Thai</option>
+          <option value="bo">99-bo Tibetan</option>
+          <option value="tn">100-tn Tswana</option>
+          <option value="tr">101-tr Turkish</option>
+          <option value="tk">102-tk Turkmen</option>
+          <option value="ug">103-ug Uyghur</option>
+          <option value="uk">104-uk Ukrainian</option>
+          <option value="ur">105-ur Urdu</option>
+          <option value="uz">106-uz Uzbek</option>
+          <option value="vi">107-vi Vietnamese</option>
+          <option value="cy">108-cy Welsh</option>
+          <option value="yi">109-yi Yiddish</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="text">Text to phonemize:</label>
+        <textarea id="text" rows="5" placeholder="Enter text here...">Hello world. This is a test of piper-phonemize.</textarea>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <button id="phonemizeBtn" disabled>Phonemize</button>
+      </div>
+
+      <div>
+        <label for="results">Results (IPA):</label>
+        <textarea id="results" rows="10" readonly placeholder="Results will appear here..." style="background-color: #f8f9fa;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <div style="width: 100%; max-width: 900px; margin-top: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); text-align: left; font-size: 0.9rem; color: #6c757d;">
+    <h3>Description</h3>
+    <ul>
+      <li>Everything is <strong>open-sourced.</strong> <a href="https://github.com/csukuangfj/piper-phonemize">code</a></li>
+      <li>piper-phonemize converts text to IPA phonemes using espeak-ng</li>
+      <li>All processing is done locally in your browser - no server required</li>
+    </ul>
+    <h3>About This Demo</h3>
+    <ul>
+      <li><strong>Private and Secure:</strong> All processing is done locally on your device within your browser. No server is involved.</li>
+      <li><strong>espeak-ng-data</strong> is embedded in the WASM module (preloaded at build time)</li>
+    </ul>
+    <h3>Supported Languages</h3>
+    <ul>
+      <li>110 languages supported including English, Chinese, Japanese, Korean, German, French, Spanish, Russian, Arabic, Hindi, and many more</li>
+    </ul>
+  </div>
+
+  <script src="piper-phonemize.js"></script>
+  <script src="app-phonemize.js"></script>
+  <!-- Emscripten module loaded last, after Module object is defined -->
+  <script src="piper-phonemize-wasm-main.js"></script>
+</body>
+</html>

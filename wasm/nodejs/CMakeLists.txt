@@ -22,7 +22,6 @@ string(APPEND MY_FLAGS " -sSTACK_SIZE=10485760 ")  # 10MB
 string(APPEND MY_FLAGS " -sMODULARIZE=1 ")
 string(APPEND MY_FLAGS " -sWASM_ASYNC_COMPILATION=0 ")
 string(APPEND MY_FLAGS " -sNODERAWFS=1 ")
-string(APPEND MY_FLAGS " -pthread -sPTHREAD_POOL_SIZE=1 ")
 string(APPEND MY_FLAGS " -fexceptions ")
 string(APPEND MY_FLAGS " -sEXPORTED_FUNCTIONS=[_malloc,_free,${all_exported_functions}] ")
 string(APPEND MY_FLAGS " -sEXPORTED_RUNTIME_METHODS=['ccall','stringToUTF8','setValue','getValue','lengthBytesUTF8','UTF8ToString','HEAPU8','HEAP16','HEAP32','HEAPU32','HEAPF32','HEAPF64','addFunction','removeFunction'] ")

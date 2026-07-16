@@ -1,0 +1,67 @@
+name: build-wasm
+
+on:
+  push:
+    branches:
+      - wasm
+    tags:
+      - '*'
+  workflow_dispatch:
+
+concurrency:
+  group: build-wasm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-wasm-nodejs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install 4.0.23
+          ./emsdk activate 4.0.23
+
+      - name: Build WASM for Node.js
+        run: |
+          source emsdk/emsdk_env.sh
+          bash build-wasm-simd-nodejs.sh
+
+      - name: Display output
+        run: |
+          ls -lh build-wasm-simd-nodejs/install/bin/wasm/nodejs/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-nodejs
+          path: build-wasm-simd-nodejs/install/bin/wasm/nodejs/
+
+
+  build-wasm-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install 4.0.23
+          ./emsdk activate 4.0.23
+
+      - name: Build WASM for browser
+        run: |
+          source emsdk/emsdk_env.sh
+          bash build-wasm-simd-browser.sh
+
+      - name: Display output
+        run: |
+          ls -lh build-wasm-simd-browser/install/bin/wasm/browser/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-browser
+          path: build-wasm-simd-browser/install/bin/wasm/browser/
