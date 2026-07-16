@@ -19,3 +19,5 @@ htmlcov
 /lib/
 /download/
 /_install/
+node_modules
+package-lock.json
