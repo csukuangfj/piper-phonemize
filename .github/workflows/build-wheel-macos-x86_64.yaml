@@ -33,8 +33,7 @@ jobs:
           CIBW_ARCHS: "x86_64"
           CIBW_BUILD_VERBOSITY: 3
           CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-          CIBW_ENVIRONMENT: PIPER_PHONEMIZE_MAKE_ARGS="-j$(sysctl -n hw.ncpu)" MACOSX_DEPLOYMENT_TARGET="10.14"
+          CIBW_ENVIRONMENT: PIPER_PHONEMIZE_MAKE_ARGS="-j$(sysctl -n hw.ncpu)" MACOSX_DEPLOYMENT_TARGET="10.14" PYTHONPATH="/Users/runner/work/piper-phonemize/piper-phonemize:$PYTHONPATH"
 
       - name: Display wheels
         shell: bash
@@ -108,8 +107,7 @@ jobs:
           CIBW_ARCHS: "x86_64"
           CIBW_BUILD_VERBOSITY: 3
           CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-          CIBW_ENVIRONMENT: PIPER_PHONEMIZE_MAKE_ARGS="-j$(sysctl -n hw.ncpu)" MACOSX_DEPLOYMENT_TARGET="10.14"
+          CIBW_ENVIRONMENT: PIPER_PHONEMIZE_MAKE_ARGS="-j$(sysctl -n hw.ncpu)" MACOSX_DEPLOYMENT_TARGET="10.14" PYTHONPATH="/Users/runner/work/piper-phonemize/piper-phonemize:$PYTHONPATH"
 
       - name: Display wheels
         shell: bash

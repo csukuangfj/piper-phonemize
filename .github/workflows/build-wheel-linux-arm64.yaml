@@ -35,8 +35,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-          CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+          CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)" PYTHONPATH="/project:$PYTHONPATH"
 
       - name: Display wheels
         shell: bash
@@ -112,8 +111,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-          CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+          CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)" PYTHONPATH="/project:$PYTHONPATH"
 
       - name: Display wheels
         shell: bash
