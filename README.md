@@ -21,14 +21,6 @@ EOF
 {"phoneme_ids":[1,0,41,0,74,0,31,0,3,0,74,0,38,0,3,0,50,0,26,0,120,0,102,0,41,0,60,0,3,0,32,0,120,0,61,0,31,0,32,0,4,0,2],"phonemes":["ð","ɪ","s"," ","ɪ","z"," ","ɐ","n","ˈ","ʌ","ð","ɚ"," ","t","ˈ","ɛ","s","t","!"],"processed_text":"This is another test!","text":"This is another test!"}
 ```
 
-Arabic diacritization is supported through [libtashkeel](https://github.com/mush42/libtashkeel/) (model included):
-
-``` sh
-echo 'مرحبا' | lib/piper_phonemize -l ar --espeak-data lib/espeak-ng-data/ --tashkeel_model etc/libtashkeel_model.ort
-{"phoneme_ids":[1,0,25,0,120,0,14,0,30,0,43,0,14,0,15,0,121,0,14,0,26,0,2],"phonemes":["m","ˈ","a","r","ħ","a","b","ˌ","a","n"],"processed_text":"مَرْحَبًا","text":"مرحبا"}
-
-```
-
 See `src/test.cpp` for a C++ example using `libpiper_phonemize`.
 
 ### Python

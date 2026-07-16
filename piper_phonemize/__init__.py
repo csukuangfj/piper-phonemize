@@ -3,7 +3,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from piper_phonemize_cpp import (
+from piper_phonemize.lib.piper_phonemize_cpp import (
     phonemize_espeak as _phonemize_espeak,
     phonemize_codepoints as _phonemize_codepoints,
     phoneme_ids_espeak as _phonemize_ids_espeak,
@@ -11,11 +11,9 @@ from piper_phonemize_cpp import (
     get_espeak_map,
     get_codepoints_map,
     get_max_phonemes,
-    tashkeel_run as _tashkeel_run,
 )
 
 _DIR = Path(__file__).parent
-_TASHKEEL_MODEL = _DIR / "libtashkeel_model.ort"
 
 
 class TextCasing(str, Enum):
@@ -67,8 +65,3 @@ def phoneme_ids_codepoints(
         missing_phonemes.update(missing_counts)
 
     return phoneme_ids
-
-
-def tashkeel_run(text: str, tashkeel_model: Union[str, Path] = _TASHKEEL_MODEL) -> str:
-    tashkeel_model = str(tashkeel_model)
-    return _tashkeel_run(tashkeel_model, text)

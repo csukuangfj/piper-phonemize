@@ -19,7 +19,7 @@ func phonemesToString(phonemes []uint32) string {
 func main() {
 	fmt.Println("Version:", pp.GetVersionStr())
 
-	dataDir := "./espeak-ng-data"
+	dataDir := ""
 	if len(os.Args) > 1 {
 		dataDir = os.Args[1]
 	}

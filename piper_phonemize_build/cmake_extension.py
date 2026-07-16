@@ -8,6 +8,13 @@ from pathlib import Path
 import setuptools
 from setuptools.command.build_ext import build_ext
 
+version = None
+
+
+def set_version(v):
+    global version
+    version = v
+
 
 def is_macos():
     return platform.system() == "Darwin"
@@ -52,7 +59,9 @@ class BuildExtension(build_ext):
 
         extra_cmake_args = f" -DCMAKE_INSTALL_PREFIX={install_dir} "
         extra_cmake_args += " -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF "
+        extra_cmake_args += " -DBUILD_PIPER_PHONEMIZE_PYTHON=ON"
         extra_cmake_args += " -DBUILD_SHARED_LIBS=ON "
+        extra_cmake_args += f" -DVERSION_INFO={version} "
 
         cmake_args += extra_cmake_args
 

@@ -43,13 +43,15 @@ jobs:
           CIBW_ARCHS: "armv7l"
           CIBW_BUILD_VERBOSITY: 3
           CIBW_MANYLINUX_ARMV7L_IMAGE: quay.io/pypa/manylinux_2_31_armv7l
-          CIBW_BEFORE_BUILD: pip install pybind11
           CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
         run: |
           ls -lh ./wheelhouse/
+
+          echo "---"
+          unzip -l ./wheelhouse/*.whl
 
       - uses: actions/upload-artifact@v4
         with:
@@ -81,3 +83,12 @@ jobs:
             git add .
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
+
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.7

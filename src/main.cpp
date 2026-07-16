@@ -16,7 +16,6 @@
 #include "json.hpp"
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
-#include "tashkeel.hpp"
 #include "uni_algo.h"
 
 using json = nlohmann::json;
@@ -27,7 +26,6 @@ struct RunConfig {
   std::string language = "";
   PhonemeType phonemeType = eSpeakPhonemes;
   std::optional<std::filesystem::path> eSpeakDataPath;
-  std::optional<std::filesystem::path> tashkeelModelPath;
   std::function<std::string(std::string)> processText = [](std::string text) {
     return text;
   };
@@ -54,7 +52,6 @@ int main(int argc, char *argv[]) {
   piper::eSpeakPhonemeConfig eSpeakConfig;
   piper::CodepointsPhonemeConfig codepointsConfig;
   piper::PhonemeIdConfig idConfig;
-  tashkeel::State tashkeelState;
 
   if (runConfig.phonemeType == eSpeakPhonemes) {
     // Need to initialize eSpeak
@@ -85,25 +82,6 @@ int main(int argc, char *argv[]) {
 
     idConfig.phonemeIdMap = std::make_shared<piper::PhonemeIdMap>(
         piper::DEFAULT_ALPHABET[runConfig.language]);
-  }
-
-  // Special handling for Arabic
-  if (runConfig.language == "ar") {
-    if (runConfig.tashkeelModelPath) {
-      // Load tashkeel
-      tashkeel::tashkeel_load(runConfig.tashkeelModelPath->string(),
-                              tashkeelState);
-
-      // Text will be diacritized with libtashkeel.
-      // https://github.com/mush42/libtashkeel
-      runConfig.processText = [&tashkeelState](std::string text) {
-        return tashkeel::tashkeel_run(text, tashkeelState);
-      };
-    } else {
-      std::cerr << "WARNING: --tashkeel_model is not set, so text cannot be "
-                   "diacritized!"
-                << std::endl;
-    }
   }
 
   // Count of missing phonemes from phoneme/id map
@@ -222,10 +200,6 @@ void printUsage(char *argv[]) {
       << "   --espeak_data           DIR   path to espeak-ng data directory"
       << std::endl;
   std::cerr
-      << "   --tashkeel_model        FILE  path to libtashkeel onnx model "
-         "(arabic)"
-      << std::endl;
-  std::cerr
       << "   -j        --json_input        input is JSONL instead of plain text"
       << std::endl;
   std::cerr
@@ -255,9 +229,6 @@ void parseArgs(int argc, char *argv[], RunConfig &runConfig) {
     } else if (arg == "--espeak_data" || arg == "--espeak-data") {
       ensureArg(argc, argv, i);
       runConfig.eSpeakDataPath = std::filesystem::path(argv[++i]);
-    } else if (arg == "--tashkeel_model" || arg == "--tashkeel-model") {
-      ensureArg(argc, argv, i);
-      runConfig.tashkeelModelPath = std::filesystem::path(argv[++i]);
     } else if (arg == "-j" || arg == "--json_input" || arg == "--json-input") {
       runConfig.jsonInput = true;
     } else if (arg == "--allow_missing_phonemes" ||

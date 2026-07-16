@@ -15,11 +15,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-
       - name: Wait for Go proxy
         run: |
           VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
@@ -39,7 +34,7 @@ jobs:
         run: |
           cd go-api-examples
           go mod tidy
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+          go run main.go
 
   test-go-package-linux-arm64:
     runs-on: ubuntu-22.04-arm
@@ -49,11 +44,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-
       - name: Wait for Go proxy
         run: |
           VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
@@ -73,7 +63,7 @@ jobs:
         run: |
           cd go-api-examples
           go mod tidy
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+          go run main.go
 
   test-go-package-linux-armv7:
     runs-on: ubuntu-latest
@@ -100,10 +90,6 @@ jobs:
               tar -C /usr/local -xzf /tmp/go.tar.gz
               export PATH=/usr/local/go/bin:$PATH
 
-              # Download espeak-ng-data
-              curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-              tar xvf espeak-ng-data.tar.bz2
-
               # Wait for Go proxy
               VERSION='"'$VERSION'"'
               echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
@@ -119,21 +105,16 @@ jobs:
 
               cd go-api-examples
               go mod tidy
-              go run main.go /workspace/espeak-ng-data
+              go run main.go
             '
 
-  test-go-package-macos-arm64:
-    runs-on: macos-latest
+  test-go-package-macos-x64:
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
 
       - name: Wait for Go proxy
         run: |
@@ -154,7 +135,36 @@ jobs:
         run: |
           cd go-api-examples
           go mod tidy
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+          go run main.go
+
+  test-go-package-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        run: |
+          cd go-api-examples
+          go mod tidy
+          go run main.go
 
   test-go-package-windows:
     runs-on: windows-latest
@@ -163,11 +173,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
 
       - name: Wait for Go proxy
         shell: bash
@@ -195,54 +200,5 @@ jobs:
           VERSION=$(grep 'piper-phonemize-go ' go.mod | awk '{print $NF}')
           DLL_DIR=$(go env GOMODCACHE)/github.com/csukuangfj/piper-phonemize-go-windows@$VERSION/lib/x86_64-pc-windows-gnu
           cp -v "$DLL_DIR"/*.dll . 2>/dev/null || true
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data
+          go run main.go
 
-  test-go-package-windows-x86:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install 32-bit MinGW and Go
-        shell: bash
-        run: |
-          # Install 32-bit MinGW
-          choco install mingw --x86 --force -y
-          # Add 32-bit MinGW to PATH (before 64-bit)
-          echo "C:/mingw32/bin" >> $GITHUB_PATH
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          architecture: '386'
-
-      - name: Download espeak-ng-data
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-
-      - name: Wait for Go proxy
-        shell: bash
-        run: |
-          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
-          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
-          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
-          for i in $(seq 1 40); do
-            echo "Attempt $i/40: checking..."
-            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
-              echo "Available!"
-              break
-            fi
-            echo "Not ready yet, sleeping 30s..."
-            sleep 30
-          done
-
-      - name: Test released Go package
-        shell: bash
-        run: |
-          cd go-api-examples
-          go mod tidy
-          # On Windows, DLLs must be in current directory.
-          VERSION=$(grep 'piper-phonemize-go ' go.mod | awk '{print $NF}')
-          DLL_DIR=$(go env GOMODCACHE)/github.com/csukuangfj/piper-phonemize-go-windows@$VERSION/lib/i686-pc-windows-gnu
-          cp -v "$DLL_DIR"/*.dll . 2>/dev/null || true
-          go run main.go $GITHUB_WORKSPACE/espeak-ng-data

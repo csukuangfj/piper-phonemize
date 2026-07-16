@@ -9,119 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential \
-            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-
-      - name: Build x86_64
-        run: |
-          cmake -Bbuild-x86_64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
-          cmake --build build-x86_64 --config Release -j$(nproc)
-          mkdir -p artifacts/linux-x86_64
-          cp -v build-x86_64/lib/libpiper_phonemize* artifacts/linux-x86_64/
-
-      - name: Build aarch64
-        run: |
-          cmake -Bbuild-aarch64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
-            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++
-          cmake --build build-aarch64 --config Release -j$(nproc)
-          mkdir -p artifacts/linux-aarch64
-          cp -v build-aarch64/lib/libpiper_phonemize* artifacts/linux-aarch64/
-
-      - name: Build armv7
-        run: |
-          cmake -Bbuild-armv7 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
-            -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++
-          cmake --build build-armv7 --config Release -j$(nproc)
-          mkdir -p artifacts/linux-armv7
-          cp -v build-armv7/lib/libpiper_phonemize* artifacts/linux-armv7/
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-libs
-          path: artifacts/
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Build arm64
-        run: |
-          cmake -Bbuild-arm64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64
-          cmake --build build-arm64 --config Release
-          mkdir -p artifacts/macos-arm64
-          cp -v build-arm64/lib/libpiper_phonemize* artifacts/macos-arm64/
-
-      - name: Build x86_64
-        run: |
-          cmake -Bbuild-x86_64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=x86_64
-          cmake --build build-x86_64 --config Release
-          mkdir -p artifacts/macos-x86_64
-          cp -v build-x86_64/lib/libpiper_phonemize* artifacts/macos-x86_64/
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-libs
-          path: artifacts/
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Build x64
-        shell: bash
-        run: |
-          cmake -Bbuild-x64 -DBUILD_SHARED_LIBS=ON
-          cmake --build build-x64 --config Release
-          mkdir -p artifacts/windows-x64
-          cp -v build-x64/bin/Release/*.dll artifacts/windows-x64/ 2>/dev/null || true
-          cp -v build-x64/lib/Release/*.lib artifacts/windows-x64/ 2>/dev/null || true
-
-      - name: Build x86
-        shell: bash
-        run: |
-          cmake -Bbuild-x86 -A Win32 -DBUILD_SHARED_LIBS=ON
-          cmake --build build-x86 --config Release
-          mkdir -p artifacts/windows-x86
-          cp -v build-x86/bin/Release/*.dll artifacts/windows-x86/ 2>/dev/null || true
-          cp -v build-x86/lib/Release/*.lib artifacts/windows-x86/ 2>/dev/null || true
-
-      - name: Build ARM64
-        shell: bash
-        run: |
-          cmake -Bbuild-arm64 -A ARM64 -DBUILD_SHARED_LIBS=ON
-          cmake --build build-arm64 --config Release
-          mkdir -p artifacts/windows-arm64
-          cp -v build-arm64/bin/Release/*.dll artifacts/windows-arm64/ 2>/dev/null || true
-          cp -v build-arm64/lib/Release/*.lib artifacts/windows-arm64/ 2>/dev/null || true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-libs
-          path: artifacts/
-
   release-go:
-    needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,15 +19,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake python3 python3-pip
+          sudo apt-get install -y python3 python3-pip curl unzip
           pip3 install jinja2
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: libs
-
-      - name: List downloaded libs
-        run: find libs -type f | sort
 
       - name: Set up SSH key
         env:
@@ -156,7 +37,6 @@ jobs:
       - name: Release Go packages
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          LIBS_DIR: ${{ github.workspace }}/libs
         run: |
           cd scripts/go
           bash release.sh
