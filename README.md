@@ -1,5 +1,14 @@
 # piper-phonemize
 
+## Try it Online
+
+You can try piper-phonemize directly in your browser using WebAssembly:
+
+- **Hugging Face Spaces**: https://huggingface.co/spaces/csukuangfj/piper-phonemize
+- **ModelScope Studios** (for users in China, 中文用户): https://modelscope.cn/studios/csukuangfj/piper-phonemize/summary
+
+## Introduction
+
 Phonemization library for [Piper](https://github.com/rhasspy/piper) text-to-speech system.
 
 Converts text to IPA phonemes using [espeak-ng](https://github.com/espeak-ng/espeak-ng).
