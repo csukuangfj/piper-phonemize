@@ -304,24 +304,3 @@ jobs:
           EOF
           sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
           CGO_ENABLED=1 GOARCH=386 go run main.go $GITHUB_WORKSPACE/espeak-ng-data
-
-  test-go-windows-arm64:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Build piper-phonemize (ARM64)
-        shell: bash
-        run: |
-          cmake -Bbuild -A ARM64 -DBUILD_SHARED_LIBS=ON
-          cmake --build build --config Release
-
-      - name: Verify ARM64 library was built
-        shell: bash
-        run: |
-          ls -la build/bin/Release/*.dll 2>/dev/null || true
-          ls -la build/lib/Release/*.lib 2>/dev/null || true
-          echo "Windows ARM64 build succeeded"

@@ -95,7 +95,8 @@ download_libs() {
       cp -v "$f" "$dst/"
     done
   else
-    find . -name "*.so" -o -name "*.dylib" -o -name "*.dll" | while read f; do
+    # Copy shared libs but exclude Python extension modules (*.cpython-*.so)
+    find . \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) ! -name "*.cpython-*" | while read f; do
       cp -v "$f" "$dst/"
     done
   fi
@@ -111,7 +112,7 @@ function linux() {
   rm -v ./piper-phonemize-go-linux/*.go || true
 
   cp -v ./piper_phonemize.go ./piper-phonemize-go-linux/
-  cp -v ./_internal/c-api.h ./piper-phonemize-go-linux/
+  cp -v "$PIPER_PHONEMIZE_DIR/src/c-api.h" ./piper-phonemize-go-linux/
   cp -v ./build_linux_*.go ./piper-phonemize-go-linux/
 
   # Create go.mod
@@ -157,7 +158,7 @@ function osx() {
   git clone git@github.com:csukuangfj/piper-phonemize-go-macos.git
   rm -v ./piper-phonemize-go-macos/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-macos/
-  cp -v ./_internal/c-api.h ./piper-phonemize-go-macos/
+  cp -v "$PIPER_PHONEMIZE_DIR/src/c-api.h" ./piper-phonemize-go-macos/
   cp -v ./build_darwin_*.go ./piper-phonemize-go-macos/
 
   # Create go.mod
@@ -198,7 +199,7 @@ function windows() {
   git clone git@github.com:csukuangfj/piper-phonemize-go-windows.git
   rm -v ./piper-phonemize-go-windows/*.go || true
   cp -v ./piper_phonemize.go ./piper-phonemize-go-windows/
-  cp -v ./_internal/c-api.h ./piper-phonemize-go-windows/
+  cp -v "$PIPER_PHONEMIZE_DIR/src/c-api.h" ./piper-phonemize-go-windows/
   cp -v ./build_windows_*.go ./piper-phonemize-go-windows/
 
   # Create go.mod
@@ -222,13 +223,6 @@ GOMOD
   download_libs \
     "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl" \
     "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)" \
-    "win32"
-
-  rm -rf piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
-  mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
-  download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_arm64.whl" \
-    "$(realpath piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu)" \
     "win32"
 
   echo "------------------------------"
