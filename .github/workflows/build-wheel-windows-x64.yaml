@@ -32,8 +32,8 @@ jobs:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "AMD64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)" PYTHONPATH="C:/Users/runner/work/piper-phonemize/piper-phonemize;%PYTHONPATH%"
+          CIBW_BEFORE_BUILD: pip install setuptools wheel && python -c "import site; sp=site.getsitepackages()[0]; open(sp+'/piper_phonemize_build.pth','w').write('C:/Users/runner/work/piper-phonemize/piper-phonemize\n')"
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
@@ -106,8 +106,8 @@ jobs:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "AMD64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_BEFORE_BUILD: pip install setuptools wheel
-          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)" PYTHONPATH="C:/Users/runner/work/piper-phonemize/piper-phonemize;%PYTHONPATH%"
+          CIBW_BEFORE_BUILD: pip install setuptools wheel && python -c "import site; sp=site.getsitepackages()[0]; open(sp+'/piper_phonemize_build.pth','w').write('C:/Users/runner/work/piper-phonemize/piper-phonemize\n')"
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
