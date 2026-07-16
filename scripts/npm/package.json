@@ -1,6 +1,6 @@
 {
   "name": "piper-phonemize",
-  "version": "1.4.1",
+  "version": "PIPER_PHONEMIZE_VERSION",
   "description": "Phonemization library for Piper text-to-speech using espeak-ng, compiled to WebAssembly",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,9 @@
     "speech"
   ],
   "author": "Michael Hansen",
+  "contributors": [
+    "Fangjun Kuang <csukuangfj@gmail.com> (https://github.com/csukuangfj)"
+  ],
   "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/csukuangfj/piper-phonemize/issues"
