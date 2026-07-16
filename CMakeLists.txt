@@ -1,11 +1,16 @@
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # https://cmake.org/cmake/help/latest/prop_tgt/MSVC_RUNTIME_LIBRARY.html
 cmake_policy(SET CMP0091 NEW)
+if(POLICY CMP0169)
+  cmake_policy(SET CMP0169 OLD)
+  set(CMAKE_POLICY_DEFAULT_CMP0169 OLD)
+endif()
 
 set(CMAKE_VERBOSE_MAKEFILE off)
 
@@ -13,11 +18,11 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment ve
 
 project(
     piper_phonemize
-    VERSION 1.4.5
     DESCRIPTION "Phonemization library for Piper text to speech system"
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES C CXX
 )
+set(PIPER_PHONEMIZE_VERSION 1.4.6)
 
 # ---- Cross-platform build settings (following sherpa-onnx) ----
 
@@ -155,6 +160,7 @@ if(NOT espeak_ng_POPULATED)
 endif()
 message(STATUS "espeak-ng is downloaded to ${espeak_ng_SOURCE_DIR}")
 message(STATUS "espeak-ng binary dir is ${espeak_ng_BINARY_DIR}")
+include_directories(${espeak_ng_SOURCE_DIR}/src/include)
 
 set(BUILD_ESPEAK_NG_TESTS OFF CACHE BOOL "" FORCE)
 set(USE_ASYNC OFF CACHE BOOL "" FORCE)
@@ -361,4 +367,59 @@ if(BUILD_PIPER_PHONEMIZE_CORE_TESTS)
 
   add_executable(test-cxx-api src/test-cxx-api.cpp)
   target_link_libraries(test-cxx-api piper_phonemize_cxx_api)
+endif()
+
+if(BUILD_PIPER_PHONEMIZE_PYTHON)
+
+  set(pybind11_URL  "https://github.com/pybind/pybind11/archive/refs/tags/v3.0.0.tar.gz")
+  FetchContent_Declare(pybind11
+    URL "https://github.com/pybind/pybind11/archive/refs/tags/v3.0.0.tar.gz"
+    URL_HASH "SHA256=453b1a3e2b266c3ae9da872411cadb6d693ac18063bd73226d96cfb7015a200c"
+  )
+  set(PYBIND11_FINDPYTHON NEW CACHE STRING "" FORCE)
+  FetchContent_GetProperties(pybind11)
+
+  if(NOT pybind11_POPULATED)
+    message(STATUS "Downloading pybind11 from ${pybind11_URL}")
+    FetchContent_Populate(pybind11)
+  endif()
+  message(STATUS "pybind11 is downloaded to ${pybind11_SOURCE_DIR}")
+  add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+  set(srcs
+      src/python.cpp
+      src/phonemize.cpp
+      src/phoneme_ids.cpp
+    )
+
+  pybind11_add_module(piper_phonemize_cpp ${srcs})
+  target_link_libraries(piper_phonemize_cpp PRIVATE espeak-ng)
+
+  install(TARGETS piper_phonemize_cpp DESTINATION lib)
+
+  # ---- Download espeak-ng-data for Python wheel ----
+  set(ESPEAK_NG_DATA_DIR "${CMAKE_INSTALL_PREFIX}/espeak-ng-data")
+  if(NOT EXISTS "${ESPEAK_NG_DATA_DIR}/phontab")
+    set(ESPEAK_NG_DATA_URL "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2")
+    set(ESPEAK_NG_DATA_ARCHIVE "${CMAKE_BINARY_DIR}/espeak-ng-data.tar.bz2")
+    message(STATUS "Downloading espeak-ng-data from ${ESPEAK_NG_DATA_URL} to ${ESPEAK_NG_DATA_ARCHIVE}")
+    file(DOWNLOAD "${ESPEAK_NG_DATA_URL}" "${ESPEAK_NG_DATA_ARCHIVE}" STATUS download_status)
+    list(GET download_status 0 status_code)
+    if(NOT status_code EQUAL 0)
+      message(FATAL_ERROR "Failed to download espeak-ng-data")
+    endif()
+    message(STATUS "Extracting espeak-ng-data to ${CMAKE_INSTALL_PREFIX}")
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E tar xjf "${ESPEAK_NG_DATA_ARCHIVE}"
+      WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}"
+    )
+    file(REMOVE "${ESPEAK_NG_DATA_ARCHIVE}")
+  else()
+    message(STATUS "espeak-ng-data already exists at ${ESPEAK_NG_DATA_DIR}")
+  endif()
+
+install(
+    FILES
+    ${CMAKE_SOURCE_DIR}/LICENSE.md
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()

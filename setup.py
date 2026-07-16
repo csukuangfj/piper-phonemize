@@ -1,70 +1,71 @@
 #!/usr/bin/env python3
-#
-# Copyright (c)  2026  Xiaomi Corporation
 
 import os
-import platform
 import re
-import sys
 from pathlib import Path
 
 import setuptools
-from pybind11.setup_helpers import Pybind11Extension, build_ext
-from setuptools import setup
 
-extra_link_args = []
+from piper_phonemize_build.cmake_extension import (
+    BuildExtension,
+    bdist_wheel,
+    cmake_extension,
+    is_windows,
+    set_version,
+)
 
-if platform.system() == 'Darwin':
-    extra_link_args.append('-Wl,-rpath,' + 'piper_phonemize')
 
-_DIR = Path(__file__).parent
-_ESPEAK_DIR = _DIR / "espeak-ng" / "my-build" / "install"
-_ONNXRUNTIME_DIR = _DIR / "my-build" / "install"
+def read_long_description():
+    with open("README.md", encoding="utf8") as f:
+        readme = f.read()
+    return readme
 
-import os
-os.system("pwd")
-os.system("ls -lh")
-os.system("ls -lh piper_phonemize")
 
-__version__ = "1.4.1"
+def get_package_version():
+    with open("CMakeLists.txt") as f:
+        content = f.read()
 
-ext_modules = [
-    Pybind11Extension(
-        "piper_phonemize_cpp",
-        [
-            "src/python.cpp",
-            "src/phonemize.cpp",
-            "src/phoneme_ids.cpp",
-            "src/tashkeel.cpp",
-        ],
-        define_macros=[("VERSION_INFO", __version__)],
-        include_dirs=[str(_ESPEAK_DIR / "include"), str(_ONNXRUNTIME_DIR / "include")],
-        library_dirs=[str(_ESPEAK_DIR / "lib"), str(_ONNXRUNTIME_DIR / "lib")],
-        libraries=["espeak-ng", "onnxruntime"],
-        extra_link_args = extra_link_args,
-    ),
-]
+    match = re.search(r"set\(PIPER_PHONEMIZE_VERSION (.*)\)", content)
+    latest_version = match.group(1).strip('"')
 
-setup(
-    name="piper_phonemize",
-    version=__version__,
+    return latest_version
+
+
+set_version(get_package_version())
+
+package_name = "piper_phonemize"
+
+with open("piper_phonemize/__init__.py", "a") as f:
+    f.write(f"__version__ = '{get_package_version()}'\n")
+
+
+setuptools.setup(
+    name=package_name,
+    python_requires=">=3.7",
+    version=get_package_version(),
     author="Michael Hansen",
     author_email="mike@rhasspy.org",
     url="https://github.com/rhasspy/piper-phonemize",
-    description="Phonemization library used by Piper text to speech system",
-    long_description="",
     packages=["piper_phonemize"],
-    package_data={
-        "piper_phonemize": [
-            str(p) for p in (_DIR / "piper_phonemize" / "espeak-ng-data").rglob("*")
-        ]
-        + [str(_DIR / "libtashkeel_model.ort")] + [
-            str(p) for p in (_DIR / "piper_phonemize").rglob("*dylib*")
-        ]
-    },
-    include_package_data=True,
-    ext_modules=ext_modules,
-    cmdclass={"build_ext": build_ext},
+    package_data={"piper_phonemize": ["espeak-ng-data/**", "./LICENSE.md"]},
+    long_description=read_long_description(),
+    long_description_content_type="text/markdown",
+    ext_modules=[cmake_extension("piper_phonemize_cpp")],
+    cmdclass={"build_ext": BuildExtension, "bdist_wheel": bdist_wheel},
     zip_safe=False,
-    python_requires=">=3.7",
+    classifiers=[
+        "Programming Language :: C++",
+        "Programming Language :: Python",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
 )
+
+with open("piper_phonemize/__init__.py", "r") as f:
+    lines = f.readlines()
+
+with open("piper_phonemize/__init__.py", "w") as f:
+    for line in lines:
+        if "__version__" in line:
+            # skip __version__ = "x.x.x"
+            continue
+        f.write(line)

@@ -10,7 +10,6 @@
 
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
-#include "tashkeel.hpp"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -19,10 +18,6 @@ namespace py = pybind11;
 
 // True when espeak_Initialize has been called
 bool eSpeakInitialized = false;
-
-// Loaded when using Arabic
-// https://github.com/mush42/libtashkeel/
-std::map<std::string, tashkeel::State> tashkeelStates;
 
 // ----------------------------------------------------------------------------
 
@@ -105,16 +100,6 @@ std::map<std::string, piper::PhonemeIdMap> get_codepoints_map() {
   return piper::DEFAULT_ALPHABET;
 }
 
-std::string tashkeel_run(std::string modelPath, std::string text) {
-  if (tashkeelStates.count(modelPath) < 1) {
-    tashkeel::State newState;
-    tashkeel::tashkeel_load(modelPath, newState);
-    tashkeelStates[modelPath] = std::move(newState);
-  }
-
-  return tashkeel::tashkeel_run(text, tashkeelStates[modelPath]);
-}
-
 // ----------------------------------------------------------------------------
 
 PYBIND11_MODULE(piper_phonemize_cpp, m) {
@@ -134,8 +119,6 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
            get_espeak_map
            get_codepoints_map
            get_max_phonemes
-           tashkeel_load
-           tashkeel_run
     )pbdoc";
 
   m.def("phonemize_espeak", &phonemize_espeak, R"pbdoc(
@@ -164,10 +147,6 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
 
   m.def("get_max_phonemes", &get_max_phonemes, R"pbdoc(
         Get maximum number of phonemes in id maps
-    )pbdoc");
-
-  m.def("tashkeel_run", &tashkeel_run, R"pbdoc(
-        Add diacritics to Arabic text (must call tashkeel_load first)
     )pbdoc");
 
 #ifdef VERSION_INFO
