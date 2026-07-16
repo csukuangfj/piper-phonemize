@@ -89,6 +89,12 @@ option(BUILD_SHARED_LIBS "Whether to build shared libraries" ON)
 option(BUILD_PIPER_PHONEMIZE_CORE_EXE "Whether to build piper_phonemize_exe" OFF)
 option(BUILD_PIPER_PHONEMIZE_CORE_TESTS "Whether to build tests" OFF)
 option(ENABLE_PIPER_PHONEMIZE_CORE_SONAME "Whether to enable soname" OFF)
+option(BUILD_PIPER_PHONEMIZE_PYTHON "Whether to build Python extension" OFF)
+
+# WASM support
+option(PIPER_PHONEMIZE_ENABLE_WASM "Build for WebAssembly" OFF)
+option(PIPER_PHONEMIZE_ENABLE_WASM_NODEJS "Build WASM for Node.js" OFF)
+option(PIPER_PHONEMIZE_ENABLE_WASM_BROWSER "Build WASM for browser" OFF)
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -422,4 +428,24 @@ install(
     FILES
     ${CMAKE_SOURCE_DIR}/LICENSE.md
     DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
+
+# ---- WASM support ----
+
+if(PIPER_PHONEMIZE_ENABLE_WASM)
+  message(STATUS "Building for WebAssembly")
+
+  # Emscripten-specific flags
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fexceptions")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
+
+  if(PIPER_PHONEMIZE_ENABLE_WASM_NODEJS)
+    message(STATUS "Building WASM for Node.js")
+    add_subdirectory(wasm/nodejs)
+  endif()
+
+  if(PIPER_PHONEMIZE_ENABLE_WASM_BROWSER)
+    message(STATUS "Building WASM for browser")
+    add_subdirectory(wasm/browser)
+  endif()
 endif()
