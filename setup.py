@@ -2,7 +2,14 @@
 
 import os
 import re
+import sys
 from pathlib import Path
+
+# Ensure the project directory is on sys.path so piper_phonemize_build is
+# importable even when pip runs setup.py inside an isolated build environment.
+# Note: __file__ may not be set when setuptools.build_meta exec's setup.py,
+# so we use os.getcwd() which is always the project root.
+sys.path.insert(0, os.getcwd())
 
 import setuptools
 
