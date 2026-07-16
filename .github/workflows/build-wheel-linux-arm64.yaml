@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - wheel
-      - refactor-go-api
     tags:
       - '*'
   workflow_dispatch:
@@ -78,6 +77,15 @@ jobs:
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
 
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.6
+
   build_wheels:
     name: ${{ matrix.python-version }}
     runs-on: ubuntu-24.04-arm
@@ -145,3 +153,12 @@ jobs:
             git add .
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
+
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.6

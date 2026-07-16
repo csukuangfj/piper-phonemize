@@ -85,3 +85,12 @@ jobs:
             git add .
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
+
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.6
