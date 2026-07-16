@@ -22,7 +22,7 @@ project(
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES C CXX
 )
-set(PIPER_PHONEMIZE_VERSION 1.4.6)
+set(PIPER_PHONEMIZE_VERSION 1.4.7)
 
 # ---- Cross-platform build settings (following sherpa-onnx) ----
 

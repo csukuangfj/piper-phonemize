@@ -11,7 +11,7 @@ Usage:
 
 	import pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
 
-	pp.Initialize("./espeak-ng-data")
+	pp.Initialize("")  // uses embedded espeak-ng-data
 	result := pp.Phonemize("hello world", "en-us")
 	defer pp.DeletePhonemizeResult(result)
 	for i := 0; i < result.GetNumSentences(); i++ {
@@ -67,6 +67,7 @@ func GetVersionStr() string {
 // It is safe to call multiple times; only the first call takes effect.
 //
 // dataDir is the path to the espeak-ng-data directory.
+// When using the piper-phonemize-go facade, pass "" to use the embedded default.
 // Returns the sample rate (22050) on success, or -1 on failure.
 func Initialize(dataDir string) int32 {
 	cDataDir := C.CString(dataDir)

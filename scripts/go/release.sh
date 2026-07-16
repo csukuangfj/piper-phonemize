@@ -105,6 +105,19 @@ download_libs() {
   rm -rf t
 }
 
+# Download espeak-ng-data if not already present.
+download_espeak_ng_data() {
+  if [ ! -d "$PIPER_PHONEMIZE_DIR/espeak-ng-data" ]; then
+    echo "Downloading espeak-ng-data..."
+    cd "$PIPER_PHONEMIZE_DIR"
+    curl -L -o espeak-ng-data.tar.bz2 \
+      https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+    tar xvf espeak-ng-data.tar.bz2
+    rm -f espeak-ng-data.tar.bz2
+    cd -
+  fi
+}
+
 function linux() {
   echo "Process linux"
   git clone git@github.com:csukuangfj/piper-phonemize-go-linux.git
@@ -243,6 +256,11 @@ function basic() {
   git clone git@github.com:csukuangfj/piper-phonemize-go.git
 
   python3 ./generate.py -s ./piper_phonemize.go -o ./piper-phonemize-go
+
+  # Bundle espeak-ng-data into the facade package
+  download_espeak_ng_data
+  cp -rv "$PIPER_PHONEMIZE_DIR/espeak-ng-data" ./piper-phonemize-go/piper_phonemize/
+  cp -v "$SCRIPT_DIR/espeak_ng_data.go" ./piper-phonemize-go/piper_phonemize/
 
   cd piper-phonemize-go
 

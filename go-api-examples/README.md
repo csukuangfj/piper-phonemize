@@ -5,31 +5,19 @@ This directory contains Go examples for the piper-phonemize C API.
 ## Prerequisites
 
 - Go 1.17 or later
-- espeak-ng-data directory
-
-## Download espeak-ng-data
-
-You can download espeak-ng-data from:
-
-```bash
-curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-tar xvf espeak-ng-data.tar.bz2
-```
-
-This will create an `espeak-ng-data` directory in the current directory.
 
 ## Run the example
 
 ```bash
 cd go-api-examples
 go mod tidy
-go run main.go /path/to/espeak-ng-data
+go run main.go
 ```
 
-For example, if you downloaded espeak-ng-data to the current directory:
+You can also pass a custom espeak-ng-data path:
 
 ```bash
-go run main.go ./espeak-ng-data
+go run main.go /path/to/espeak-ng-data
 ```
 
 ## Expected output
@@ -62,8 +50,8 @@ Then import it in your code:
 ```go
 import pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
 
-// Initialize espeak-ng
-pp.Initialize("/path/to/espeak-ng-data")
+// Initialize espeak-ng (empty string uses embedded data)
+pp.Initialize("")
 
 // Phonemize text
 result := pp.Phonemize("hello world", "en-us")

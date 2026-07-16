@@ -80,7 +80,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.4.6
+          tag: v1.4.7
 
   build_wheels:
     name: ${{ matrix.python-version }}
@@ -153,4 +153,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.4.6
+          tag: v1.4.7
