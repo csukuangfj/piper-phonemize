@@ -10,7 +10,7 @@ PIPER_PHONEMIZE_DIR=$(realpath $SCRIPT_DIR/../..)
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "PIPER_PHONEMIZE_DIR: $PIPER_PHONEMIZE_DIR"
 
-PIPER_PHONEMIZE_VERSION=$(grep "project(" $PIPER_PHONEMIZE_DIR/CMakeLists.txt -A 3 | grep "VERSION" | head -1 | awk '{print $2}')
+PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" $PIPER_PHONEMIZE_DIR/CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
 echo "PIPER_PHONEMIZE_VERSION $PIPER_PHONEMIZE_VERSION"
 
 GITHUB_RELEASE_URL="https://github.com/csukuangfj/piper-phonemize/releases/download/v${PIPER_PHONEMIZE_VERSION}"
