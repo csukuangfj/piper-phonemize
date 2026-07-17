@@ -1,0 +1,114 @@
+name: npm-addon
+
+on:
+  push:
+    branches:
+      - node-addon
+  workflow_dispatch:
+
+concurrency:
+  group: npm-addon-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm-addon:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: '24'
+
+      - name: Display node version
+        shell: bash
+        run: |
+          node --version
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-release-shared
+
+      - name: Prepare for publish
+        shell: bash
+        run: |
+          owner=${{ github.repository_owner }}
+          export owner
+
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
+          src_dir=.github/scripts/node-addon
+          sed -i.bak s/PIPER_PHONEMIZE_VERSION/$PIPER_PHONEMIZE_VERSION/g $src_dir/package.json
+          sed -i.bak s/csukuangfj/$owner/g $src_dir/package.json
+
+          dst=piper-phonemize-node
+          mkdir $dst
+          cp $src_dir/package.json $dst/
+          cp $src_dir/README.md $dst/
+          cp scripts/node-addon-api/lib/*.js $dst/
+
+          # Copy espeak-ng-data
+          if [ -d espeak-ng-data ]; then
+            cp -rv espeak-ng-data $dst/
+          else
+            curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+            tar xvf espeak-ng-data.tar.bz2
+            cp -rv espeak-ng-data $dst/
+            rm -f espeak-ng-data.tar.bz2
+          fi
+
+      - name: Display files to be published
+        shell: bash
+        run: |
+          ls -lh ./piper-phonemize-node
+
+      - name: Pack
+        shell: bash
+        run: |
+          cd piper-phonemize-node
+          npm pack
+          mv *.tgz ../
+
+      - name: Display tgz contents
+        shell: bash
+        run: |
+          ls -lh ./*.tgz
+          echo "--- Contents of tgz ---"
+          tar tvf ./*.tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-node
+          path: ./*.tgz
+
+      - name: Publish
+        shell: bash
+        run: |
+          cd ./piper-phonemize-node
+          # https://docs.npmjs.com/trusted-publishers
+          npm publish --access public
+
+      - name: Setup tmate session
+        if: false
+        # if: failure()
+        uses: mxschmitt/action-tmate@v3

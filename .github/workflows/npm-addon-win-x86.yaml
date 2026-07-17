@@ -1,0 +1,147 @@
+name: npm-addon-win-x86
+
+on:
+  push:
+    branches:
+      - node-addon
+  workflow_dispatch:
+
+concurrency:
+  group: npm-addon-win-x86-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install 32-bit MinGW
+        shell: bash
+        run: |
+          choco install mingw --x86 --force -y
+          echo "C:/mingw32/bin" >> $GITHUB_PATH
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x86'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          architecture: 'x86'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build piper-phonemize
+        shell: bash
+        run: |
+          cmake -Bbuild -A Win32 \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build --config Release --target install
+
+      - name: Build piper-phonemize node-addon
+        shell: bash
+        run: |
+          d=$PWD
+          export PIPER_PHONEMIZE_INSTALL_DIR=$d/build/install
+
+          cd scripts/node-addon-api
+
+          npm install cmake-js@7.3.0 node-addon-api@8.0.0
+
+          npm config set cmake_js_A "Win32"
+          cmake_js_A="Win32" ./node_modules/.bin/cmake-js compile -A Win32 --log-level verbose
+
+      - name: Package
+        shell: bash
+        run: |
+          bash .github/scripts/node-addon/run.sh
+          cp -fv build/install/lib/piper_phonemize_core* piper-phonemize-win-ia32/ 2>/dev/null || true
+          cp -fv build/install/bin/piper_phonemize_core* piper-phonemize-win-ia32/ 2>/dev/null || true
+          rm -fv piper-phonemize-win-ia32/*cxx*
+          ls -lh piper-phonemize-win-ia32/
+
+      - name: Pack
+        shell: bash
+        run: |
+          cd piper-phonemize-win-ia32
+          npm pack
+          mv *.tgz ../
+
+      - name: Display tgz contents
+        shell: bash
+        run: |
+          ls -lh ./*.tgz
+          echo "--- Contents of tgz ---"
+          tar tvf ./*.tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-win-ia32
+          path: ./*.tgz
+
+  upload:
+    needs: [build]
+    name: upload
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.8"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Display node version
+        shell: bash
+        run: |
+          node --version
+
+      - name: Retrieve artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: piper-phonemize-win-ia32
+          path: /tmp/files/
+
+      - name: Unzip
+        shell: bash
+        run: |
+          cd /tmp/files
+          ls -lh *.tgz
+
+      - name: Publish
+        shell: bash
+        run: |
+          cd /tmp/files/
+
+          # https://docs.npmjs.com/trusted-publishers
+          npm publish --access public ./*.tgz
+
+      - name: Setup tmate session
+        if: false
+        # if: failure()
+        uses: mxschmitt/action-tmate@v3
