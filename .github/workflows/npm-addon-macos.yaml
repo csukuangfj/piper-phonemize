@@ -1,0 +1,99 @@
+name: npm-addon-macos
+
+on:
+  push:
+    branches:
+      - node-addon
+  workflow_dispatch:
+
+concurrency:
+  group: npm-addon-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm-addon-macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15-intel, macos-14]
+        python-version: ["3.10"]
+        include:
+          - os: macos-15-intel
+            arch: x64
+          - os: macos-14
+            arch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build piper-phonemize
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          make -j$(sysctl -n hw.ncpu) install
+
+      - name: Build piper-phonemize node-addon
+        shell: bash
+        run: |
+          d=$PWD
+          export PIPER_PHONEMIZE_INSTALL_DIR=$d/build/install
+
+          cd scripts/node-addon-api
+          npm install
+          cmake-js compile --log-level verbose
+
+      - name: Package
+        shell: bash
+        run: |
+          bash .github/scripts/node-addon/run.sh
+          cp -fv build/install/lib/libpiper_phonemize_core* piper-phonemize-darwin-${{ matrix.arch }}/
+          ls -lh piper-phonemize-darwin-${{ matrix.arch }}/
+
+      - name: Pack
+        shell: bash
+        run: |
+          cd piper-phonemize-darwin-${{ matrix.arch }}
+          npm pack
+          mv *.tgz ../
+
+      - name: Display tgz contents
+        shell: bash
+        run: |
+          ls -lh ./*.tgz
+          echo "--- Contents of tgz ---"
+          tar tvf ./*.tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-darwin-${{ matrix.arch }}
+          path: ./*.tgz
+
+      - name: Publish to npm
+        shell: bash
+        run: |
+          cd piper-phonemize-darwin-${{ matrix.arch }}
+          npm publish --provenance --access public

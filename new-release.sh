@@ -15,6 +15,7 @@ sed -i.bak "$replace_str" ./src/c-api.cpp
 sed -i.bak "$replace_str" ./go-api-examples/go.mod
 sed -i.bak "$replace_str" ./scripts/npm/package.json
 sed -i.bak "$replace_str" ./nodejs-examples/package.json
+sed -i.bak "$replace_str" ./nodejs-addon-examples/package.json
 
 sed -i.bak "$replace_str" ./.github/workflows/build-wheel-macos-arm64.yaml
 

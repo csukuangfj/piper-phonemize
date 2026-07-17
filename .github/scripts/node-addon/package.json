@@ -1,0 +1,44 @@
+{
+  "name": "piper-phonemize-node",
+  "version": "PIPER_PHONEMIZE_VERSION",
+  "description": "Phonemization library for Piper text-to-speech using espeak-ng (native addon)",
+  "main": "piper-phonemize.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csukuangfj/piper-phonemize.git"
+  },
+  "keywords": [
+    "piper",
+    "phonemize",
+    "phonemization",
+    "espeak-ng",
+    "text-to-speech",
+    "tts",
+    "ipa",
+    "phonemes",
+    "native",
+    "addon",
+    "node-addon-api",
+    "speech"
+  ],
+  "author": "Michael Hansen",
+  "contributors": [
+    "Fangjun Kuang <csukuangfj@gmail.com> (https://github.com/csukuangfj)"
+  ],
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/csukuangfj/piper-phonemize/issues"
+  },
+  "homepage": "https://github.com/csukuangfj/piper-phonemize#readme",
+  "optionalDependencies": {
+    "piper-phonemize-darwin-arm64": "^PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-darwin-x64": "^PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-linux-x64": "^PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-linux-arm64": "^PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-win-x64": "^PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-win-ia32": "^PIPER_PHONEMIZE_VERSION"
+  }
+}

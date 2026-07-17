@@ -31,8 +31,14 @@ go get github.com/csukuangfj/piper-phonemize-go/piper_phonemize
 
 ### JavaScript / Node.js
 
+**WASM version** (works everywhere, no native dependencies):
 ```bash
 npm install piper-phonemize
+```
+
+**Native addon** (better performance, requires platform-specific binary, which is installed automagically):
+```bash
+npm install piper-phonemize-node
 ```
 
 ### C / C++
@@ -77,8 +83,18 @@ func main() {
 
 ### JavaScript / Node.js
 
+**WASM version:**
 ```javascript
 const piperPhonemize = require('piper-phonemize');
+
+// espeak-ng-data is bundled — no initialization needed!
+const result = piperPhonemize.phonemizeToString('Hello world', 'en-us');
+console.log(result); // ['həlˈoʊ wˈɜːld']
+```
+
+**Native addon:**
+```javascript
+const piperPhonemize = require('piper-phonemize-node');
 
 // espeak-ng-data is bundled — no initialization needed!
 const result = piperPhonemize.phonemizeToString('Hello world', 'en-us');

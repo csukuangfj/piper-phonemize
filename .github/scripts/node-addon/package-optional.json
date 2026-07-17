@@ -1,0 +1,12 @@
+{
+  "name": "piper-phonemize-PLATFORM2-ARCH",
+  "version": "PIPER_PHONEMIZE_VERSION",
+  "description": "piper-phonemize native addon for PLATFORM2-ARCH",
+  "main": "index.js",
+  "os": [
+    "PLATFORM"
+  ],
+  "cpu": [
+    "ARCH"
+  ]
+}
