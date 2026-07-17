@@ -107,3 +107,8 @@ jobs:
           cd ./piper-phonemize-node
           # https://docs.npmjs.com/trusted-publishers
           npm publish --access public
+
+      - name: Setup tmate session
+        if: false
+        # if: failure()
+        uses: mxschmitt/action-tmate@v3

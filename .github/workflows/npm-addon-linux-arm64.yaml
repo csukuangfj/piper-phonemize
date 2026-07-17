@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   npm-addon-linux-arm64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
@@ -26,11 +26,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -69,14 +64,15 @@ jobs:
           export PIPER_PHONEMIZE_INSTALL_DIR=$d/build/install
 
           cd scripts/node-addon-api
-          npm install
-          cmake-js compile --log-level verbose
+          npm install cmake-js@7.3.0 node-addon-api@8.0.0
+          ./run.sh
 
       - name: Package
         shell: bash
         run: |
           bash .github/scripts/node-addon/run.sh
           cp -fv build/install/lib/libpiper_phonemize_core* piper-phonemize-linux-arm64/
+          rm -fv piper-phonemize-linux-arm64/*cxx*
           ls -lh piper-phonemize-linux-arm64/
 
       - name: Pack
@@ -103,3 +99,8 @@ jobs:
         run: |
           cd piper-phonemize-linux-arm64
           npm publish --provenance --access public
+
+      - name: Setup tmate session
+        if: false
+        # if: failure()
+        uses: mxschmitt/action-tmate@v3

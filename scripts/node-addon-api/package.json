@@ -1,6 +1,6 @@
 {
   "name": "piper-phonemize-node-addon-api",
-  "version": "PIPER_PHONEMIZE_VERSION",
+  "version": "1.4.7",
   "description": "Node.js native addon for piper-phonemize",
   "main": "lib/piper-phonemize.js",
   "scripts": {
@@ -9,15 +9,5 @@
   "dependencies": {
     "cmake-js": "^7.3.0",
     "node-addon-api": "^8.0.0"
-  },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
-  "cpu": [
-    "x64",
-    "arm64",
-    "ia32"
-  ]
+  }
 }

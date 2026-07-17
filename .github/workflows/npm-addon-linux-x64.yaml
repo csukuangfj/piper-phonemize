@@ -72,8 +72,8 @@ jobs:
           export PIPER_PHONEMIZE_INSTALL_DIR=$d/build/install
 
           cd scripts/node-addon-api
-          npm install
-          cmake-js compile --log-level verbose
+          npm install cmake-js@7.3.0 node-addon-api@8.0.0
+          ./run.sh
 
       - name: Package
         shell: bash
@@ -81,7 +81,8 @@ jobs:
           bash .github/scripts/node-addon/run.sh
 
           # Copy shared libraries from build
-          cp -fv build/install/lib/libpiper_phonemize_core* piper-phonemize-linux-x64/
+          cp -fv build/install/lib/libpiper_phonemize_core.so piper-phonemize-linux-x64/
+          rm -fv piper-phonemize-linux-x64/*cxx*
 
           ls -lh piper-phonemize-linux-x64/
 
@@ -109,3 +110,8 @@ jobs:
         run: |
           cd piper-phonemize-linux-x64
           npm publish --provenance --access public
+
+      - name: Setup tmate session
+        if: false
+        # if: failure()
+        uses: mxschmitt/action-tmate@v3
