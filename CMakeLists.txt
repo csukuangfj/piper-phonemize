@@ -351,13 +351,11 @@ endif()
 
 # ---- Declare install targets ----
 
-include(GNUInstallDirs)
-
 install(
     TARGETS piper_phonemize_core piper_phonemize_cxx_api
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin)
 
 install(
     FILES
