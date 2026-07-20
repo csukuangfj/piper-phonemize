@@ -12,22 +12,17 @@ concurrency:
 
 jobs:
   swift:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, macos-15-intel]
-
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build xcframework
-        shell: bash
-        run: |
-          ./build-swift-macos.sh
+      - name: Build macOS xcframework
+        run: ./build-swift-macos.sh
+
+      - name: Build iOS xcframework
+        run: ./build-ios.sh
 
       - name: Download espeak-ng-data
-        shell: bash
         run: |
           curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
           tar xvf espeak-ng-data.tar.bz2
