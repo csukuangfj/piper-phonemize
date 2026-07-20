@@ -50,6 +50,42 @@ if let result = result {
 }
 ```
 
+## SPM Cache
+
+SPM caches downloaded packages and build artifacts in two locations:
+
+**Package downloads cache:**
+```bash
+~/Library/Caches/org.swift.swiftpm/
+```
+
+**Build artifacts cache (per project):**
+```bash
+<project>/.build/
+```
+
+### How to clear
+
+```bash
+# Clear package download cache
+rm -rf ~/Library/Caches/org.swift.swiftpm/
+
+# Clear build artifacts
+cd spm-examples
+rm -rf .build/
+
+# Or use SPM commands
+swift package clean        # Clean build artifacts only
+swift package purge-cache  # Purge entire cache
+```
+
+### When to clear
+
+- **Checksum mismatch** — cached artifact has old checksum
+- **Stale dependencies** — package updated but SPM uses cached version
+- **Build errors after changes** — cached build artifacts are outdated
+- **Switching between local/remote** — SPM caches the source
+
 ## API Reference
 
 ### `piperPhonemizeText(text:voice:)`

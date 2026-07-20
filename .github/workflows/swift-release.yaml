@@ -1,0 +1,122 @@
+name: swift-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: swift-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build macOS xcframework
+        run: ./build-swift-macos.sh
+
+      - name: Build iOS xcframework
+        run: ./build-ios.sh
+
+      - name: Test swift-api-examples
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+          rm -f espeak-ng-data.tar.bz2
+          cd swift-api-examples
+          bash run.sh
+
+      - name: Upload macOS xcframework
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-macos-xcframework
+          path: build-swift-macos/piper-phonemize-macos.xcframework.zip
+
+      - name: Upload iOS xcframework
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-ios-xcframework
+          path: build-ios/piper-phonemize-ios.xcframework.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.0'
+
+      - name: Download macOS xcframework
+        uses: actions/download-artifact@v4
+        with:
+          name: piper-phonemize-macos-xcframework
+          path: .
+
+      - name: Download iOS xcframework
+        uses: actions/download-artifact@v4
+        with:
+          name: piper-phonemize-ios-xcframework
+          path: .
+
+      - name: Compute checksums
+        id: checksums
+        run: |
+          MACOS_CHECKSUM=$(swift package compute-checksum piper-phonemize-macos.xcframework.zip)
+          IOS_CHECKSUM=$(swift package compute-checksum piper-phonemize-ios.xcframework.zip)
+          echo "macos_checksum=$MACOS_CHECKSUM" >> $GITHUB_OUTPUT
+          echo "ios_checksum=$IOS_CHECKSUM" >> $GITHUB_OUTPUT
+          echo "MACOS_CHECKSUM: $MACOS_CHECKSUM"
+          echo "IOS_CHECKSUM: $IOS_CHECKSUM"
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION: $VERSION"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            piper-phonemize-macos.xcframework.zip
+            piper-phonemize-ios.xcframework.zip
+
+      - name: Update Package.swift
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          MACOS_CHECKSUM=${{ steps.checksums.outputs.macos_checksum }}
+
+          # Update version in URL
+          sed -i "s|/download/v[0-9.]*|/download/v$VERSION|g" Package.swift
+
+          # Update checksum
+          sed -i "s|checksum: \"[a-f0-9]*\"|checksum: \"$MACOS_CHECKSUM\"|g" Package.swift
+
+          echo "--- Updated Package.swift ---"
+          cat Package.swift
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update Package.swift for v${{ steps.version.outputs.version }}"
+          title: "Update Package.swift for v${{ steps.version.outputs.version }}"
+          body: |
+            Update Package.swift with new checksums for v${{ steps.version.outputs.version }}:
+
+            - macOS checksum: `${{ steps.checksums.outputs.macos_checksum }}`
+            - iOS checksum: `${{ steps.checksums.outputs.ios_checksum }}`
+          branch: update-package-checksums
+          base: master
