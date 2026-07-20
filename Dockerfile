@@ -16,8 +16,8 @@ RUN cmake -Bbuild -DCMAKE_INSTALL_PREFIX=install
 RUN cmake --build build --config Release
 RUN cmake --install build
 
-# Do a test run
-RUN ./build/piper_phonemize --help
+# Smoke test: verify the library was built
+RUN ls build/lib/libpiper_phonemize*
 
 # Build .tar.gz to keep symlinks
 WORKDIR /dist

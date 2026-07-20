@@ -7,7 +7,6 @@
 
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
-#include "tashkeel.hpp"
 #include "uni_algo.h"
 
 std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
@@ -48,11 +47,6 @@ int main(int argc, char *argv[]) {
 
   if (argc < 2) {
     std::cerr << "Need espeak-ng-data path" << std::endl;
-    return 1;
-  }
-
-  if (argc < 3) {
-    std::cerr << "Need tashkeel model path" << std::endl;
     return 1;
   }
 
@@ -161,20 +155,6 @@ int main(int argc, char *argv[]) {
   if (missingPhonemes[0] != 3) {
     std::cerr << "Missing count for '0' phoneme: " << missingPhonemes[0]
               << " != 3" << std::endl;
-    return 1;
-  }
-
-  // --------------------------------------------------------------------------
-
-  // Test Arabic with libtashkeel (https://github.com/mush42/libtashkeel)
-  tashkeel::State tashkeelState;
-  tashkeel::tashkeel_load(argv[2], tashkeelState);
-
-  std::string expectedText = "مَرْحَبًا";
-  std::string actualText = tashkeel::tashkeel_run("مرحبا", tashkeelState);
-  if (expectedText != actualText) {
-    std::cerr << "Expected '" << expectedText << "', got '" << actualText << "'"
-              << std::endl;
     return 1;
   }
 

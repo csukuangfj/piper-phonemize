@@ -1,0 +1,272 @@
+name: test-go
+
+on:
+  push:
+    branches:
+      - go-api
+  workflow_dispatch:
+
+jobs:
+  test-go-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize
+        run: |
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release -j$(nproc)
+
+      - name: Test Go API
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/x86_64-unknown-linux-gnu
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/x86_64-unknown-linux-gnu/
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go
+
+  test-go-linux-arm64:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize
+        run: |
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release -j$(nproc)
+
+      - name: Test Go API
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/aarch64-unknown-linux-gnu
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/aarch64-unknown-linux-gnu/
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go
+
+  test-go-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize
+        run: |
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release
+
+      - name: Test Go API
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/aarch64-apple-darwin
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/aarch64-apple-darwin/
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go
+
+  test-go-macos-x64:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize
+        run: |
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release
+
+      - name: Test Go API
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/x86_64-apple-darwin
+          cp -v $GITHUB_WORKSPACE/build/lib/libpiper_phonemize* lib/x86_64-apple-darwin/
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go
+
+  test-go-linux-armv7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm
+
+      - name: Build and test Go API (armv7)
+        run: |
+          docker run --rm --platform linux/arm/v7 \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            arm32v7/debian:bookworm \
+            bash -c '
+              set -ex
+              apt-get update
+              apt-get install -y cmake build-essential curl git golang-go ca-certificates
+
+              # Build piper-phonemize
+              cmake -Bbuild -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+              cmake --build build --config Release -j$(nproc)
+
+              # Set up Go test
+              cd scripts/go/_internal
+              mkdir -p lib/arm-unknown-linux-gnueabihf
+              cp -v /workspace/build/lib/libpiper_phonemize* lib/arm-unknown-linux-gnueabihf/
+
+              mkdir -p /tmp/test-go-app
+              cp /workspace/go-api-examples/main.go /tmp/test-go-app/
+              cd /tmp/test-go-app
+              cat > go.mod << EOF
+              module test-go-app
+
+              go 1.17
+
+              require piper_phonemize v0.0.0
+
+              replace piper_phonemize => /workspace/scripts/go/_internal
+              EOF
+              sed -i "s|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g" main.go
+              go run main.go
+            '
+
+  test-go-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build piper-phonemize
+        run: |
+          cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release
+
+      - name: Test Go API
+        shell: bash
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/x86_64-pc-windows-gnu
+          find $GITHUB_WORKSPACE/build -name "*.dll" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
+          find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/x86_64-pc-windows-gnu/ \;
+          ls -la lib/x86_64-pc-windows-gnu/
+          export PATH=$PWD/lib/x86_64-pc-windows-gnu:$PATH
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          go run main.go
+
+  test-go-windows-x86:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install 32-bit MinGW
+        shell: bash
+        run: |
+          choco install mingw --x86 --force -y
+          echo "C:/mingw32/bin" >> $GITHUB_PATH
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          architecture: '386'
+
+      - name: Build piper-phonemize (Win32)
+        run: |
+          cmake -Bbuild -A Win32 -DBUILD_SHARED_LIBS=ON
+          cmake --build build --config Release
+
+      - name: Test Go API
+        shell: bash
+        run: |
+          cd scripts/go/_internal
+          mkdir -p lib/i686-pc-windows-gnu
+          find $GITHUB_WORKSPACE/build -name "*.dll" -exec cp -v {} lib/i686-pc-windows-gnu/ \;
+          find $GITHUB_WORKSPACE/build -name "*.lib" -exec cp -v {} lib/i686-pc-windows-gnu/ \;
+          ls -la lib/i686-pc-windows-gnu/
+          export PATH=$PWD/lib/i686-pc-windows-gnu:$PATH
+
+          mkdir -p /tmp/test-go-app
+          cp $GITHUB_WORKSPACE/go-api-examples/main.go /tmp/test-go-app/
+          cd /tmp/test-go-app
+          cat > go.mod << EOF
+          module test-go-app
+
+          go 1.17
+
+          require piper_phonemize v0.0.0
+
+          replace piper_phonemize => $GITHUB_WORKSPACE/scripts/go/_internal
+          EOF
+          sed -i.bak 's|github.com/csukuangfj/piper-phonemize-go/piper_phonemize|piper_phonemize|g' main.go && rm -f main.go.bak
+          CGO_ENABLED=1 GOARCH=386 go run main.go

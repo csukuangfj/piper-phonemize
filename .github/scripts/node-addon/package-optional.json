@@ -1,0 +1,42 @@
+{
+  "name": "piper-phonemize-PLATFORM2-ARCH",
+  "version": "PIPER_PHONEMIZE_VERSION",
+  "description": "piper-phonemize native addon for PLATFORM2-ARCH",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csukuangfj/piper-phonemize.git"
+  },
+  "keywords": [
+    "piper",
+    "phonemize",
+    "phonemization",
+    "espeak-ng",
+    "text-to-speech",
+    "tts",
+    "ipa",
+    "phonemes",
+    "native",
+    "addon",
+    "node-addon-api",
+    "speech"
+  ],
+  "author": "Michael Hansen",
+  "contributors": [
+    "Fangjun Kuang <csukuangfj@gmail.com> (https://github.com/csukuangfj)"
+  ],
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/csukuangfj/piper-phonemize/issues"
+  },
+  "homepage": "https://github.com/csukuangfj/piper-phonemize#readme",
+  "os": [
+    "PLATFORM"
+  ],
+  "cpu": [
+    "ARCH"
+  ]
+}

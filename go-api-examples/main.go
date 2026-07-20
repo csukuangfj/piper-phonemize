@@ -1,0 +1,52 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
+)
+
+func phonemesToString(phonemes []uint32) string {
+	var sb strings.Builder
+	for _, cp := range phonemes {
+		sb.WriteRune(rune(cp))
+	}
+	return sb.String()
+}
+
+func main() {
+	fmt.Println("Version:", pp.GetVersionStr())
+
+	dataDir := ""
+	if len(os.Args) > 1 {
+		dataDir = os.Args[1]
+	}
+
+	ret := pp.Initialize(dataDir)
+	fmt.Println("Initialize:", ret)
+
+	texts := []string{
+		"hello world",
+		"The quick brown fox jumps over the lazy dog.",
+		"你好世界。今天天气很好。",
+		"Привет, мир!",
+	}
+
+	for _, text := range texts {
+		fmt.Printf("\nInput: %q\n", text)
+		result := pp.Phonemize(text, "en-us")
+		if result == nil {
+			fmt.Println("  Phonemize returned nil")
+			continue
+		}
+
+		fmt.Printf("  Sentences: %d\n", result.GetNumSentences())
+		for i := 0; i < result.GetNumSentences(); i++ {
+			phonemes := result.GetPhonemes(i)
+			fmt.Printf("    sentence %d: %s\n", i, phonemesToString(phonemes))
+		}
+		pp.DeletePhonemizeResult(result)
+	}
+}

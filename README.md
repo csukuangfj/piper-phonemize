@@ -1,50 +1,146 @@
-# Piper Phonemization Library
+# piper-phonemize
 
-Converts text to phonemes for [Piper](https://github.com/rhasspy/piper).
+## Try it Online
 
-When using eSpeak phonemes, requires an [espeak-ng fork](https://github.com/rhasspy/espeak-ng) with `espeak_TextToPhonemesWithTerminator` function.
-This function allows for Piper to preserve punctuation and detect sentence boundaries.
+You can try piper-phonemize directly in your browser using WebAssembly:
 
+- **Hugging Face Spaces**: https://huggingface.co/spaces/csukuangfj/piper-phonemize
+- **ModelScope Studios** (for users in China, 中文用户): https://modelscope.cn/studios/csukuangfj/piper-phonemize/summary
 
-## Usage
+## Introduction
 
-Pre-compiled releases are [available for download](https://github.com/rhasspy/piper-phonemize/releases/tag/v1.0.0).
+Phonemization library for [Piper](https://github.com/rhasspy/piper) text-to-speech system.
 
-The `piper_phonemize` program can be used from the command line:
+Converts text to IPA phonemes using [espeak-ng](https://github.com/espeak-ng/espeak-ng).
 
-``` sh
-lib/piper_phonemize -l en-us --espeak-data lib/espeak-ng-data/ <<EOF
-This is a test.
-This is another test!
-EOF
-{"phoneme_ids":[1,0,41,0,74,0,31,0,3,0,74,0,38,0,3,0,50,0,3,0,32,0,120,0,61,0,31,0,32,0,10,0,2],"phonemes":["ð","ɪ","s"," ","ɪ","z"," ","ɐ"," ","t","ˈ","ɛ","s","t","."],"processed_text":"This is a test.","text":"This is a test."}
-{"phoneme_ids":[1,0,41,0,74,0,31,0,3,0,74,0,38,0,3,0,50,0,26,0,120,0,102,0,41,0,60,0,3,0,32,0,120,0,61,0,31,0,32,0,4,0,2],"phonemes":["ð","ɪ","s"," ","ɪ","z"," ","ɐ","n","ˈ","ʌ","ð","ɚ"," ","t","ˈ","ɛ","s","t","!"],"processed_text":"This is another test!","text":"This is another test!"}
-```
+Supports **Python**, **Go**, **JavaScript (Node.js/WASM)**, and **C/C++**.
 
-Arabic diacritization is supported through [libtashkeel](https://github.com/mush42/libtashkeel/) (model included):
-
-``` sh
-echo 'مرحبا' | lib/piper_phonemize -l ar --espeak-data lib/espeak-ng-data/ --tashkeel_model etc/libtashkeel_model.ort
-{"phoneme_ids":[1,0,25,0,120,0,14,0,30,0,43,0,14,0,15,0,121,0,14,0,26,0,2],"phonemes":["m","ˈ","a","r","ħ","a","b","ˌ","a","n"],"processed_text":"مَرْحَبًا","text":"مرحبا"}
-
-```
-
-See `src/test.cpp` for a C++ example using `libpiper_phonemize`.
+## Installation
 
 ### Python
 
-The `piper_phonemize` Python package is built using [pybind11](https://pybind11.readthedocs.io).
+```bash
+pip install piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.html
+```
 
-See `src/python_test.py` for a Python example.
+### Go
 
+```bash
+go get github.com/csukuangfj/piper-phonemize-go/piper_phonemize
+```
 
-## Building
+### JavaScript / Node.js
 
-Use Docker:
+**WASM version** (works everywhere, no native dependencies):
+```bash
+npm install piper-phonemize
+```
 
-``` sh
+**Native addon** (better performance, requires platform-specific binary, which is installed automagically):
+```bash
+npm install piper-phonemize-node
+```
+
+### C / C++
+
+Download pre-built libraries from [GitHub Releases](https://github.com/csukuangfj/piper-phonemize/releases) or build from source.
+
+## Quick Start
+
+### Python
+
+```python
+import piper_phonemize
+
+# Initialize espeak-ng
+piper_phonemize.initialize("/path/to/espeak-ng-data")
+
+# Phonemize text
+result = piper_phonemize.phonemize("Hello world", "en-us")
+print(result)
+```
+
+### Go
+
+```go
+package main
+
+import (
+    "fmt"
+    pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
+)
+
+func main() {
+    pp.Initialize("") // uses embedded espeak-ng-data
+    result := pp.Phonemize("Hello world", "en-us")
+    defer pp.DeletePhonemizeResult(result)
+    for i := 0; i < result.GetNumSentences(); i++ {
+        phonemes := result.GetPhonemes(i)
+        fmt.Printf("Sentence %d: %v\n", i, phonemes)
+    }
+}
+```
+
+### JavaScript / Node.js
+
+**WASM version:**
+```javascript
+const piperPhonemize = require('piper-phonemize');
+
+// espeak-ng-data is bundled — no initialization needed!
+const result = piperPhonemize.phonemizeToString('Hello world', 'en-us');
+console.log(result); // ['həlˈoʊ wˈɜːld']
+```
+
+**Native addon:**
+```javascript
+const piperPhonemize = require('piper-phonemize-node');
+
+// espeak-ng-data is bundled — no initialization needed!
+const result = piperPhonemize.phonemizeToString('Hello world', 'en-us');
+console.log(result); // ['həlˈoʊ wˈɜːld']
+```
+
+### C
+
+```c
+#include "c-api.h"
+
+int main() {
+    PiperPhonemizeInitialize("/path/to/espeak-ng-data");
+
+    PiperPhonemizeResult *result = PiperPhonemizeText("Hello world", "en-us");
+    if (result) {
+        int32_t num_sentences = PiperPhonemizeResultGetNumSentences(result);
+        // Process phonemes...
+        PiperPhonemizeDestroyResult(result);
+    }
+    return 0;
+}
+```
+
+## Building from Source
+
+### Using CMake
+
+```bash
+cmake -Bbuild -DBUILD_SHARED_LIBS=ON
+cmake --build build --config Release
+```
+
+### Using Docker
+
+```bash
 docker buildx build . -t piper-phonemize --output 'type=local,dest=dist'
 ```
 
-Find library and Python wheels in `dist/`
+## License
 
+GPL-3.0-or-later (due to espeak-ng dependency)
+
+## Links
+
+- [Piper TTS](https://github.com/rhasspy/piper)
+- [espeak-ng](https://github.com/espeak-ng/espeak-ng)
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
+- [GitHub Issues](https://github.com/csukuangfj/piper-phonemize/issues)

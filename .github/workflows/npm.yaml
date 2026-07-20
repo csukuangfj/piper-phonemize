@@ -1,0 +1,119 @@
+name: npm
+
+on:
+  push:
+    branches:
+      - npm
+  workflow_dispatch:
+
+concurrency:
+  group: npm-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  nodejs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install emsdk
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.23
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: View emsdk version
+        shell: bash
+        run: |
+          emcc -v
+          echo "--------------------"
+          emcc --check
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Display node version
+        shell: bash
+        run: |
+          node --version
+
+      - name: Build nodejs package
+        shell: bash
+        run: |
+          ./build-wasm-simd-nodejs.sh
+
+          # Download espeak-ng-data if not present
+          if [ ! -d espeak-ng-data ]; then
+            curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+            tar xvf espeak-ng-data.tar.bz2
+            rm -f espeak-ng-data.tar.bz2
+          fi
+
+          # Copy WASM build output to scripts/npm/
+          cp -v build-wasm-simd-nodejs/install/bin/wasm/nodejs/piper-phonemize-wasm-nodejs.js ./scripts/npm/
+          cp -v build-wasm-simd-nodejs/install/bin/wasm/nodejs/piper-phonemize-wasm-nodejs.wasm ./scripts/npm/
+          cp -v wasm/nodejs/piper-phonemize.node.js ./scripts/npm/
+
+          # Copy espeak-ng-data to npm package
+          cp -rv espeak-ng-data ./scripts/npm/
+
+          # Update version in package.json
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "PIPER_PHONEMIZE_VERSION $PIPER_PHONEMIZE_VERSION"
+
+          cd scripts/npm
+
+          sed -i.bak "s/PIPER_PHONEMIZE_VERSION/$PIPER_PHONEMIZE_VERSION/g" ./package.json
+          rm package.json.bak
+
+      - name: Display files
+        shell: bash
+        run: |
+          echo "--- scripts/npm/ ---"
+          ls -lh scripts/npm/
+
+      - name: Zip files
+        shell: bash
+        run: |
+          cd scripts
+          tar cjfv npm.tar.bz2 ./npm
+          mv npm.tar.bz2 ../
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-wasm-nodejs
+          path: scripts/npm/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-wasm-nodejs-tar
+          path: npm.tar.bz2
+
+      - name: Publish to npm
+        shell: bash
+        run: |
+          cd scripts/npm
+
+          git diff
+
+          # https://docs.npmjs.com/trusted-publishers
+          npm publish --provenance --access public

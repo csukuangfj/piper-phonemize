@@ -64269,7 +64269,8 @@ UNI_ALGO_IMPL_NAMESPACE_END
 
 //!#include "impl/impl_cpp_lib_version.h"
 //!#include "impl/impl_unicode_version.h"
-
+#undef major
+#undef minor
 namespace una::version {
 
 class library_v

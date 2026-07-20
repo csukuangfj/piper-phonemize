@@ -18,5 +18,6 @@ htmlcov
 
 /lib/
 /download/
-/cmake/
 /_install/
+node_modules
+package-lock.json

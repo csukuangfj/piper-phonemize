@@ -1,0 +1,25 @@
+{{ golang_header }}
+package piper_phonemize
+
+// ============================================================
+// Code Generated Automatically for {{ platform }} platform, DO NOT EDIT MANUALLY!!
+// ============================================================
+
+import (
+	pp "github.com/csukuangfj/piper-phonemize-go-{{ platform }}"
+)
+
+// ============================================================
+// Struct/Function Defines
+// ============================================================
+{% for define in defines -%}
+{%- if define.type == 'function' %}
+{%- if define.name == 'Initialize' %}
+var _platformInitialize = pp.Initialize
+{%- else %}
+var {{ define.name }} = pp.{{ define.name }}
+{%- endif %}
+{%- else %}
+type {{ define.name }} = pp.{{ define.name }}
+{%- endif %}
+{%- endfor %}

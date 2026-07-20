@@ -1,0 +1,204 @@
+name: test-go-package
+
+on:
+  push:
+    branches:
+      - go-api
+  workflow_dispatch:
+
+jobs:
+  test-go-package-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        run: |
+          cd go-api-examples
+          go mod tidy
+          go run main.go
+
+  test-go-package-linux-arm64:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        run: |
+          cd go-api-examples
+          go mod tidy
+          go run main.go
+
+  test-go-package-linux-armv7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm
+
+      - name: Wait for Go proxy and test
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          docker run --rm --platform linux/arm/v7 \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            arm32v7/debian:bookworm \
+            bash -c '
+              set -ex
+              apt-get update
+              apt-get install -y curl ca-certificates bzip2 gcc
+
+              # Install Go 1.21 (armv7l)
+              curl -fsSL https://go.dev/dl/go1.21.13.linux-armv6l.tar.gz -o /tmp/go.tar.gz
+              tar -C /usr/local -xzf /tmp/go.tar.gz
+              export PATH=/usr/local/go/bin:$PATH
+
+              # Wait for Go proxy
+              VERSION='"'$VERSION'"'
+              echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+              for i in $(seq 1 40); do
+                echo "Attempt $i/40: checking..."
+                if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+                  echo "Available!"
+                  break
+                fi
+                echo "Not ready yet, sleeping 30s..."
+                sleep 30
+              done
+
+              cd go-api-examples
+              go mod tidy
+              go run main.go
+            '
+
+  test-go-package-macos-x64:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        run: |
+          cd go-api-examples
+          go mod tidy
+          go run main.go
+
+  test-go-package-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        run: |
+          cd go-api-examples
+          go mod tidy
+          go run main.go
+
+  test-go-package-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Wait for Go proxy
+        shell: bash
+        run: |
+          VERSION=$(grep 'piper-phonemize-go ' go-api-examples/go.mod | awk '{print $NF}')
+          echo "Waiting for github.com/csukuangfj/piper-phonemize-go@$VERSION on Go proxy..."
+          curl -sS "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" || true
+          for i in $(seq 1 40); do
+            echo "Attempt $i/40: checking..."
+            if curl -sS -o /dev/null -w "%{http_code}" "https://proxy.golang.org/github.com/csukuangfj/piper-phonemize-go/@v/$VERSION.info" | grep -q "200"; then
+              echo "Available!"
+              break
+            fi
+            echo "Not ready yet, sleeping 30s..."
+            sleep 30
+          done
+
+      - name: Test released Go package
+        shell: bash
+        run: |
+          cd go-api-examples
+          go mod tidy
+          # On Windows, DLLs must be in PATH or current directory.
+          # Copy them from the Go module cache to the current directory.
+          VERSION=$(grep 'piper-phonemize-go ' go.mod | awk '{print $NF}')
+          DLL_DIR=$(go env GOMODCACHE)/github.com/csukuangfj/piper-phonemize-go-windows@$VERSION/lib/x86_64-pc-windows-gnu
+          cp -v "$DLL_DIR"/*.dll . 2>/dev/null || true
+          go run main.go
+
