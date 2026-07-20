@@ -52,7 +52,7 @@ typedef struct PiperPhonemizeResult PiperPhonemizeResult;
  * It is safe to call multiple times; only the first call takes effect.
  *
  * @param data_dir  Path to the espeak-ng-data directory.
- * @return Sample rate in Hz (22050) on success, or -1 on failure.
+ * @return Sample rate in Hz (22050) on first call, 0 on subsequent calls, or -1 on failure.
  */
 PIPER_PHONEMIZE_API int32_t PiperPhonemizeInitialize(const char *data_dir);
 
