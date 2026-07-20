@@ -1,0 +1,4 @@
+module PiperPhonemizeC {
+  header "c-api.h"
+  export *
+}

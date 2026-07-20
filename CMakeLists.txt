@@ -361,6 +361,7 @@ install(
     FILES
       ${CMAKE_SOURCE_DIR}/src/c-api.h
       ${CMAKE_SOURCE_DIR}/src/cxx-api.h
+      ${CMAKE_SOURCE_DIR}/src/module.modulemap
     DESTINATION include/piper-phonemize)
 
 # ---- Tests ----

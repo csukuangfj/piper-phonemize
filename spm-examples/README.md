@@ -22,7 +22,7 @@ Add the dependency to your `Package.swift`:
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/csukuangfj/piper-phonemize.git", from: "1.4.7"),
+  .package(url: "https://github.com/csukuangfj/piper-phonemize.git", from: "master"),
 ]
 ```
 
@@ -70,6 +70,12 @@ Initialize espeak-ng with a custom data directory. **Optional** — called autom
 ### `piperPhonemizeGetVersionStr()`
 
 Return the piper-phonemize version string.
+
+### `piperPhonemizeBundledDataDir()`
+
+Return the path to the bundled espeak-ng-data directory (only available when using SPM).
+
+- Returns: Path string, or nil if not using SPM
 
 ### `PiperPhonemizeResult`
 
