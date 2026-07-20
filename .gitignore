@@ -21,3 +21,7 @@ htmlcov
 /_install/
 node_modules
 package-lock.json
+example
+build-swift-macos
+build-ios
+build-wasm-simd-nodejs

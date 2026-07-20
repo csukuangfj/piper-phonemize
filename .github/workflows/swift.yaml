@@ -1,0 +1,40 @@
+name: swift
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: swift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15-intel]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build xcframework
+        shell: bash
+        run: |
+          ./build-swift-macos.sh
+
+      - name: Download espeak-ng-data
+        shell: bash
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+          rm -f espeak-ng-data.tar.bz2
+
+      - name: Test example
+        shell: bash
+        run: |
+          cd swift-api-examples
+          bash run.sh
