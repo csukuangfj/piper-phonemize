@@ -25,3 +25,4 @@ example
 build-swift-macos
 build-ios
 build-wasm-simd-nodejs
+.build
