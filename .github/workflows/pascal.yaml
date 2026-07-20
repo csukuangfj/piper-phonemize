@@ -1,0 +1,153 @@
+name: pascal
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - pascal-api
+    paths:
+      - '.github/workflows/pascal.yaml'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'src/pascal-api/**'
+      - 'pascal-api-examples/**'
+  workflow_dispatch:
+
+concurrency:
+  group: pascal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pascal:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel, windows-2022, ubuntu-22.04-arm]
+        link: [shared, static]
+        exclude:
+          - os: windows-2022
+            link: static  # Pascal always uses DLL on Windows; static linking not supported
+          # - os: macos-latest
+          #   link: shared  # FPC linker can't find dylib
+          # - os: macos-15-intel
+          #   link: shared  # FPC linker can't find dylib
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FPC (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fpc
+
+      - name: Install FPC (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install fpc
+
+      - name: Install FPC (Windows)
+        if: startsWith(matrix.os, 'windows')
+        uses: gcarreno/setup-lazarus@v3.3.1
+        with:
+          lazarus-version: "stable"
+          with-cache: true
+
+      - name: Display FPC version
+        run: |
+          fpc -iV || true
+
+      - name: Build piper-phonemize (shared)
+        if: matrix.link == 'shared'
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          cmake --build . --config Release --target install
+
+          echo "=== Debug: installed files ==="
+          find install -type f | head -20
+          echo "---"
+          ls -lh install/lib/ || true
+          echo "---"
+          ls -lh install/bin/ || true
+
+      - name: Build piper-phonemize (static)
+        if: matrix.link == 'static'
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          cmake --build . --config Release --target install
+
+      - name: Download espeak-ng-data
+        shell: bash
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+          rm -f espeak-ng-data.tar.bz2
+
+      - name: Copy DLLs (Windows, shared only)
+        if: startsWith(matrix.os, 'windows') && matrix.link == 'shared'
+        shell: bash
+        run: |
+          cp -v build/install/bin/*.dll pascal-api-examples/ 2>/dev/null || true
+          cp -v build/install/lib/*.dll pascal-api-examples/ 2>/dev/null || true
+
+      - name: Test example (shared)
+        if: matrix.link == 'shared'
+        shell: bash
+        run: |
+          cd pascal-api-examples
+
+          echo "=== Debug: library search path ==="
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "Looking for libraries in: $GITHUB_WORKSPACE/build/install/lib"
+          ls -lh "$GITHUB_WORKSPACE/build/install/lib/" || true
+          echo "---"
+          find "$GITHUB_WORKSPACE/build/install" -name "*.dylib" -o -name "*.so" -o -name "*.dll" || true
+
+          # Compile with shared linking
+          fpc \
+            -dPIPER_PHONEMIZE_USE_SHARED_LIBS \
+            -Fu"$GITHUB_WORKSPACE/src/pascal-api" \
+            -Fl"$GITHUB_WORKSPACE/build/install/lib" \
+            ./example.pas
+
+          # Run
+          if [ "$(uname)" = "Darwin" ]; then
+            export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE/build/install/lib:$DYLD_LIBRARY_PATH"
+          elif [ "$(uname)" = "Linux" ]; then
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/build/install/lib:$LD_LIBRARY_PATH"
+          fi
+
+          ./example "$GITHUB_WORKSPACE/espeak-ng-data"
+
+      - name: Test example (static)
+        if: matrix.link == 'static'
+        shell: bash
+        run: |
+          cd pascal-api-examples
+
+          # Compile with static linking (no -dPIPER_PHONEMIZE_USE_SHARED_LIBS)
+          fpc \
+            -Fu"$GITHUB_WORKSPACE/src/pascal-api" \
+            -Fl"$GITHUB_WORKSPACE/build/install/lib" \
+            ./example.pas
+
+          # Run (no need to set LD_LIBRARY_PATH for static)
+          ./example "$GITHUB_WORKSPACE/espeak-ng-data"
