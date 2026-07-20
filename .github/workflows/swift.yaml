@@ -33,8 +33,14 @@ jobs:
           tar xvf espeak-ng-data.tar.bz2
           rm -f espeak-ng-data.tar.bz2
 
-      - name: Test example
+      - name: Test swift-api-examples
         shell: bash
         run: |
           cd swift-api-examples
+          bash run.sh
+
+      - name: Test spm-examples
+        shell: bash
+        run: |
+          cd spm-examples
           bash run.sh

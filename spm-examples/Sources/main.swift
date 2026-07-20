@@ -13,19 +13,15 @@ func main() {
   let version = piperPhonemizeGetVersionStr()
   print("Version: \(version)")
 
-  // Use command line argument or try to find bundled data
+  // Use command line argument or bundled data
   let dataDir: String
   if CommandLine.arguments.count > 1 {
     dataDir = CommandLine.arguments[1]
+  } else if let bundledDir = piperPhonemizeBundledDataDir() {
+    dataDir = bundledDir
   } else {
-    // Try to find espeak-ng-data in the SPM bundle
-    if let dataURL = Bundle.module.url(forResource: "espeak-ng-data", withExtension: nil) {
-      dataDir = dataURL.path
-    } else {
-      print("Usage: \(CommandLine.arguments[0]) <espeak-ng-data-dir>")
-      print("Or place espeak-ng-data in the package resources.")
-      return
-    }
+    print("Usage: \(CommandLine.arguments[0]) <espeak-ng-data-dir>")
+    return
   }
 
   let sampleRate = piperPhonemizeInitialize(dataDir: dataDir)
