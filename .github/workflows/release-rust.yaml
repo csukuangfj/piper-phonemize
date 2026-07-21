@@ -15,24 +15,6 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Update version
-        shell: bash
-        run: |
-          RUST_CRATE_VERSION="0.1.3"
-          NATIVE_LIB_VERSION="1.4.7"
-          echo "RUST_CRATE_VERSION: $RUST_CRATE_VERSION"
-          echo "NATIVE_LIB_VERSION: $NATIVE_LIB_VERSION"
-
-          # Update version in Cargo.toml files
-          sed -i "s/^version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize-sys/Cargo.toml
-          sed -i "s/^version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize/Cargo.toml
-          sed -i "s/version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust-api-examples/Cargo.toml
-
-          # Update dependency version
-          sed -i "s/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \".*\"/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize/Cargo.toml
-
-          git diff rust/
-
       - name: Prepare files for publishing
         run: |
           cd rust
