@@ -33,7 +33,7 @@ jobs:
                 ..
               make -j$(nproc) install
             '
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd build/install/lib
           tar cjf ../../../piper-phonemize-v${VERSION}-linux-x64-static-lib.tar.bz2 *.a
 
@@ -58,7 +58,7 @@ jobs:
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
             ..
           make -j$(nproc) install
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install/lib
           tar cjf ../../../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 *.a
 
@@ -84,7 +84,7 @@ jobs:
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
             ..
           make -j$(sysctl -n hw.ncpu) install
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install/lib
           tar cjf ../../../piper-phonemize-v${VERSION}-macos-x64-static-lib.tar.bz2 *.a
 
@@ -110,7 +110,7 @@ jobs:
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
             ..
           make -j$(sysctl -n hw.ncpu) install
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install/lib
           tar cjf ../../../piper-phonemize-v${VERSION}-macos-arm64-static-lib.tar.bz2 *.a
 
@@ -133,7 +133,7 @@ jobs:
             -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
           cmake --build build --config Release --target install
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-windows-x64-shared-lib.tar.bz2 bin/*.dll lib/*.lib
 
