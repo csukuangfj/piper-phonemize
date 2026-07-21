@@ -8,18 +8,18 @@ let package = Package(
     .macOS(.v10_15),
   ],
   dependencies: [
-    // For testing with remote package:
-    .package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")
-    // For testing with local package:
-    //.package(path: "..")
+    // For remote package (default):
+    .package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master"),
+    // For local package (uncomment above, comment below):
+    //.package(path: ".."),
   ],
   targets: [
     .executableTarget(
       name: "piper-phonemize-example",
       dependencies: [
-        .product(name: "piper-phonemize", package: "piper-phonemize")
+        .product(name: "piper-phonemize", package: "piper-phonemize"),
       ],
       path: "Sources"
-    )
+    ),
   ]
 )
