@@ -20,14 +20,5 @@ fi
 
 export PIPER_PHONEMIZE_LIB_DIR="$PROJECT_DIR/build/install/lib"
 
-# Download espeak-ng-data if needed
-if [ ! -d "$PROJECT_DIR/espeak-ng-data" ]; then
-  echo "=== Downloading espeak-ng-data ==="
-  cd "$PROJECT_DIR"
-  curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-  tar xvf espeak-ng-data.tar.bz2
-  rm -f espeak-ng-data.tar.bz2
-fi
-
 cd "$SCRIPT_DIR"
-cargo run --example multiple_languages -- "$PROJECT_DIR/espeak-ng-data"
+cargo run --example multiple_languages

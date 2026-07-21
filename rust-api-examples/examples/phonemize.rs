@@ -3,28 +3,15 @@
 // Basic example: Phonemize text using piper-phonemize
 //
 // Usage:
-//   cargo run --example phonemize -- /path/to/espeak-ng-data
-
-use std::env;
+//   cargo run --example phonemize
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        eprintln!("Usage: {} <espeak-ng-data-dir>", args[0]);
-        std::process::exit(1);
-    }
-
-    let data_dir = &args[1];
-
     println!("Version: {}", piper_phonemize::get_version());
-
-    let sample_rate = piper_phonemize::initialize(data_dir)
-        .expect("Failed to initialize espeak-ng");
-    println!("Sample rate: {}", sample_rate);
 
     let text = "Hello world. This is a test.";
     println!("\nInput: {:?}", text);
 
+    // No initialization needed - espeak-ng-data is embedded!
     let sentences = piper_phonemize::phonemize_to_string(text, "en-us")
         .expect("Phonemization failed");
 
