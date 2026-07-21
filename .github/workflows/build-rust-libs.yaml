@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 concurrency:
   group: build-rust-libs-${{ github.ref }}
@@ -37,9 +38,12 @@ jobs:
           tar cjf ../../../piper-phonemize-v${VERSION}-linux-x64-static-lib.tar.bz2 *.a
 
       - name: Upload
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: piper-phonemize-*.tar.bz2
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
 
   build-linux-arm64-static:
     runs-on: ubuntu-22.04-arm
@@ -62,9 +66,12 @@ jobs:
           tar cjf ../../../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 *.a
 
       - name: Upload
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: piper-phonemize-*.tar.bz2
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
 
   build-macos-x64-static:
     runs-on: macos-15-intel
@@ -88,9 +95,12 @@ jobs:
           tar cjf ../../../piper-phonemize-v${VERSION}-macos-x64-static-lib.tar.bz2 *.a
 
       - name: Upload
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: piper-phonemize-*.tar.bz2
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
 
   build-macos-arm64-static:
     runs-on: macos-latest
@@ -114,9 +124,12 @@ jobs:
           tar cjf ../../../piper-phonemize-v${VERSION}-macos-arm64-static-lib.tar.bz2 *.a
 
       - name: Upload
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: piper-phonemize-*.tar.bz2
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
 
   build-windows-x64-shared:
     runs-on: windows-2022
@@ -137,6 +150,9 @@ jobs:
           tar cjf ../../piper-phonemize-v${VERSION}-windows-x64-shared-lib.tar.bz2 bin/*.dll lib/*.lib
 
       - name: Upload
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: piper-phonemize-*.tar.bz2
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
