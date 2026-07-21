@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           # For testing: release v0.1.0 with libs from v1.4.7
-          RUST_CRATE_VERSION="0.1.0"
+          RUST_CRATE_VERSION="0.1.1"
           NATIVE_LIB_VERSION="1.4.7"
           echo "RUST_CRATE_VERSION: $RUST_CRATE_VERSION"
           echo "NATIVE_LIB_VERSION: $NATIVE_LIB_VERSION"
