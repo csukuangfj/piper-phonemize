@@ -63,7 +63,7 @@ jobs:
           make -j$(nproc) install
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install
-          tar cjf ../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 lib/ include/
+          tar cjf ../../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 lib/ include/
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2
@@ -92,7 +92,7 @@ jobs:
           make -j$(sysctl -n hw.ncpu) install
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install
-          tar cjf ../piper-phonemize-v${VERSION}-macos-x64-static-lib.tar.bz2 lib/ include/
+          tar cjf ../../piper-phonemize-v${VERSION}-macos-x64-static-lib.tar.bz2 lib/ include/
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2
@@ -121,7 +121,7 @@ jobs:
           make -j$(sysctl -n hw.ncpu) install
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd install
-          tar cjf ../piper-phonemize-v${VERSION}-macos-arm64-static-lib.tar.bz2 lib/ include/
+          tar cjf ../../piper-phonemize-v${VERSION}-macos-arm64-static-lib.tar.bz2 lib/ include/
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2
