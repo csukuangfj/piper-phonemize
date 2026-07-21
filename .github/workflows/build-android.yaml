@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-android-libs:
+  build-android-shared:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,7 @@ jobs:
         shell: bash
         run: |
           export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=ON
           ./build-android-arm64-v8a.sh
           mkdir -p jniLibs/arm64-v8a/
           cp -v ./build-android-arm64-v8a/install/lib/*.so ./jniLibs/arm64-v8a/
@@ -36,6 +37,7 @@ jobs:
         shell: bash
         run: |
           export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=ON
           ./build-android-armv7-eabi.sh
           mkdir -p jniLibs/armeabi-v7a/
           cp -v ./build-android-armv7-eabi/install/lib/*.so ./jniLibs/armeabi-v7a/
@@ -44,6 +46,7 @@ jobs:
         shell: bash
         run: |
           export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=ON
           ./build-android-x86-64.sh
           mkdir -p jniLibs/x86_64/
           cp -v ./build-android-x86-64/install/lib/*.so ./jniLibs/x86_64/
@@ -52,6 +55,7 @@ jobs:
         shell: bash
         run: |
           export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=ON
           ./build-android-x86.sh
           mkdir -p jniLibs/x86/
           cp -v ./build-android-x86/install/lib/*.so ./jniLibs/x86/
@@ -69,13 +73,91 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: piper-phonemize-android-libs
+          name: piper-phonemize-android-shared-libs
           path: ./jniLibs
 
-      - name: Release android libs
+      - name: Release android shared libs
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android.tar.bz2
+          tag: v1.4.7
+
+  build-android-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Display NDK HOME
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_LATEST_HOME: ${ANDROID_NDK_LATEST_HOME}"
+          ls -lh ${ANDROID_NDK_LATEST_HOME}
+
+      - name: Build android arm64-v8a static
+        shell: bash
+        run: |
+          export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=OFF
+          ./build-android-arm64-v8a.sh
+          mkdir -p libs/arm64-v8a/
+          cp -v ./build-android-arm64-v8a-static/install/lib/*.a ./libs/arm64-v8a/
+
+      - name: Build android armv7-eabi static
+        shell: bash
+        run: |
+          export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=OFF
+          ./build-android-armv7-eabi.sh
+          mkdir -p libs/armeabi-v7a/
+          cp -v ./build-android-armv7-eabi-static/install/lib/*.a ./libs/armeabi-v7a/
+
+      - name: Build android x86_64 static
+        shell: bash
+        run: |
+          export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=OFF
+          ./build-android-x86-64.sh
+          mkdir -p libs/x86_64/
+          cp -v ./build-android-x86-64-static/install/lib/*.a ./libs/x86_64/
+
+      - name: Build android x86 static
+        shell: bash
+        run: |
+          export ANDROID_NDK=$ANDROID_NDK_LATEST_HOME
+          export BUILD_SHARED_LIBS=OFF
+          ./build-android-x86.sh
+          mkdir -p libs/x86/
+          cp -v ./build-android-x86-static/install/lib/*.a ./libs/x86/
+
+      - name: Copy headers
+        shell: bash
+        run: |
+          cp -rv build-android-arm64-v8a-static/install/include ./include
+
+      - name: Create archive
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "VERSION=$VERSION"
+
+          filename=piper-phonemize-v${VERSION}-android-static-lib.tar.bz2
+          tar cjvf $filename ./libs ./include
+
+          ls -lh $filename
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-android-static-libs
+          path: |
+            ./libs
+            ./include
+
+      - name: Release android static libs
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*-android-static-lib.tar.bz2
           tag: v1.4.7
