@@ -7,9 +7,9 @@
 //! ## Quick Start
 //!
 //! ```no_run
-//! use piper_phonemize::{initialize, phonemize_to_string};
+//! use piper_phonemize::phonemize_to_string;
 //!
-//! initialize("/path/to/espeak-ng-data").unwrap();
+//! // No initialization needed - espeak-ng-data is embedded!
 //! let sentences = phonemize_to_string("Hello world", "en-us").unwrap();
 //! for s in &sentences {
 //!     println!("{}", s);
@@ -17,8 +17,14 @@
 //! ```
 
 use std::ffi::{CStr, CString};
+use std::sync::Once;
 
+use bzip2::read::BzDecoder;
 use piper_phonemize_sys as sys;
+use tar::Archive;
+
+static INIT: Once = Once::new();
+static mut INITIALIZED: bool = false;
 
 /// A handle to the phonemize result.
 ///
@@ -88,10 +94,59 @@ impl Drop for PiperPhonemizeResult {
     }
 }
 
+/// Extract embedded espeak-ng-data to a temp directory and return the path.
+fn extract_espeak_ng_data() -> Result<String, &'static str> {
+    let data_path = option_env!("ESPEAK_NG_DATA_PATH")
+        .ok_or("ESPEAK_NG_DATA_PATH not set at compile time")?;
+
+    let data = std::fs::read(data_path)
+        .map_err(|_| "Failed to read espeak-ng-data.tar.bz2")?;
+
+    let tmp_dir = std::env::temp_dir().join("piper-phonemize-espeak-ng-data");
+    if tmp_dir.exists() {
+        let data_dir = tmp_dir.join("espeak-ng-data");
+        if data_dir.exists() {
+            return Ok(data_dir.to_string_lossy().into_owned());
+        }
+        return Ok(tmp_dir.to_string_lossy().into_owned());
+    }
+
+    std::fs::create_dir_all(&tmp_dir).map_err(|_| "Failed to create temp directory")?;
+
+    let bz = BzDecoder::new(data.as_slice());
+    let mut archive = Archive::new(bz);
+    archive.unpack(&tmp_dir).map_err(|_| "Failed to extract espeak-ng-data")?;
+
+    let data_dir = tmp_dir.join("espeak-ng-data");
+    if data_dir.exists() {
+        Ok(data_dir.to_string_lossy().into_owned())
+    } else {
+        Ok(tmp_dir.to_string_lossy().into_owned())
+    }
+}
+
+/// Ensure espeak-ng is initialized with embedded data.
+fn ensure_initialized() {
+    unsafe {
+        INIT.call_once(|| {
+            match extract_espeak_ng_data() {
+                Ok(data_dir) => {
+                    let c_dir = CString::new(data_dir).unwrap();
+                    let ret = sys::PiperPhonemizeInitialize(c_dir.as_ptr());
+                    INITIALIZED = ret > 0;
+                }
+                Err(e) => {
+                    eprintln!("Failed to extract espeak-ng-data: {}", e);
+                }
+            }
+        });
+    }
+}
+
 /// Initialize espeak-ng with the given data directory.
 ///
-/// Must be called before `phonemize()`. Safe to call multiple times;
-/// only the first call takes effect.
+/// Optional — called automatically on first use with bundled data.
+/// Safe to call multiple times; only the first call takes effect.
 ///
 /// Returns the sample rate (22050) on success.
 pub fn initialize(data_dir: &str) -> Result<i32, &'static str> {
@@ -100,14 +155,18 @@ pub fn initialize(data_dir: &str) -> Result<i32, &'static str> {
     if ret < 0 {
         Err("Failed to initialize espeak-ng")
     } else {
+        unsafe { INITIALIZED = true; }
         Ok(ret)
     }
 }
 
 /// Phonemize text using espeak-ng.
 ///
+/// Auto-initializes with embedded espeak-ng-data if not already initialized.
 /// Returns `None` on failure.
 pub fn phonemize(text: &str, voice: &str) -> Option<PiperPhonemizeResult> {
+    ensure_initialized();
+
     let c_text = CString::new(text).ok()?;
     let c_voice = CString::new(voice).ok()?;
     let ptr = unsafe {
@@ -122,6 +181,7 @@ pub fn phonemize(text: &str, voice: &str) -> Option<PiperPhonemizeResult> {
 
 /// Phonemize text and return as IPA strings.
 ///
+/// Auto-initializes with embedded espeak-ng-data if not already initialized.
 /// Returns `None` on failure.
 pub fn phonemize_to_string(text: &str, voice: &str) -> Option<Vec<String>> {
     let result = phonemize(text, voice)?;

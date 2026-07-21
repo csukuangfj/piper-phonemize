@@ -10,5 +10,10 @@ default = ["static"]
 static = ["piper-phonemize-sys/static"]
 shared = ["piper-phonemize-sys/shared"]
 
+[build-dependencies]
+walkdir = "2"
+
 [dependencies]
 piper-phonemize-sys = { path = "../piper-phonemize-sys", version = "0.1.0", default-features = false }
+bzip2 = "0.4"
+tar = "0.4"

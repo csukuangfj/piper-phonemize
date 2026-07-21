@@ -3,22 +3,9 @@
 // Example: Phonemize text in multiple languages
 //
 // Usage:
-//   cargo run --example multiple_languages -- /path/to/espeak-ng-data
-
-use std::env;
+//   cargo run --example multiple_languages
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        eprintln!("Usage: {} <espeak-ng-data-dir>", args[0]);
-        std::process::exit(1);
-    }
-
-    let data_dir = &args[1];
-
-    piper_phonemize::initialize(data_dir)
-        .expect("Failed to initialize espeak-ng");
-
     let examples = vec![
         ("Hello world", "en-us"),
         ("The quick brown fox jumps over the lazy dog.", "en-us"),
@@ -31,6 +18,7 @@ fn main() {
         ("你好世界", "cmn"),
     ];
 
+    // No initialization needed - espeak-ng-data is embedded!
     for (text, voice) in &examples {
         println!("\nInput: {:?}", text);
         println!("Voice: {}", voice);

@@ -53,6 +53,9 @@ fn try_main() -> Result<(), DynError> {
         LinkMode::Shared => emit_shared_link_directives(),
     }
 
+    // Download espeak-ng-data for embedding
+    download_espeak_ng_data()?;
+
     Ok(())
 }
 
@@ -183,4 +186,25 @@ fn emit_static_link_directives(target_os: &str) {
 
 fn emit_shared_link_directives() {
     println!("cargo:rustc-link-lib=dylib=piper_phonemize_core");
+}
+
+fn download_espeak_ng_data() -> Result<(), DynError> {
+    let out_dir = env::var("OUT_DIR")?;
+    let dest = PathBuf::from(&out_dir).join("espeak-ng-data.tar.bz2");
+
+    if dest.exists() {
+        println!("cargo:warning=espeak-ng-data already cached at {}", dest.display());
+        return Ok(());
+    }
+
+    let url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2";
+    eprintln!("Downloading espeak-ng-data from {url}...");
+    let resp = ureq::get(url).call()?;
+    let mut bytes = Vec::new();
+    use std::io::Read;
+    resp.into_reader().read_to_end(&mut bytes)?;
+
+    fs::write(&dest, &bytes)?;
+    println!("cargo:warning=Downloaded espeak-ng-data to {}", dest.display());
+    Ok(())
 }
