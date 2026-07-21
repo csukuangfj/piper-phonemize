@@ -171,12 +171,6 @@ fn download_prebuilt_libs(
         .into());
     }
 
-    // Check lib/ subdirectory (desktop platforms) - unpacked to cache_root
-    let desktop_lib_dir = cache_root.join("lib");
-    if desktop_lib_dir.is_dir() {
-        return Ok(desktop_lib_dir);
-    }
-
     // Check Android shared: jniLibs/{abi}/
     let android_shared_dir = cache_root.join("jniLibs").join(android_abi(target_arch));
     if android_shared_dir.is_dir() {
@@ -187,6 +181,12 @@ fn download_prebuilt_libs(
     let android_static_dir = cache_root.join("libs").join(android_abi(target_arch));
     if android_static_dir.is_dir() {
         return Ok(android_static_dir);
+    }
+
+    // Check lib/ subdirectory (desktop platforms) - unpacked to cache_root
+    let desktop_lib_dir = cache_root.join("lib");
+    if desktop_lib_dir.is_dir() && target_os != "android" {
+        return Ok(desktop_lib_dir);
     }
 
     Err(format!(
@@ -268,10 +268,14 @@ fn emit_static_link_directives(target_os: &str) {
     }
 
     match target_os {
-        "linux" | "android" => {
+        "linux" => {
             println!("cargo:rustc-link-lib=stdc++");
             println!("cargo:rustc-link-lib=m");
             println!("cargo:rustc-link-lib=gcc_s");
+        }
+        "android" => {
+            println!("cargo:rustc-link-lib=c++");
+            println!("cargo:rustc-link-lib=m");
         }
         "macos" => {
             println!("cargo:rustc-link-lib=c++");

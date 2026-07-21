@@ -20,6 +20,8 @@ sed -i.bak "$replace_str" ./nodejs-addon-examples/package.json
 sed -i.bak "$replace_str" ./rust/piper-phonemize-sys/Cargo.toml
 sed -i.bak "$replace_str" ./rust/piper-phonemize/Cargo.toml
 sed -i.bak "$replace_str" ./rust-api-examples/Cargo.toml
+sed -i.bak "$replace_str" ./tauri-examples/src-tauri/tauri.conf.json
+sed -i.bak "$replace_str" ./tauri-examples/src-tauri/Cargo.toml
 
 sed -i.bak "$replace_str" ./.github/workflows/build-wheel-macos-arm64.yaml
 

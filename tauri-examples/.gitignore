@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Rust build artifacts
+target/
+src-tauri/target/
+
+# Tauri auto-generated files
+src-tauri/gen/
+
+# Gradle
+.gradle/
+build/
+local.properties
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

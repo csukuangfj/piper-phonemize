@@ -94,14 +94,11 @@ impl Drop for PiperPhonemizeResult {
     }
 }
 
+/// Embedded espeak-ng-data archive (baked into the binary at compile time).
+const ESPEAK_NG_DATA_BZ2: &[u8] = include_bytes!(env!("ESPEAK_NG_DATA_PATH"));
+
 /// Extract embedded espeak-ng-data to a temp directory and return the path.
 fn extract_espeak_ng_data() -> Result<String, &'static str> {
-    let data_path = option_env!("ESPEAK_NG_DATA_PATH")
-        .ok_or("ESPEAK_NG_DATA_PATH not set at compile time")?;
-
-    let data = std::fs::read(data_path)
-        .map_err(|_| "Failed to read espeak-ng-data.tar.bz2")?;
-
     let tmp_dir = std::env::temp_dir().join("piper-phonemize-espeak-ng-data");
     if tmp_dir.exists() {
         let data_dir = tmp_dir.join("espeak-ng-data");
@@ -113,7 +110,7 @@ fn extract_espeak_ng_data() -> Result<String, &'static str> {
 
     std::fs::create_dir_all(&tmp_dir).map_err(|_| "Failed to create temp directory")?;
 
-    let bz = BzDecoder::new(data.as_slice());
+    let bz = BzDecoder::new(ESPEAK_NG_DATA_BZ2);
     let mut archive = Archive::new(bz);
     archive.unpack(&tmp_dir).map_err(|_| "Failed to extract espeak-ng-data")?;
 
