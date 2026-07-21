@@ -43,8 +43,6 @@ fn try_main() -> Result<(), DynError> {
     let lib_dir = resolve_lib_dir(link_mode, &target_os, &target_arch)?;
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
-    println!("cargo:warning=Library directory: {}", lib_dir.display());
-    println!("cargo:warning=Library exists: {}", lib_dir.exists());
 
     if link_mode == LinkMode::Shared && matches!(target_os.as_str(), "linux" | "macos") {
         println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
@@ -55,7 +53,6 @@ fn try_main() -> Result<(), DynError> {
         LinkMode::Shared => emit_shared_link_directives(),
     }
 
-    // Download espeak-ng-data for embedding
     download_espeak_ng_data()?;
 
     Ok(())
@@ -84,7 +81,6 @@ fn resolve_lib_dir(
     // Option 1: Use PIPER_PHONEMIZE_LIB_DIR if set
     if let Ok(lib_dir) = env::var("PIPER_PHONEMIZE_LIB_DIR") {
         let p = PathBuf::from(&lib_dir);
-        eprintln!("Using PIPER_PHONEMIZE_LIB_DIR: {}", p.display());
         if p.is_dir() {
             return Ok(p);
         }
@@ -92,9 +88,7 @@ fn resolve_lib_dir(
     }
 
     // Option 2: Download prebuilt libraries from GitHub releases
-    // Native library version for downloading prebuilt libs (differs from crate version)
     let version = "1.4.7";
-    println!("cargo:warning=PIPER_PHONEMIZE_LIB_DIR not set, will download prebuilt v{version}");
     let suffix = match link_mode {
         LinkMode::Static => "static",
         LinkMode::Shared => "shared",
@@ -131,41 +125,30 @@ fn resolve_lib_dir(
     let extracted_dir = cache_root.join(&archive_stem);
     let lib_dir = extracted_dir.join("lib");
 
-    // Check if already extracted (with lib/ subdirectory like sherpa-onnx)
     if lib_dir.is_dir() {
         return Ok(lib_dir);
-    }
-
-    // Also check flat archive structure (files directly in extracted_dir)
-    if extracted_dir.join("libpiper_phonemize_core.a").exists()
-        || extracted_dir.join("libpiper_phonemize_core.dylib").exists()
-        || extracted_dir.join("piper_phonemize_core.dll").exists()
-    {
-        return Ok(extracted_dir);
     }
 
     // Check PIPER_PHONEMIZE_ARCHIVE_DIR (for CI pre-seeding)
     if let Ok(archive_dir) = env::var("PIPER_PHONEMIZE_ARCHIVE_DIR") {
         let archive_path = Path::new(&archive_dir).join(&archive_name);
         if archive_path.exists() {
-            return extract_archive(&archive_path, &cache_root, &lib_dir, &extracted_dir);
+            return extract_archive(&archive_path, &extracted_dir, &lib_dir);
         }
     }
 
     // Download from GitHub releases
     let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
-    println!("cargo:warning=Downloading prebuilt library from {url}...");
+    eprintln!("Downloading prebuilt library from {url}...");
     let resp = ureq::get(&url).call()?;
     let mut bytes = Vec::new();
     use std::io::Read;
     resp.into_reader().read_to_end(&mut bytes)?;
-    println!("cargo:warning=Downloaded {} bytes", bytes.len());
 
     fs::create_dir_all(&extracted_dir)?;
     let bz = BzDecoder::new(bytes.as_slice());
     let mut archive = Archive::new(bz);
     archive.unpack(&extracted_dir)?;
-    println!("cargo:warning=Extracted to {}", extracted_dir.display());
 
     if lib_dir.is_dir() {
         Ok(lib_dir)
@@ -178,12 +161,12 @@ fn resolve_lib_dir(
     }
 }
 
-fn extract_archive(archive_path: &Path, cache_root: &Path, lib_dir: &Path, extracted_dir: &Path) -> Result<PathBuf, DynError> {
+fn extract_archive(archive_path: &Path, extracted_dir: &Path, lib_dir: &Path) -> Result<PathBuf, DynError> {
     let file = fs::File::open(archive_path)?;
     let bz = BzDecoder::new(file);
     let mut archive = Archive::new(bz);
     fs::create_dir_all(extracted_dir)?;
-    archive.unpack(cache_root)?;
+    archive.unpack(extracted_dir)?;
 
     if lib_dir.is_dir() {
         Ok(lib_dir.to_path_buf())
@@ -206,9 +189,7 @@ fn emit_static_link_directives(target_os: &str) {
         "macos" => {
             println!("cargo:rustc-link-lib=c++");
         }
-        "windows" => {
-            // Windows static linking typically doesn't need extra system libs
-        }
+        "windows" => {}
         _ => {}
     }
 }
@@ -222,7 +203,6 @@ fn download_espeak_ng_data() -> Result<(), DynError> {
     let dest = PathBuf::from(&out_dir).join("espeak-ng-data.tar.bz2");
 
     if dest.exists() {
-        println!("cargo:warning=espeak-ng-data already cached at {}", dest.display());
         return Ok(());
     }
 
@@ -234,6 +214,5 @@ fn download_espeak_ng_data() -> Result<(), DynError> {
     resp.into_reader().read_to_end(&mut bytes)?;
 
     fs::write(&dest, &bytes)?;
-    println!("cargo:warning=Downloaded espeak-ng-data to {}", dest.display());
     Ok(())
 }
