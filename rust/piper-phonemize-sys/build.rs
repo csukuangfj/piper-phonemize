@@ -44,13 +44,15 @@ fn try_main() -> Result<(), DynError> {
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
 
-    if link_mode == LinkMode::Shared && matches!(target_os.as_str(), "linux" | "macos") {
+    if link_mode == LinkMode::Shared
+        && matches!(target_os.as_str(), "linux" | "macos" | "android")
+    {
         println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
     }
 
     match link_mode {
         LinkMode::Static => emit_static_link_directives(&target_os),
-        LinkMode::Shared => emit_shared_link_directives(),
+        LinkMode::Shared => emit_shared_link_directives(&target_os),
     }
 
     download_espeak_ng_data()?;
@@ -88,91 +90,176 @@ fn resolve_lib_dir(
     }
 
     // Option 2: Download prebuilt libraries from GitHub releases
-    let version = env!("CARGO_PKG_VERSION");
-    let suffix = match link_mode {
-        LinkMode::Static => "static",
-        LinkMode::Shared => "shared",
-    };
-    let os = if target_os == "linux" {
-        "linux"
-    } else if target_os == "macos" {
-        "macos"
-    } else if target_os == "windows" {
-        "windows"
-    } else {
-        return Err(format!("unsupported OS: {target_os}").into());
-    };
-    let arch = if target_arch == "x86_64" {
-        "x64"
-    } else if target_arch == "aarch64" {
-        "arm64"
-    } else if target_arch == "x86" {
-        "x86"
-    } else {
-        return Err(format!("unsupported arch: {target_arch}").into());
-    };
+    download_prebuilt_libs(link_mode, target_os, target_arch)
+}
 
-    let archive_stem = format!("piper-phonemize-v{version}-{os}-{arch}-{suffix}-lib");
-    let archive_name = format!("{archive_stem}.tar.bz2");
+fn download_prebuilt_libs(
+    link_mode: LinkMode,
+    target_os: &str,
+    target_arch: &str,
+) -> Result<PathBuf, DynError> {
+    let archive_name = archive_name(link_mode, target_os, target_arch)?;
+    let archive_stem = archive_name.trim_end_matches(".tar.bz2");
 
-    // Check cache
-    let target_dir = env::var("OUT_DIR")?;
-    let cache_root = Path::new(&target_dir)
-        .ancestors()
-        .find(|p| p.ends_with("target"))
-        .unwrap_or(Path::new(&target_dir))
-        .join("piper-phonemize-prebuilt");
-    let extracted_dir = cache_root.join(&archive_stem);
+    let out_dir = PathBuf::from(env::var("OUT_DIR")?);
+    let cache_root = target_dir_from_out_dir(&out_dir)?.join("piper-phonemize-prebuilt");
+    let extracted_dir = cache_root.join(archive_stem);
     let lib_dir = extracted_dir.join("lib");
 
     if lib_dir.is_dir() {
         return Ok(lib_dir);
     }
 
-    // Check PIPER_PHONEMIZE_ARCHIVE_DIR (for CI pre-seeding)
-    if let Ok(archive_dir) = env::var("PIPER_PHONEMIZE_ARCHIVE_DIR") {
-        let archive_path = Path::new(&archive_dir).join(&archive_name);
-        if archive_path.exists() {
-            return extract_archive(&archive_path, &extracted_dir, &lib_dir);
+    // Android shared: jniLibs/{abi}/
+    let android_shared_dir = extracted_dir.join("jniLibs").join(android_abi(target_arch));
+    if android_shared_dir.is_dir() {
+        return Ok(android_shared_dir);
+    }
+
+    // Android static: libs/{abi}/
+    let android_static_dir = extracted_dir.join("libs").join(android_abi(target_arch));
+    if android_static_dir.is_dir() {
+        return Ok(android_static_dir);
+    }
+
+    fs::create_dir_all(&cache_root)?;
+
+    let archive_path = cache_root.join(&archive_name);
+    if !archive_path.is_file() {
+        if let Some(local_archive_dir) = env::var_os("PIPER_PHONEMIZE_ARCHIVE_DIR") {
+            let local_archive_path = PathBuf::from(local_archive_dir).join(&archive_name);
+            if !local_archive_path.is_file() {
+                return Err(format!(
+                    "PIPER_PHONEMIZE_ARCHIVE_DIR does not contain expected archive: {}",
+                    local_archive_path.display()
+                )
+                .into());
+            }
+            copy_file_atomically(&local_archive_path, &archive_path)?;
+        } else {
+            let version = "1.4.7";
+            let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
+            eprintln!("Downloading piper-phonemize libs from {url}");
+
+            let response = ureq::get(&url)
+                .call()
+                .map_err(|e| format!("Failed to download archive from {url}: {e}"))?;
+            let mut reader = response.into_reader();
+            write_reader_atomically(&mut reader, &archive_path)?;
         }
     }
 
-    // Download from GitHub releases
-    let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
-    eprintln!("Downloading prebuilt library from {url}...");
-    let resp = ureq::get(&url).call()?;
-    let mut bytes = Vec::new();
-    use std::io::Read;
-    resp.into_reader().read_to_end(&mut bytes)?;
+    if extracted_dir.exists() {
+        fs::remove_dir_all(&extracted_dir)?;
+    }
 
-    fs::create_dir_all(&extracted_dir)?;
-    let bz = BzDecoder::new(bytes.as_slice());
-    let mut archive = Archive::new(bz);
-    archive.unpack(&extracted_dir)?;
-
-    if lib_dir.is_dir() {
-        Ok(lib_dir)
-    } else {
-        Err(format!(
-            "Downloaded archive did not contain a lib/ directory at {}",
-            lib_dir.display()
+    // Unpack to cache_root (archives have flat structure with lib/, include/, jniLibs/)
+    let unpack_result: Result<(), DynError> = (|| {
+        let tar_file = fs::File::open(&archive_path)?;
+        let decoder = BzDecoder::new(tar_file);
+        let mut archive = Archive::new(decoder);
+        archive.unpack(&cache_root)?;
+        Ok(())
+    })();
+    if let Err(err) = unpack_result {
+        let _ = fs::remove_file(&archive_path);
+        let _ = fs::remove_dir_all(&extracted_dir);
+        return Err(format!(
+            "Failed to unpack cached archive {}: {err}",
+            archive_path.display()
         )
-        .into())
+        .into());
+    }
+
+    // Check lib/ subdirectory (desktop platforms) - unpacked to cache_root
+    let desktop_lib_dir = cache_root.join("lib");
+    if desktop_lib_dir.is_dir() {
+        return Ok(desktop_lib_dir);
+    }
+
+    // Check Android shared: jniLibs/{abi}/
+    let android_shared_dir = cache_root.join("jniLibs").join(android_abi(target_arch));
+    if android_shared_dir.is_dir() {
+        return Ok(android_shared_dir);
+    }
+
+    // Check Android static: libs/{abi}/
+    let android_static_dir = cache_root.join("libs").join(android_abi(target_arch));
+    if android_static_dir.is_dir() {
+        return Ok(android_static_dir);
+    }
+
+    Err(format!(
+        "Downloaded archive did not contain expected libraries at {}",
+        cache_root.display()
+    )
+    .into())
+}
+
+fn android_abi(target_arch: &str) -> &str {
+    match target_arch {
+        "aarch64" => "arm64-v8a",
+        "arm" => "armeabi-v7a",
+        "x86" => "x86",
+        "x86_64" => "x86_64",
+        _ => "arm64-v8a",
     }
 }
 
-fn extract_archive(archive_path: &Path, extracted_dir: &Path, lib_dir: &Path) -> Result<PathBuf, DynError> {
-    let file = fs::File::open(archive_path)?;
-    let bz = BzDecoder::new(file);
-    let mut archive = Archive::new(bz);
-    fs::create_dir_all(extracted_dir)?;
-    archive.unpack(extracted_dir)?;
+fn archive_name(
+    link_mode: LinkMode,
+    target_os: &str,
+    target_arch: &str,
+) -> Result<String, DynError> {
+    let version = "1.4.7";
+    let name = match (link_mode, target_os, target_arch) {
+        (LinkMode::Static, "linux", "x86_64") => {
+            format!("piper-phonemize-v{version}-linux-x64-static-lib.tar.bz2")
+        }
+        (LinkMode::Static, "linux", "aarch64") => {
+            format!("piper-phonemize-v{version}-linux-arm64-static-lib.tar.bz2")
+        }
+        (LinkMode::Static, "macos", "x86_64") => {
+            format!("piper-phonemize-v{version}-macos-x64-static-lib.tar.bz2")
+        }
+        (LinkMode::Static, "macos", "aarch64") => {
+            format!("piper-phonemize-v{version}-macos-arm64-static-lib.tar.bz2")
+        }
+        (LinkMode::Static, "windows", "x86_64") => {
+            format!("piper-phonemize-v{version}-windows-x64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "linux", "x86_64") => {
+            format!("piper-phonemize-v{version}-linux-x64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "linux", "aarch64") => {
+            format!("piper-phonemize-v{version}-linux-arm64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "macos", "x86_64") => {
+            format!("piper-phonemize-v{version}-macos-x64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "macos", "aarch64") => {
+            format!("piper-phonemize-v{version}-macos-arm64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "windows", "x86_64") => {
+            format!("piper-phonemize-v{version}-windows-x64-shared-lib.tar.bz2")
+        }
+        // Android: one archive with all ABIs
+        (LinkMode::Shared, "android", "aarch64" | "arm" | "x86" | "x86_64") => {
+            format!("piper-phonemize-v{version}-android.tar.bz2")
+        }
+        (LinkMode::Static, "android", "aarch64" | "arm" | "x86" | "x86_64") => {
+            format!("piper-phonemize-v{version}-android-static-lib.tar.bz2")
+        }
+        _ => {
+            return Err(format!(
+                "Unsupported target: os={target_os}, arch={target_arch}, link_mode={:?}",
+                link_mode
+            )
+            .into())
+        }
+    };
 
-    if lib_dir.is_dir() {
-        Ok(lib_dir.to_path_buf())
-    } else {
-        Ok(extracted_dir.to_path_buf())
-    }
+    Ok(name)
 }
 
 fn emit_static_link_directives(target_os: &str) {
@@ -181,7 +268,7 @@ fn emit_static_link_directives(target_os: &str) {
     }
 
     match target_os {
-        "linux" => {
+        "linux" | "android" => {
             println!("cargo:rustc-link-lib=stdc++");
             println!("cargo:rustc-link-lib=m");
             println!("cargo:rustc-link-lib=gcc_s");
@@ -194,8 +281,45 @@ fn emit_static_link_directives(target_os: &str) {
     }
 }
 
-fn emit_shared_link_directives() {
+fn emit_shared_link_directives(target_os: &str) {
     println!("cargo:rustc-link-lib=dylib=piper_phonemize_core");
+    if target_os == "android" {
+        println!("cargo:rustc-link-lib=dylib=espeak-ng");
+        println!("cargo:rustc-link-lib=dylib=ucd");
+    }
+}
+
+fn target_dir_from_out_dir(out_dir: &Path) -> Result<PathBuf, DynError> {
+    if let Ok(target_dir) = env::var("CARGO_TARGET_DIR") {
+        return Ok(PathBuf::from(target_dir));
+    }
+
+    if let Some(target_dir) = out_dir
+        .ancestors()
+        .find(|p| p.file_name() == Some(std::ffi::OsStr::new("target")))
+    {
+        return Ok(target_dir.to_path_buf());
+    }
+
+    Ok(out_dir.to_path_buf())
+}
+
+fn copy_file_atomically(src: &Path, dst: &Path) -> Result<(), DynError> {
+    let temp_path = dst.with_extension("tmp");
+    fs::copy(src, &temp_path)?;
+    fs::rename(&temp_path, dst)?;
+    Ok(())
+}
+
+fn write_reader_atomically(reader: &mut dyn std::io::Read, dst: &Path) -> Result<(), DynError> {
+    let temp_path = dst.with_extension("tmp");
+    {
+        let mut file = fs::File::create(&temp_path)?;
+        std::io::copy(reader, &mut file)?;
+        file.sync_all()?;
+    }
+    fs::rename(&temp_path, dst)?;
+    Ok(())
 }
 
 fn download_espeak_ng_data() -> Result<(), DynError> {
