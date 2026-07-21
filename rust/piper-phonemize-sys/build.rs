@@ -89,7 +89,8 @@ fn resolve_lib_dir(
     }
 
     // Option 2: Download prebuilt libraries from GitHub releases
-    let version = env!("CARGO_PKG_VERSION");
+    // Native library version for downloading prebuilt libs (differs from crate version)
+    let version = "1.4.7";
     let suffix = match link_mode {
         LinkMode::Static => "static",
         LinkMode::Shared => "shared",

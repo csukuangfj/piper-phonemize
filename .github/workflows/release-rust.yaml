@@ -20,19 +20,19 @@ jobs:
       - name: Update version
         shell: bash
         run: |
-          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+          # For testing: release v0.1.0 with libs from v1.4.7
+          RUST_CRATE_VERSION="0.1.0"
+          NATIVE_LIB_VERSION="1.4.7"
+          echo "RUST_CRATE_VERSION: $RUST_CRATE_VERSION"
+          echo "NATIVE_LIB_VERSION: $NATIVE_LIB_VERSION"
 
           # Update version in Cargo.toml files
-          sed -i "s/^version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize-sys/Cargo.toml
-          sed -i "s/^version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize/Cargo.toml
-          sed -i "s/version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust-api-examples/Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize-sys/Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize/Cargo.toml
+          sed -i "s/version = \".*\"/version = \"$RUST_CRATE_VERSION\"/" rust-api-examples/Cargo.toml
 
           # Update dependency version
-          sed -i "s/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \".*\"/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize/Cargo.toml
-
-          # Update build.rs version reference
-          sed -i "s|releases/download/v[0-9.]*|releases/download/v$PIPER_PHONEMIZE_VERSION|g" rust/piper-phonemize-sys/build.rs
+          sed -i "s/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \".*\"/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \"$RUST_CRATE_VERSION\"/" rust/piper-phonemize/Cargo.toml
 
           git diff rust/
 
