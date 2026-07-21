@@ -1,0 +1,16 @@
+[package]
+name = "rust-api-examples"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+piper-phonemize = { path = "../rust/piper-phonemize" }
+# sherpa-onnx = { version = "0.1.0"}
+
+[[example]]
+name = "phonemize"
+path = "examples/phonemize.rs"
+
+[[example]]
+name = "multiple_languages"
+path = "examples/multiple_languages.rs"

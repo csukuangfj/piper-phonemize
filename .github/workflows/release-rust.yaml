@@ -1,0 +1,60 @@
+name: release-rust
+
+on:
+  push:
+    branches:
+      - release
+      - release-rust
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Update version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
+          # Update version in Cargo.toml files
+          sed -i "s/^version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize-sys/Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize/Cargo.toml
+          sed -i "s/version = \".*\"/version = \"$PIPER_PHONEMIZE_VERSION\"/" rust-api-examples/Cargo.toml
+
+          # Update dependency version
+          sed -i "s/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \".*\"/piper-phonemize-sys = { path = \"..\/piper-phonemize-sys\", version = \"$PIPER_PHONEMIZE_VERSION\"/" rust/piper-phonemize/Cargo.toml
+
+          # Update build.rs version reference
+          sed -i "s|releases/download/v[0-9.]*|releases/download/v$PIPER_PHONEMIZE_VERSION|g" rust/piper-phonemize-sys/build.rs
+
+          git diff rust/
+
+      - name: Prepare files for publishing
+        run: |
+          cd rust
+          bash publish.sh
+
+      - name: Login to crates.io
+        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish piper-phonemize-sys
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --allow-dirty --manifest-path=rust/piper-phonemize-sys/Cargo.toml
+          sleep 30  # Wait for crates.io to index
+
+      - name: Publish piper-phonemize
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --allow-dirty --manifest-path=rust/piper-phonemize/Cargo.toml

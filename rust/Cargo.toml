@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "piper-phonemize-sys",
+    "piper-phonemize",
+]
+resolver = "2"

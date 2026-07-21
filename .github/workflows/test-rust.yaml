@@ -1,0 +1,66 @@
+name: test-rust
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - rust-api
+    paths:
+      - '.github/workflows/test-rust.yaml'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'rust/**'
+      - 'rust-api-examples/**'
+  workflow_dispatch:
+
+concurrency:
+  group: test-rust-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-rust:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel, ubuntu-22.04-arm]
+        link: [shared, static]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build piper-phonemize
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }} \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          make -j2 install
+
+      - name: Set library path
+        shell: bash
+        run: |
+          echo "PIPER_PHONEMIZE_LIB_DIR=$PWD/build/install/lib" >> $GITHUB_ENV
+
+      - name: Download espeak-ng-data
+        shell: bash
+        run: |
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+          rm -f espeak-ng-data.tar.bz2
+
+      - name: Test
+        shell: bash
+        run: |
+          cd rust-api-examples
+          cargo run --example phonemize -- "$PWD/../espeak-ng-data" --features ${{ matrix.link }}
+          cargo run --example multiple_languages -- "$PWD/../espeak-ng-data" --features ${{ matrix.link }}

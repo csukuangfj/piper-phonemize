@@ -1,0 +1,14 @@
+[package]
+name = "piper-phonemize"
+version = "0.1.0"
+edition = "2021"
+description = "Phonemization library for Piper text-to-speech using espeak-ng"
+license = "GPL-3.0-or-later"
+
+[features]
+default = ["static"]
+static = ["piper-phonemize-sys/static"]
+shared = ["piper-phonemize-sys/shared"]
+
+[dependencies]
+piper-phonemize-sys = { path = "../piper-phonemize-sys", version = "0.1.0", default-features = false }
