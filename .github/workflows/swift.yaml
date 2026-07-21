@@ -11,10 +11,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  swift:
+  build-and-test:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check macOS hardware info
+        run: |
+          echo "=== CPU ==="
+          sysctl -n machdep.cpu.brand_string
+          echo "=== Model ==="
+          sysctl -n hw.model
+          echo "=== Hardware details ==="
+          system_profiler SPHardwareDataType
 
       - name: Build macOS xcframework
         run: ./build-swift-macos.sh
@@ -29,13 +38,33 @@ jobs:
           rm -f espeak-ng-data.tar.bz2
 
       - name: Test swift-api-examples
-        shell: bash
         run: |
           cd swift-api-examples
           bash run.sh
 
-      - name: Test spm-examples
-        shell: bash
+  test-spm-local:
+    needs: build-and-test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test spm-examples (local package)
         run: |
           cd spm-examples
-          bash run.sh
+          sed -i.bak 's|    .package(url:.*|    //.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master"),|' Package.swift
+          sed -i.bak 's|    //.package(path: ".."),|    .package(path: ".."),|' Package.swift
+          rm -f Package.swift.bak
+          swift package purge-cache
+          swift run piper-phonemize-example
+
+  test-spm-remote:
+    needs: build-and-test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test spm-examples (remote package)
+        run: |
+          cd spm-examples
+          swift package purge-cache
+          swift run piper-phonemize-example
