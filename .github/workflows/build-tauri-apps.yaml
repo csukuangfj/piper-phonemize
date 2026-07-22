@@ -2,6 +2,8 @@ name: build-tauri-apps
 
 on:
   push:
+    branches:
+      - ci-android
     tags:
       - 'v*'
   workflow_dispatch:
