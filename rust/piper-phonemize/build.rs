@@ -41,7 +41,7 @@ fn main() {
 
 fn find_espeak_ng_data(dir: &std::path::Path) -> Option<PathBuf> {
     for entry in walkdir::WalkDir::new(dir)
-        .max_depth(5)
+        .max_depth(8)
         .into_iter()
         .filter_map(|e| e.ok())
     {

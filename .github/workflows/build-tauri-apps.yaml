@@ -2,9 +2,6 @@ name: build-tauri-apps
 
 on:
   push:
-    branches:
-      - master
-      - ci-android
     tags:
       - 'v*'
   workflow_dispatch:
@@ -60,65 +57,37 @@ jobs:
         run: |
           cd tauri-examples
           cargo tauri build
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: Package macOS
         if: startsWith(matrix.os, 'macos')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release/bundle
-          APP_NAME=$(ls -d *.app 2>/dev/null | head -1)
-          if [ -n "$APP_NAME" ]; then
-            zip -r "$APP_NAME.zip" "$APP_NAME"
-            mv "$APP_NAME.zip" ../../../
-          fi
+          cd tauri-examples/src-tauri/target/release/bundle/macos
+          zip -r "piper-phonemize-tauri-${{ matrix.artifact }}.app.zip" *.app
+          mv "piper-phonemize-tauri-${{ matrix.artifact }}.app.zip" ../../../../
 
       - name: Package Linux
         if: startsWith(matrix.os, 'ubuntu')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release/bundle
-          # Package AppImage if available, otherwise deb
-          if ls *.AppImage 1>/dev/null 2>&1; then
-            for f in *.AppImage; do
-              zip "${f}.zip" "$f"
-              mv "${f}.zip" ../../../
-            done
-          elif ls deb/*.deb 1>/dev/null 2>&1; then
-            cd deb
-            for f in *.deb; do
-              zip "${f}.zip" "$f"
-              mv "${f}.zip" ../../../../
-            done
-          fi
+          cd tauri-examples/src-tauri/target/release
+          tar cjf "piper-phonemize-tauri-${{ matrix.artifact }}.tar.bz2" piper-phonemize-tauri
+          mv "piper-phonemize-tauri-${{ matrix.artifact }}.tar.bz2" ../../../../
 
       - name: Package Windows
         if: startsWith(matrix.os, 'windows')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release/bundle
-          if ls msi/*.msi 1>/dev/null 2>&1; then
-            cd msi
-            for f in *.msi; do
-              7z a "${f}.zip" "$f"
-              mv "${f}.zip" ../../../../
-            done
-          fi
-          if ls exe/*.exe 1>/dev/null 2>&1; then
-            cd exe
-            for f in *.exe; do
-              7z a "${f}.zip" "$f"
-              mv "${f}.zip" ../../../../
-            done
-          fi
+          cd tauri-examples/src-tauri/target/release
+          7z a "piper-phonemize-tauri-${{ matrix.artifact }}.zip" piper-phonemize-tauri.exe
+          mv "piper-phonemize-tauri-${{ matrix.artifact }}.zip" ../../../../
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
-          file: tauri-examples/src-tauri/target/release/*.zip
+          file: piper-phonemize-tauri-*
           tag: v1.4.7
 
   build-android:
@@ -155,6 +124,11 @@ jobs:
         run: |
           cd tauri-examples
           cargo tauri android init
+
+      - name: Fix Gradle JDK
+        shell: bash
+        run: |
+          echo 'org.gradle.java.home=$JAVA_HOME' >> tauri-examples/src-tauri/gen/android/gradle.properties
 
       - name: Build APK
         shell: bash
