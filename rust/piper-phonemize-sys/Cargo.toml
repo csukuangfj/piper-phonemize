@@ -1,6 +1,6 @@
 [package]
 name = "piper-phonemize-sys"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 description = "Raw FFI bindings to the piper-phonemize C API"
 license = "GPL-3.0-or-later"

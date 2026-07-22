@@ -2177,7 +2177,7 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
 name = "piper-phonemize"
-version = "0.2.0"
+version = "0.3.2"
 dependencies = [
  "bzip2",
  "piper-phonemize-sys",
@@ -2187,7 +2187,7 @@ dependencies = [
 
 [[package]]
 name = "piper-phonemize-sys"
-version = "0.2.0"
+version = "0.3.2"
 dependencies = [
  "bzip2",
  "tar",

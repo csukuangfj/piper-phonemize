@@ -100,12 +100,16 @@ const ESPEAK_NG_DATA_BZ2: &[u8] = include_bytes!(env!("ESPEAK_NG_DATA_PATH"));
 /// Extract embedded espeak-ng-data to a temp directory and return the path.
 fn extract_espeak_ng_data() -> Result<String, &'static str> {
     let tmp_dir = std::env::temp_dir().join("piper-phonemize-espeak-ng-data");
+    let data_dir = tmp_dir.join("espeak-ng-data");
+
+    // Only reuse cached extraction if phontab exists (validates completeness)
+    if data_dir.join("phontab").exists() {
+        return Ok(data_dir.to_string_lossy().into_owned());
+    }
+
+    // Clean up stale/incomplete extraction
     if tmp_dir.exists() {
-        let data_dir = tmp_dir.join("espeak-ng-data");
-        if data_dir.exists() {
-            return Ok(data_dir.to_string_lossy().into_owned());
-        }
-        return Ok(tmp_dir.to_string_lossy().into_owned());
+        std::fs::remove_dir_all(&tmp_dir).map_err(|_| "Failed to clean stale espeak-ng-data")?;
     }
 
     std::fs::create_dir_all(&tmp_dir).map_err(|_| "Failed to create temp directory")?;
@@ -114,11 +118,10 @@ fn extract_espeak_ng_data() -> Result<String, &'static str> {
     let mut archive = Archive::new(bz);
     archive.unpack(&tmp_dir).map_err(|_| "Failed to extract espeak-ng-data")?;
 
-    let data_dir = tmp_dir.join("espeak-ng-data");
-    if data_dir.exists() {
+    if data_dir.join("phontab").exists() {
         Ok(data_dir.to_string_lossy().into_owned())
     } else {
-        Ok(tmp_dir.to_string_lossy().into_owned())
+        Err("espeak-ng-data extraction incomplete: phontab not found")
     }
 }
 
