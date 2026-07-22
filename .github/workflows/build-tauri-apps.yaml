@@ -1,0 +1,174 @@
+name: build-tauri-apps
+
+on:
+  push:
+    branches:
+      - master
+      - ci-android
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: build-tauri-apps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-desktop:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: macos-arm64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            artifact: macos-x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: linux-x64
+          - os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            artifact: linux-arm64
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            artifact: windows-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install Tauri CLI
+        shell: bash
+        run: cargo install tauri-cli
+
+      - name: Build
+        shell: bash
+        run: |
+          cd tauri-examples
+          cargo tauri build
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+
+      - name: Package macOS
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          cd tauri-examples/src-tauri/target/release/bundle
+          APP_NAME=$(ls -d *.app 2>/dev/null | head -1)
+          if [ -n "$APP_NAME" ]; then
+            zip -r "$APP_NAME.zip" "$APP_NAME"
+            mv "$APP_NAME.zip" ../../../
+          fi
+
+      - name: Package Linux
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          cd tauri-examples/src-tauri/target/release/bundle
+          # Package AppImage if available, otherwise deb
+          if ls *.AppImage 1>/dev/null 2>&1; then
+            for f in *.AppImage; do
+              zip "${f}.zip" "$f"
+              mv "${f}.zip" ../../../
+            done
+          elif ls deb/*.deb 1>/dev/null 2>&1; then
+            cd deb
+            for f in *.deb; do
+              zip "${f}.zip" "$f"
+              mv "${f}.zip" ../../../../
+            done
+          fi
+
+      - name: Package Windows
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          cd tauri-examples/src-tauri/target/release/bundle
+          if ls msi/*.msi 1>/dev/null 2>&1; then
+            cd msi
+            for f in *.msi; do
+              7z a "${f}.zip" "$f"
+              mv "${f}.zip" ../../../../
+            done
+          fi
+          if ls exe/*.exe 1>/dev/null 2>&1; then
+            cd exe
+            for f in *.exe; do
+              7z a "${f}.zip" "$f"
+              mv "${f}.zip" ../../../../
+            done
+          fi
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: tauri-examples/src-tauri/target/release/*.zip
+          tag: v1.4.7
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        shell: bash
+        run: |
+          sdkmanager --install "ndk;27.0.11718014"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.11718014" >> $GITHUB_ENV
+
+      - name: Install Tauri CLI
+        shell: bash
+        run: cargo install tauri-cli
+
+      - name: Init Android project
+        shell: bash
+        run: |
+          cd tauri-examples
+          cargo tauri android init
+
+      - name: Build APK
+        shell: bash
+        run: |
+          cd tauri-examples
+          cargo tauri android build
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          NDK_HOME: ${{ env.NDK_HOME }}
+
+      - name: Upload APK
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: tauri-examples/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          tag: v1.4.7

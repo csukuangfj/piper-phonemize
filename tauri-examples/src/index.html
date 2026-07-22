@@ -166,7 +166,8 @@
 
       <div>
         <label for="results">Results (IPA):</label>
-        <div id="results" style="background-color: #f8f9fa; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-height: 200px; white-space: pre-wrap; font-family: sans-serif; overflow-y: auto;"></div>
+        <button id="copyBtn" style="margin-left: 0.5rem; padding: 0.2rem 0.5rem; font-size: 0.85rem;">Copy</button>
+        <div id="results" style="background-color: #f8f9fa; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-height: 200px; white-space: pre-wrap; font-family: sans-serif; overflow-y: auto; user-select: text; -webkit-user-select: text;"></div>
       </div>
     </div>
   </div>
@@ -248,6 +249,22 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'Phonemize';
+      }
+    });
+
+    // Copy button
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const text = document.getElementById('results').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        document.getElementById('copyBtn').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('copyBtn').textContent = 'Copy'; }, 1500);
+      } catch (e) {
+        // Fallback: select text for manual copy
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('results'));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
       }
     });
 
