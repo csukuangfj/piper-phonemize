@@ -161,12 +161,12 @@ fn download_prebuilt_libs(
         fs::remove_dir_all(&extracted_dir)?;
     }
 
-    // Unpack to cache_root (archives have flat structure with lib/, include/, jniLibs/)
+    // Unpack to extracted_dir so each platform's libs are isolated
     let unpack_result: Result<(), DynError> = (|| {
         let tar_file = fs::File::open(&archive_path)?;
         let decoder = BzDecoder::new(tar_file);
         let mut archive = Archive::new(decoder);
-        archive.unpack(&cache_root)?;
+        archive.unpack(&extracted_dir)?;
         Ok(())
     })();
     if let Err(err) = unpack_result {
@@ -179,22 +179,19 @@ fn download_prebuilt_libs(
         .into());
     }
 
-    // Check Android shared: jniLibs/{abi}/
-    let android_shared_dir = cache_root.join("jniLibs").join(android_abi(target_arch));
+    // After unpacking to extracted_dir, check the same paths as before download
+    if lib_dir.is_dir() {
+        return Ok(lib_dir);
+    }
+
+    let android_shared_dir = extracted_dir.join("jniLibs").join(android_abi(target_arch));
     if android_shared_dir.is_dir() {
         return Ok(android_shared_dir);
     }
 
-    // Check Android static: libs/{abi}/
-    let android_static_dir = cache_root.join("libs").join(android_abi(target_arch));
+    let android_static_dir = extracted_dir.join("libs").join(android_abi(target_arch));
     if android_static_dir.is_dir() {
         return Ok(android_static_dir);
-    }
-
-    // Check lib/ subdirectory (desktop platforms) - unpacked to cache_root
-    let desktop_lib_dir = cache_root.join("lib");
-    if desktop_lib_dir.is_dir() && target_os != "android" {
-        return Ok(desktop_lib_dir);
     }
 
     Err(format!(
