@@ -1,5 +1,7 @@
+use std::collections::HashSet;
 use std::env;
 use std::error::Error;
+use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -48,6 +50,12 @@ fn try_main() -> Result<(), DynError> {
         && matches!(target_os.as_str(), "linux" | "macos" | "android")
     {
         println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
+        emit_relative_rpath(&target_os);
+        copy_unix_runtime_libs(&lib_dir, &target_os)?;
+    }
+
+    if link_mode == LinkMode::Shared && target_os == "windows" {
+        copy_windows_runtime_dlls(&lib_dir)?;
     }
 
     match link_mode {
@@ -323,6 +331,112 @@ fn write_reader_atomically(reader: &mut dyn std::io::Read, dst: &Path) -> Result
         file.sync_all()?;
     }
     fs::rename(&temp_path, dst)?;
+    Ok(())
+}
+
+fn emit_relative_rpath(target_os: &str) {
+    match target_os {
+        "linux" | "android" => println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN"),
+        "macos" => println!("cargo:rustc-link-arg=-Wl,-rpath,@loader_path"),
+        _ => {}
+    }
+}
+
+fn profile_output_dirs() -> Result<[PathBuf; 2], DynError> {
+    let out_dir = PathBuf::from(env::var("OUT_DIR")?);
+    let profile = env::var("PROFILE")?;
+    let profile_dir = out_dir
+        .ancestors()
+        .find(|path| path.file_name() == Some(OsStr::new(&profile)))
+        .ok_or_else(|| {
+            format!(
+                "Could not locate Cargo profile directory from {}",
+                out_dir.display()
+            )
+        })?
+        .to_path_buf();
+
+    Ok([profile_dir.clone(), profile_dir.join("examples")])
+}
+
+fn copy_unix_runtime_libs(lib_dir: &Path, target_os: &str) -> Result<(), DynError> {
+    let runtime_libs: Vec<PathBuf> = fs::read_dir(lib_dir)?
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .filter(|path| {
+            path.file_name()
+                .and_then(OsStr::to_str)
+                .map(|name| match target_os {
+                    "linux" | "android" => name.contains(".so"),
+                    "macos" => name.ends_with(".dylib"),
+                    _ => false,
+                })
+                .unwrap_or(false)
+        })
+        .collect();
+
+    if runtime_libs.is_empty() {
+        return Ok(());
+    }
+
+    let mut copy_plan = Vec::<(PathBuf, OsString)>::new();
+    let mut planned_names = HashSet::<OsString>::new();
+
+    for lib in runtime_libs {
+        if !lib.exists() {
+            continue;
+        }
+
+        let lib_name = lib
+            .file_name()
+            .ok_or_else(|| format!("Invalid runtime library path: {}", lib.display()))?
+            .to_os_string();
+
+        let source = fs::canonicalize(&lib).unwrap_or(lib.clone());
+        if planned_names.insert(lib_name.clone()) {
+            copy_plan.push((source.clone(), lib_name));
+        }
+
+        if let Some(source_name) = source.file_name() {
+            let source_name = source_name.to_os_string();
+            if planned_names.insert(source_name.clone()) {
+                copy_plan.push((source.clone(), source_name));
+            }
+        }
+    }
+
+    for dest_dir in profile_output_dirs()? {
+        fs::create_dir_all(&dest_dir)?;
+        for (source, dest_name) in &copy_plan {
+            let dest = dest_dir.join(dest_name);
+            fs::copy(source, &dest)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn copy_windows_runtime_dlls(lib_dir: &Path) -> Result<(), DynError> {
+    let dlls: Vec<PathBuf> = fs::read_dir(lib_dir)?
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .filter(|path| path.extension() == Some(OsStr::new("dll")))
+        .collect();
+
+    if dlls.is_empty() {
+        return Ok(());
+    }
+
+    let [profile_dir, examples_dir] = profile_output_dirs()?;
+    for dest_dir in [profile_dir.clone(), examples_dir] {
+        fs::create_dir_all(&dest_dir)?;
+        for dll in &dlls {
+            let dest = dest_dir.join(
+                dll.file_name()
+                    .ok_or_else(|| format!("Invalid DLL path: {}", dll.display()))?,
+            );
+            fs::copy(dll, &dest)?;
+        }
+    }
+
     Ok(())
 }
 

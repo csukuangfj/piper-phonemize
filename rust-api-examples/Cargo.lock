@@ -283,7 +283,7 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "piper-phonemize"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bzip2",
  "piper-phonemize-sys",
@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "piper-phonemize-sys"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bzip2",
  "tar",
@@ -349,7 +349,7 @@ dependencies = [
 
 [[package]]
 name = "rust-api-examples"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "piper-phonemize",
 ]
