@@ -131,6 +131,64 @@ jobs:
           file: piper-phonemize-*.tar.bz2
           tag: v1.4.7
 
+  build-macos-x64-shared:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          mkdir -p build && cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          make -j$(sysctl -n hw.ncpu) install
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cd install
+          tar cjf ../../piper-phonemize-v${VERSION}-macos-x64-shared-lib.tar.bz2 lib/ include/
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
+
+  build-macos-arm64-shared:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          mkdir -p build && cd build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            ..
+          make -j$(sysctl -n hw.ncpu) install
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cd install
+          tar cjf ../../piper-phonemize-v${VERSION}-macos-arm64-shared-lib.tar.bz2 lib/ include/
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
+
   build-windows-x64-static:
     runs-on: windows-2022
     steps:
