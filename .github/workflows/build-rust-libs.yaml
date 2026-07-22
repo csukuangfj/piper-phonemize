@@ -131,6 +131,32 @@ jobs:
           file: piper-phonemize-*.tar.bz2
           tag: v1.4.7
 
+  build-windows-x64-static:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build --config Release --target install
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cd build/install
+          tar cjf ../../piper-phonemize-v${VERSION}-windows-x64-static-lib.tar.bz2 lib/ include/
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
+
   build-windows-x64-shared:
     runs-on: windows-2022
     steps:

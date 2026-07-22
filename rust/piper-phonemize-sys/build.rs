@@ -226,7 +226,7 @@ fn archive_name(
             format!("piper-phonemize-v{version}-macos-arm64-static-lib.tar.bz2")
         }
         (LinkMode::Static, "windows", "x86_64") => {
-            format!("piper-phonemize-v{version}-windows-x64-shared-lib.tar.bz2")
+            format!("piper-phonemize-v{version}-windows-x64-static-lib.tar.bz2")
         }
         (LinkMode::Shared, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-shared-lib.tar.bz2")
