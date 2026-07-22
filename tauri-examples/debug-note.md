@@ -193,20 +193,20 @@ for output display to avoid triggering context menu.
 ### Check if App is Running
 
 ```bash
-adb shell pidof com.piper.phonemize.tauri_examples
+adb shell pidof com.piper.phonemize.tauri.examples
 ```
 
 ### Launch App Manually
 
 ```bash
-adb shell am start -n com.piper.phonemize.tauri_examples/.MainActivity
+adb shell am start -n com.piper.phonemize.tauri.examples/.MainActivity
 ```
 
 ### Install/Uninstall
 
 ```bash
 # Uninstall
-adb uninstall com.piper.phonemize.tauri_examples
+adb uninstall com.piper.phonemize.tauri.examples
 
 # Install APK
 adb install path/to/app.apk
@@ -219,7 +219,7 @@ adb install path/to/app.apk
 adb logcat -c
 
 # 2. Launch app
-adb shell am start -n com.piper.phonemize.tauri_examples/.MainActivity
+adb shell am start -n com.piper.phonemize.tauri.examples/.MainActivity
 
 # 3. Reproduce the crash
 
