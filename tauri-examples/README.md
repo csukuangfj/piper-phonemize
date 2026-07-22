@@ -29,6 +29,46 @@ cargo tauri dev
 cargo tauri build
 ```
 
+## Download Pre-built Apps
+
+Pre-built apps are available on the
+[GitHub Releases](https://github.com/csukuangfj/piper-phonemize/releases) page.
+
+| Platform | File |
+|---|---|
+| macOS (Apple Silicon) | `piper-phonemize-tauri-macos-arm64.app.zip` |
+| macOS (Intel) | `piper-phonemize-tauri-macos-x64.app.zip` |
+| Linux (x64) | `piper-phonemize-tauri-linux-x64.tar.bz2` |
+| Linux (arm64) | `piper-phonemize-tauri-linux-arm64.tar.bz2` |
+| Windows (x64) | `piper-phonemize-tauri-windows-x64.zip` |
+| Android | `piper-phonemize-tauri_1.4.7_aarch64.apk` |
+
+### Download Links
+
+| Platform | File | Size |
+|---|---|---|
+| macOS (Apple Silicon) | [piper-phonemize-tauri-macos-arm64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-macos-arm64.app.zip) | |
+| macOS (Intel) | [piper-phonemize-tauri-macos-x64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-macos-x64.app.zip) | |
+| Linux (x64) | [piper-phonemize-tauri-linux-x64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-linux-x64.tar.bz2) | |
+| Linux (arm64) | [piper-phonemize-tauri-linux-arm64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-linux-arm64.tar.bz2) | |
+| Windows (x64) | [piper-phonemize-tauri-windows-x64.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-windows-x64.zip) | |
+| Android (APK) | [app-universal-release-unsigned.apk](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/app-universal-release-unsigned.apk) | |
+
+### macOS Gatekeeper
+
+The pre-built macOS app is not code-signed. After unzipping, you may see
+"is damaged and can't be opened." Fix with:
+
+```bash
+# For Apple Silicon
+xattr -cr piper-phonemize-tauri-macos-arm64.app
+
+# For Intel
+xattr -cr piper-phonemize-tauri-macos-x64.app
+```
+
+Or right-click the app → Open to bypass Gatekeeper.
+
 ## Run (Android)
 
 ### 1. Set environment variables
