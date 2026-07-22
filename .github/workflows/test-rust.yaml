@@ -19,7 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-rust:
+  # Case 1: Build native libs from source, then test Rust crate via local path
+  test-from-source:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -44,23 +45,43 @@ jobs:
             -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
             ..
-          make -j2 install
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) install
 
-      - name: Set library path
+      - name: Test
         shell: bash
         run: |
-          echo "PIPER_PHONEMIZE_LIB_DIR=$PWD/build/install/lib" >> $GITHUB_ENV
+          export PIPER_PHONEMIZE_LIB_DIR=$PWD/build/install/lib
+          if [ "${{ matrix.link }}" = "shared" ]; then
+            if [ "$(uname)" = "Linux" ]; then
+              export LD_LIBRARY_PATH=$PIPER_PHONEMIZE_LIB_DIR:$LD_LIBRARY_PATH
+            fi
+          fi
+          cd rust-api-examples
+          # Switch to local path for from-source testing
+          sed -i.bak 's|^piper-phonemize= .*|# &|' Cargo.toml
+          sed -i.bak 's|^# \(piper-phonemize = { path.*\)|\1|' Cargo.toml
+          cargo run --example phonemize --no-default-features --features ${{ matrix.link }}
+          cargo run --example multiple_languages --no-default-features --features ${{ matrix.link }}
 
-      - name: Download espeak-ng-data
-        shell: bash
-        run: |
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-          rm -f espeak-ng-data.tar.bz2
+  # Case 2: Download prebuilt libs from crates.io (no local build)
+  test-from-crates:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel, ubuntu-22.04-arm]
+        link: [shared, static]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Test
         shell: bash
         run: |
           cd rust-api-examples
-          cargo run --example phonemize -- "$PWD/../espeak-ng-data" --features ${{ matrix.link }}
-          cargo run --example multiple_languages -- "$PWD/../espeak-ng-data" --features ${{ matrix.link }}
+          # Published crate is already configured in Cargo.toml
+          cargo run --example phonemize --no-default-features --features ${{ matrix.link }}
+          cargo run --example multiple_languages --no-default-features --features ${{ matrix.link }}

@@ -1,0 +1,22 @@
+[package]
+name = "piper-phonemize-tauri"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "piper_phonemize_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+static = ["piper-phonemize/static"]
+shared = ["piper-phonemize/shared"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# piper-phonemize = { path = "../../rust/piper-phonemize", default-features = false }
+piper-phonemize= { version = "0.3.6", default-features = false }

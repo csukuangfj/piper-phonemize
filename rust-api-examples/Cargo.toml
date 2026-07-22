@@ -1,11 +1,16 @@
 [package]
 name = "rust-api-examples"
-version = "1.4.7"
+version = "0.3.6"
 edition = "2021"
 
+[features]
+default = ["static"]
+static = ["piper-phonemize/static"]
+shared = ["piper-phonemize/shared"]
+
 [dependencies]
-# piper-phonemize = { path = "../rust/piper-phonemize" }
-piper-phonemize = { version = "1.4.7"}
+# piper-phonemize = { path = "../rust/piper-phonemize", default-features = false }
+piper-phonemize= { version = "0.3.6", default-features = false }
 
 [[example]]
 name = "phonemize"
