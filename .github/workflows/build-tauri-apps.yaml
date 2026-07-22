@@ -127,7 +127,8 @@ jobs:
       - name: Fix Gradle JDK
         shell: bash
         run: |
-          echo 'org.gradle.java.home=$JAVA_HOME' >> tauri-examples/src-tauri/gen/android/gradle.properties
+          echo "" >> tauri-examples/src-tauri/gen/android/gradle.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> tauri-examples/src-tauri/gen/android/gradle.properties
 
       - name: Build APK
         shell: bash
