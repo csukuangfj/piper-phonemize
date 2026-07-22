@@ -53,17 +53,91 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          mkdir -p build && cd build
-          cmake \
-            -DCMAKE_INSTALL_PREFIX=./install \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
-            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
-            ..
-          make -j$(nproc) install
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/shared/ \
+            quay.io/pypa/manylinux2014_aarch64 \
+            bash -c '
+              cd /shared
+              mkdir -p build && cd build
+              cmake \
+                -DCMAKE_INSTALL_PREFIX=./install \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+                ..
+              make -j$(nproc) install
+            '
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          cd install
+          cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 lib/ include/
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
+
+  build-linux-x64-shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/shared/ \
+            quay.io/pypa/manylinux2014_x86_64 \
+            bash -c '
+              cd /shared
+              mkdir -p build && cd build
+              cmake \
+                -DCMAKE_INSTALL_PREFIX=./install \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+                ..
+              make -j$(nproc) install
+            '
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cd build/install
+          tar cjf ../../piper-phonemize-v${VERSION}-linux-x64-shared-lib.tar.bz2 lib/ include/
+
+      - name: Upload
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.tar.bz2
+          tag: v1.4.7
+
+  build-linux-arm64-shared:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/shared/ \
+            quay.io/pypa/manylinux2014_aarch64 \
+            bash -c '
+              cd /shared
+              mkdir -p build && cd build
+              cmake \
+                -DCMAKE_INSTALL_PREFIX=./install \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+                ..
+              make -j$(nproc) install
+            '
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" "$GITHUB_WORKSPACE/CMakeLists.txt" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cd build/install
+          tar cjf ../../piper-phonemize-v${VERSION}-linux-arm64-shared-lib.tar.bz2 lib/ include/
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2

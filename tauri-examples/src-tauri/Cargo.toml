@@ -14,6 +14,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# Use local path for Android gcc_s fix; switch to "0.3.3" after next release
+# Use local path for Android gcc_s fix; switch to "0.3.4" after next release
 piper-phonemize = { path = "../../rust/piper-phonemize" }
 # piper-phonemize= { version = "0.2.1"}
