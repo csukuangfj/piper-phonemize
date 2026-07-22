@@ -13,7 +13,7 @@ Phonemization library for [Piper](https://github.com/rhasspy/piper) text-to-spee
 
 Converts text to IPA phonemes using [espeak-ng](https://github.com/espeak-ng/espeak-ng).
 
-Supports **Python**, **Go**, **JavaScript (Node.js/WASM)**, and **C/C++**.
+Supports **Python**, **Go**, **Rust**, **Swift**, **Pascal**, **JavaScript (Node.js/WASM)**, **C/C++**, **Tauri**, **Android**, and **iOS**.
 
 ## Installation
 
@@ -27,6 +27,28 @@ pip install piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.
 
 ```bash
 go get github.com/csukuangfj/piper-phonemize-go/piper_phonemize
+```
+
+### Rust
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+piper-phonemize = "0.3.6"
+```
+
+The crate automatically downloads prebuilt libraries and embeds espeak-ng-data.
+No manual setup required.
+
+### Swift
+
+Add to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/csukuangfj/piper-phonemize", branch: "master")
+]
 ```
 
 ### JavaScript / Node.js
@@ -81,6 +103,20 @@ func main() {
 }
 ```
 
+### Rust
+
+```rust
+use piper_phonemize::phonemize_to_string;
+
+fn main() {
+    // No initialization needed - espeak-ng-data is embedded
+    let sentences = phonemize_to_string("Hello world", "en-us").unwrap();
+    for s in &sentences {
+        println!("{}", s);
+    }
+}
+```
+
 ### JavaScript / Node.js
 
 **WASM version:**
@@ -118,6 +154,22 @@ int main() {
     return 0;
 }
 ```
+
+## Tauri Example (Cross-Platform GUI)
+
+A cross-platform desktop/mobile app built with [Tauri v2](https://tauri.app).
+See [tauri-examples/](tauri-examples/) for details.
+
+Pre-built apps are available on the [GitHub Releases](https://github.com/csukuangfj/piper-phonemize/releases/tag/v1.4.7) page:
+
+| Platform | File |
+|---|---|
+| macOS (Apple Silicon) | [piper-phonemize-tauri-macos-arm64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-macos-arm64.app.zip) |
+| macOS (Intel) | [piper-phonemize-tauri-macos-x64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-macos-x64.app.zip) |
+| Linux (x64) | [piper-phonemize-tauri-linux-x64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-linux-x64.tar.bz2) |
+| Linux (arm64) | [piper-phonemize-tauri-linux-arm64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-linux-arm64.tar.bz2) |
+| Windows (x64) | [piper-phonemize-tauri-windows-x64.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-tauri-windows-x64.zip) |
+| Android (APK) | [app-universal-release-unsigned.apk](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/app-universal-release-unsigned.apk) |
 
 ## Building from Source
 
