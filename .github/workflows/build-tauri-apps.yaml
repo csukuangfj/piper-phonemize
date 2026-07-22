@@ -64,25 +64,22 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release/bundle/macos
-          zip -r "piper-phonemize-tauri-${{ matrix.artifact }}.app.zip" *.app
-          mv "piper-phonemize-tauri-${{ matrix.artifact }}.app.zip" ../../../../
+          ls -la tauri-examples/src-tauri/target/release/bundle/macos/
+          zip -rj "piper-phonemize-tauri-${{ matrix.artifact }}.app.zip" tauri-examples/src-tauri/target/release/bundle/macos/*.app
 
       - name: Package Linux
         if: startsWith(matrix.os, 'ubuntu')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release
-          tar cjf "piper-phonemize-tauri-${{ matrix.artifact }}.tar.bz2" piper-phonemize-tauri
-          mv "piper-phonemize-tauri-${{ matrix.artifact }}.tar.bz2" ../../../../
+          ls -la tauri-examples/src-tauri/target/release/
+          tar cjf "piper-phonemize-tauri-${{ matrix.artifact }}.tar.bz2" -C tauri-examples/src-tauri/target/release piper-phonemize-tauri
 
       - name: Package Windows
         if: startsWith(matrix.os, 'windows')
         shell: bash
         run: |
-          cd tauri-examples/src-tauri/target/release
-          7z a "piper-phonemize-tauri-${{ matrix.artifact }}.zip" piper-phonemize-tauri.exe
-          mv "piper-phonemize-tauri-${{ matrix.artifact }}.zip" ../../../../
+          ls -la tauri-examples/src-tauri/target/release/
+          7z a "piper-phonemize-tauri-${{ matrix.artifact }}.zip" tauri-examples/src-tauri/target/release/piper-phonemize-tauri.exe
 
       - name: Upload
         uses: svenstaro/upload-release-action@v2
