@@ -14,27 +14,27 @@ repositories {
 
 dependencies {
     // JVM core API Jar
-    implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-jvm:v1.4.7'
+    implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-jvm:jni-SNAPSHOT'
 
     // Platform native lib — uncomment ONE for your target platform
 
     // macOS ARM64 (Apple Silicon)
-    implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-osx-aarch64:v1.4.7'
+    implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-osx-aarch64:jni-SNAPSHOT'
 
     // macOS x64 (Intel)
-    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-osx-x64:v1.4.7'
+    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-osx-x64:jni-SNAPSHOT'
 
     // Linux x64
-    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-linux-x64:v1.4.7'
+    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-linux-x64:jni-SNAPSHOT'
 
     // Linux ARM64
-    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-linux-aarch64:v1.4.7'
+    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-linux-aarch64:jni-SNAPSHOT'
 
     // Windows x64
-    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-win-x64:v1.4.7'
+    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-win-x64:jni-SNAPSHOT'
 
     // Windows ARM64
-    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-win-arm64:v1.4.7'
+    // implementation 'com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-win-arm64:jni-SNAPSHOT'
 }
 
 java {
