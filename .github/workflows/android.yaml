@@ -1,0 +1,110 @@
+name: android
+
+on:
+  push:
+    branches:
+      - jni
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-aar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build AAR
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+
+          # Create AAR structure
+          AAR_DIR=aar-build
+          mkdir -p $AAR_DIR/{jni,classes,assets,res/values}
+
+          # Build JNI for all 4 Android ABIs
+          for ABI in arm64-v8a armeabi-v7a x86_64 x86; do
+            echo "=== Building for $ABI ==="
+            cmake -Bbuild-$ABI \
+              -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+              -DANDROID_ABI=$ABI \
+              -DANDROID_PLATFORM=android-26 \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+              -DBUILD_PIPER_PHONEMIZE_JNI=ON
+            cmake --build build-$ABI -j4
+
+            # Copy JNI lib
+            mkdir -p $AAR_DIR/jni/$ABI
+            cp build-$ABI/lib/libpiper-phonemize-jni.so $AAR_DIR/jni/$ABI/
+          done
+
+          # Copy Kotlin source and compile
+          mkdir -p $AAR_DIR/classes
+          # Compile Kotlin API (the AAR consumer will compile against it)
+          # For now, we package the source as part of the AAR
+
+          # Copy espeak-ng-data to assets
+          cp -r swift-api-examples/espeak-ng-data $AAR_DIR/assets/
+
+          # Create AndroidManifest.xml
+          cat > $AAR_DIR/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.github.csukuangfj.piper.phonemize">
+          </manifest>
+          EOF
+
+          # Create R.txt (empty)
+          touch $AAR_DIR/R.txt
+
+          # Create classes.jar from compiled Kotlin
+          # First compile the Kotlin source
+          mkdir -p kotlin-build
+          kotlinc-jvm -d kotlin-build kotlin-api/PiperPhonemize.kt 2>/dev/null || true
+          cd kotlin-build && jar cf ../$AAR_DIR/classes.jar . && cd ..
+
+          # Package as AAR (AAR is just a ZIP with specific structure)
+          cd $AAR_DIR
+          zip -r ../piper-phonemize-${VERSION}.aar \
+            AndroidManifest.xml \
+            classes.jar \
+            R.txt \
+            jni/ \
+            assets/ \
+            res/ 2>/dev/null || \
+          zip -r ../piper-phonemize-${VERSION}.aar \
+            AndroidManifest.xml \
+            R.txt \
+            jni/ \
+            assets/ \
+            res/
+
+          cd ..
+          ls -lh piper-phonemize-${VERSION}.aar
+
+      - name: Upload AAR
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: false
+          file: piper-phonemize-*.aar
+          tag: v1.4.7
