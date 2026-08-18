@@ -442,11 +442,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
-          tar xvf espeak-ng-data.tar.bz2
-          rm -f espeak-ng-data.tar.bz2
-
           cd swift-api-examples
           bash run.sh
 
