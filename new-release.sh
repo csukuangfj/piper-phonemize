@@ -11,6 +11,11 @@ replace_str="s/$old_version/$new_version/g"
 
 sed -i.bak "$replace_str" ./CMakeLists.txt
 sed -i.bak "$replace_str" ./src/c-api.h
+sed -i.bak "$replace_str" ./build-macos.sh
+sed -i.bak "$replace_str" ./build-macos-shared.sh
+sed -i.bak "$replace_str" ./build-ios.sh
+sed -i.bak "$replace_str" ./build-ios-shared.sh
+sed -i.bak "$replace_str" ./Package.swift
 sed -i.bak "$replace_str" ./src/c-api.cpp
 sed -i.bak "$replace_str" ./go-api-examples/go.mod
 sed -i.bak "$replace_str" ./go-api-examples/README.md
