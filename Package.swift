@@ -60,6 +60,7 @@ let package = Package(
         .target(name: "PiperPhonemizeIOSShared", condition: .when(platforms: [.iOS])),
       ],
       path: "Sources/PiperPhonemizeShared",
+      resources: [.copy("espeak-ng-data")],
       linkerSettings: [.linkedLibrary("c++")]
     ),
   ]
