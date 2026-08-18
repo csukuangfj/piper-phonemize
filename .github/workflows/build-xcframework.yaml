@@ -272,40 +272,36 @@ jobs:
           echo "=== iOS shared xcframework ==="
           ls -lh build-ios-shared/piper-phonemize.xcframework/
 
-      - name: Test SPM (local, static)
+      - name: Test SPM macOS (static)
         shell: bash
         run: |
           set -euo pipefail
-          cd spm-examples
+          cd spm-examples/macOS
 
           # Patch Package.swift to use local package
-          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "..")|' Package.swift
+          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "../..")|' Package.swift
 
           # Patch root Package.swift to use local xcframework paths
-          cd ..
+          cd ../..
           cp Package.swift Package.swift.bak
           python3 -c "
           import re
           text = open('Package.swift').read()
-          # Patch static macOS binary target to local path
           text = re.sub(
               r'\.binaryTarget\(\s*name: \"PiperPhonemizeMacOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
               '.binaryTarget(name: \"PiperPhonemizeMacOS\", path: \"build-macos/piper-phonemize.xcframework\")',
               text
           )
-          # Patch static iOS binary target to local path
           text = re.sub(
               r'\.binaryTarget\(\s*name: \"PiperPhonemizeIOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
               '.binaryTarget(name: \"PiperPhonemizeIOS\", path: \"build-ios/piper-phonemize.xcframework\")',
               text
           )
-          # Patch shared macOS binary target to local path
           text = re.sub(
               r'\.binaryTarget\(\s*name: \"PiperPhonemizeMacOSShared\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
               '.binaryTarget(name: \"PiperPhonemizeMacOSShared\", path: \"build-macos-shared/piper-phonemize.xcframework\")',
               text
           )
-          # Patch shared iOS binary target to local path
           text = re.sub(
               r'\.binaryTarget\(\s*name: \"PiperPhonemizeIOSShared\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
               '.binaryTarget(name: \"PiperPhonemizeIOSShared\", path: \"build-ios-shared/piper-phonemize.xcframework\")',
@@ -313,35 +309,134 @@ jobs:
           )
           open('Package.swift', 'w').write(text)
           "
-          cd spm-examples
+          cd spm-examples/macOS
 
           echo "=== Package.swift ==="
           cat Package.swift
           echo "=== Root Package.swift ==="
-          cat ../Package.swift
+          cat ../../Package.swift
 
           rm -rf .build
           swift build --verbose
-          swift run piper-phonemize-example
+          swift run PiperPhonemizeExample
 
-      - name: Test SPM (local, shared)
+      - name: Test SPM iOS (static)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples/iOS
+
+          # Patch Package.swift to use local package
+          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "../..")|' Package.swift
+
+          echo "=== Package.swift ==="
+          cat Package.swift
+
+          echo "=== Resolving ==="
+          swift package resolve
+
+          echo "=== Building for iOS Simulator ==="
+          xcodebuild -scheme PiperPhonemizeExample \
+            -destination "generic/platform=iOS Simulator" \
+            -skipPackagePluginValidation \
+            -verbose \
+            build 2>&1
+
+          echo "=== Finding built executable ==="
+          BINARY=$(find ~/Library/Developer/Xcode/DerivedData -path "*/Build/Products/*-iphonesimulator/PiperPhonemizeExample" -type f | head -1)
+          echo "Binary: $BINARY"
+
+          echo "=== Booting iOS Simulator ==="
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for key in devices:
+              for d in devices[key]:
+                  if d['isAvailable'] and 'iPhone' in d['name']:
+                      print(d['udid'])
+                      sys.exit(0)
+          ")
+          echo "Device: $DEVICE"
+          xcrun simctl boot "$DEVICE" 2>/dev/null || true
+
+          echo "=== Running on iOS Simulator ==="
+          xcrun simctl spawn "$DEVICE" "$BINARY"
+
+      - name: Test SPM macOS (shared)
         shell: bash
         run: |
           set -euo pipefail
 
-          cd spm-examples
+          cd spm-examples/macOS
 
           # Patch Package.swift to use shared product
           sed -i.bak2 's|.product(name: "piper-phonemize", package: "piper-phonemize")|.product(name: "piper-phonemize-shared", package: "piper-phonemize")|' Package.swift
 
           echo "=== Package.swift (shared) ==="
           cat Package.swift
-          echo "=== Root Package.swift ==="
-          cat ../Package.swift
 
           rm -rf .build
           swift build --verbose
-          swift run piper-phonemize-example
+          swift run PiperPhonemizeExample
+
+      - name: Test SPM iOS (shared)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd spm-examples/iOS
+
+          # Patch Package.swift to use shared product
+          sed -i.bak2 's|.product(name: "piper-phonemize", package: "piper-phonemize")|.product(name: "piper-phonemize-shared", package: "piper-phonemize")|' Package.swift
+
+          echo "=== Package.swift (shared) ==="
+          cat Package.swift
+
+          echo "=== Resolving ==="
+          swift package resolve
+
+          echo "=== Building for iOS Simulator ==="
+          xcodebuild -scheme PiperPhonemizeExample \
+            -destination "generic/platform=iOS Simulator" \
+            -skipPackagePluginValidation \
+            -verbose \
+            build 2>&1
+
+          echo "=== Finding built executable ==="
+          BINARY=$(find ~/Library/Developer/Xcode/DerivedData -path "*/Build/Products/*-iphonesimulator/PiperPhonemizeExample" -type f | head -1)
+          echo "Binary: $BINARY"
+          PRODUCTS_DIR=$(dirname "$BINARY")
+
+          echo "=== Checking framework locations ==="
+          find "$PRODUCTS_DIR" -name "*.framework" -type d
+
+          # Copy frameworks if needed
+          pkg_fw_dir="$PRODUCTS_DIR/PackageFrameworks"
+          mkdir -p "$pkg_fw_dir"
+
+          piper_fw=$(find "$PRODUCTS_DIR" -path "*/Frameworks/PiperPhonemizeC.framework" -type d | head -1)
+          if [ -n "$piper_fw" ] && [ ! -d "$pkg_fw_dir/PiperPhonemizeC.framework" ]; then
+            cp -a "$piper_fw" "$pkg_fw_dir/"
+          fi
+
+          echo "=== PackageFrameworks contents ==="
+          ls -la "$pkg_fw_dir/"
+
+          echo "=== Booting iOS Simulator ==="
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for key in devices:
+              for d in devices[key]:
+                  if d['isAvailable'] and 'iPhone' in d['name']:
+                      print(d['udid'])
+                      sys.exit(0)
+          ")
+          echo "Device: $DEVICE"
+          xcrun simctl boot "$DEVICE" 2>/dev/null || true
+
+          echo "=== Running on iOS Simulator ==="
+          xcrun simctl spawn "$DEVICE" "$BINARY"
 
       - name: Test swift-api-examples
         shell: bash
@@ -359,8 +454,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          [ -f spm-examples/Package.swift.bak ] && mv spm-examples/Package.swift.bak spm-examples/Package.swift || true
+          [ -f spm-examples/macOS/Package.swift.bak ] && mv spm-examples/macOS/Package.swift.bak spm-examples/macOS/Package.swift || true
+          [ -f spm-examples/iOS/Package.swift.bak ] && mv spm-examples/iOS/Package.swift.bak spm-examples/iOS/Package.swift || true
           [ -f Package.swift.bak ] && mv Package.swift.bak Package.swift || true
+          git checkout -- spm-examples/ 2>/dev/null || true
 
   release:
     name: release
