@@ -126,7 +126,8 @@ public class PiperPhonemize {
         // Check if already extracted
         String cacheKey = "piper-phonemize-espeak-ng-data";
         Path tempDir = new File(System.getProperty("java.io.tmpdir"), cacheKey).toPath();
-        if (Files.exists(tempDir.resolve("phontab"))) {
+        Path dataDir = tempDir.resolve("espeak-ng-data");
+        if (Files.exists(dataDir.resolve("phontab"))) {
             return tempDir.toString();
         }
 
@@ -140,7 +141,7 @@ public class PiperPhonemize {
                 File jarFile = new File(uri);
                 if (jarFile.isFile()) {
                     // Extract from JAR
-                    Files.createDirectories(tempDir);
+                    Files.createDirectories(dataDir);
                     try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile)) {
                         java.util.Enumeration<java.util.jar.JarEntry> entries = jar.entries();
                         while (entries.hasMoreElements()) {
@@ -148,7 +149,7 @@ public class PiperPhonemize {
                             String name = entry.getName();
                             if (name.startsWith("piper-phonemize/espeak-ng-data/") && !entry.isDirectory()) {
                                 String relativePath = name.substring("piper-phonemize/espeak-ng-data/".length());
-                                Path target = tempDir.resolve(relativePath);
+                                Path target = dataDir.resolve(relativePath);
                                 Files.createDirectories(target.getParent());
                                 try (InputStream in = jar.getInputStream(entry)) {
                                     Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
@@ -161,14 +162,14 @@ public class PiperPhonemize {
             }
 
             // Fallback: try to extract from classpath resources
-            Files.createDirectories(tempDir);
+            Files.createDirectories(dataDir);
             String prefix = "piper-phonemize/espeak-ng-data/";
             // Try common file names
             String[] commonFiles = {"phontab", "phondata", "phonindex", "intonations", "intonation"};
             for (String file : commonFiles) {
                 try (InputStream in = PiperPhonemize.class.getClassLoader().getResourceAsStream(prefix + file)) {
                     if (in != null) {
-                        Files.copy(in, tempDir.resolve(file), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(in, dataDir.resolve(file), StandardCopyOption.REPLACE_EXISTING);
                     }
                 }
             }

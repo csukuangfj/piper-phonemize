@@ -3,7 +3,7 @@ name: jar
 on:
   push:
     branches:
-      - jni-2
+      - jni
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
