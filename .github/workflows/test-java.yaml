@@ -1,0 +1,45 @@
+name: test-java
+
+on:
+  push:
+    branches:
+      - master
+      - jni
+  workflow_dispatch:
+
+concurrency:
+  group: test-java-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-java-api:
+    name: test-java-api
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JNI lib and JVM JAR
+        run: |
+          cmake -Bbuild-jni \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_JNI=ON \
+            -DCMAKE_INSTALL_PREFIX=build-jni/install
+          cmake --build build-jni -j4 --target install
+
+          cd java-api
+          mvn package -q
+
+      - name: Test Java example
+        run: |
+          cd java-api-examples
+          java \
+            -cp "../java-api/target/piper-phonemize-jvm-1.4.7.jar" \
+            -Dpiper_phonemize.native.path=../build-jni/install/lib \
+            PhonemizeText.java

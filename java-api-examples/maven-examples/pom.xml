@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.csukuangfj.piper.phonemize</groupId>
+    <artifactId>piper-phonemize-maven-example</artifactId>
+    <version>1.4.7</version>
+    <packaging>jar</packaging>
+
+    <name>piper-phonemize Maven Example</name>
+    <description>Example project demonstrating how to use piper-phonemize via Maven</description>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- JVM core API Jar -->
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-jvm</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+
+        <!-- Platform native lib — uncomment ONE for your target platform -->
+
+        <!-- macOS ARM64 (Apple Silicon) -->
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-osx-aarch64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+
+        <!-- macOS x64 (Intel) -->
+        <!--
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-osx-x64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+        -->
+
+        <!-- Linux x64 -->
+        <!--
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-linux-x64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+        -->
+
+        <!-- Linux ARM64 -->
+        <!--
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-linux-aarch64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+        -->
+
+        <!-- Windows x64 -->
+        <!--
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-win-x64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+        -->
+
+        <!-- Windows ARM64 -->
+        <!--
+        <dependency>
+            <groupId>com.github.csukuangfj.piper-phonemize</groupId>
+            <artifactId>piper-phonemize-native-lib-win-arm64</artifactId>
+            <version>v1.4.7</version>
+        </dependency>
+        -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.github.csukuangfj.piper.phonemize.example.PhonemizeText</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,49 @@
+name: android-demo
+
+on:
+  push:
+    branches:
+      - master
+      - jni
+  workflow_dispatch:
+
+concurrency:
+  group: android-demo-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build APK
+        run: |
+          cd android-demo
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Rename APK
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cp android-demo/app/build/outputs/apk/release/app-release-unsigned.apk \
+             piper-phonemize-v${VERSION}-android-demo.apk
+          ls -lh piper-phonemize-*.apk
+
+      - name: Upload APK
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*.apk
+          tag: apk

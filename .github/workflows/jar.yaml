@@ -1,0 +1,123 @@
+name: jar
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+  workflow_dispatch:
+
+concurrency:
+  group: jar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-jni:
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04-arm
+            arch: "linux-aarch64"
+
+          - os: ubuntu-latest
+            arch: "linux-x64"
+
+          - os: macos-latest
+            arch: "osx-aarch64"
+
+          - os: macos-15-intel
+            arch: "osx-x64"
+
+          - os: windows-2022
+            arch: "win-x64"
+
+          - os: windows-11-arm
+            arch: "win-arm64"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JNI
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+            -DBUILD_PIPER_PHONEMIZE_JNI=ON \
+            -DCMAKE_INSTALL_PREFIX=build/install
+          cmake --build build --config Release --target install
+
+      - name: Create native JAR
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          os=${{ matrix.os }}
+          arch=${{ matrix.arch }}
+
+          # Find the JNI library
+          if [[ "$os" == windows-* ]]; then
+            lib_file=$(find build/install/lib -name "piper-phonemize-jni.dll" | head -1)
+            native_dir="piper-phonemize/native/$arch"
+            mkdir -p "$native_dir"
+            cp "$lib_file" "$native_dir/"
+            jar cfv piper-phonemize-native-lib-${arch}-${VERSION}.jar -C . piper-phonemize/
+          else
+            lib_ext="so"
+            [[ "$os" == macos-* ]] && lib_ext="dylib"
+            lib_file=$(find build/install/lib -name "libpiper-phonemize-jni.$lib_ext" | head -1)
+            native_dir="piper-phonemize/native/$arch"
+            mkdir -p "$native_dir"
+            cp "$lib_file" "$native_dir/"
+            jar cfv piper-phonemize-native-lib-${arch}-${VERSION}.jar -C . piper-phonemize/
+          fi
+
+          ls -lh piper-phonemize-native-lib-*.jar
+
+      - name: Release native JAR
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-native-lib-*.jar
+
+  build-jvm-jar:
+    name: build-jvm-jar
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JVM JAR
+        run: |
+          cd java-api
+          mvn package -q
+          ls -lh target/*.jar
+
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ../CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          cp target/piper-phonemize-jvm-${VERSION}.jar ./
+          ls -lh piper-phonemize-jvm-*.jar
+
+      - name: Release JVM JAR
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-jvm-*.jar
