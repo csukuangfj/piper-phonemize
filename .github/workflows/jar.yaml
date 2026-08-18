@@ -99,7 +99,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
-          overwrite: false
+          overwrite: true
           file: piper-phonemize-native-lib-*.jar
           tag: v1.4.7
 
@@ -116,6 +116,10 @@ jobs:
 
       - name: Build JVM JAR
         run: |
+          # Copy espeak-ng-data to resources
+          mkdir -p java-api/src/main/resources/piper-phonemize
+          cp -r swift-api-examples/espeak-ng-data java-api/src/main/resources/piper-phonemize/
+
           cd java-api
           mvn package -q
           ls -lh target/*.jar
@@ -129,6 +133,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
-          overwrite: false
+          overwrite: true
           file: piper-phonemize-jvm-*.jar
           tag: v1.4.7

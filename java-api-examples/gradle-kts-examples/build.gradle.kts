@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.github.csukuangfj.piper.phonemize.example.PhonemizeText")
+    mainClass.set("com.github.csukuangfj.piper-phonemize.piper.phonemize.example.PhonemizeText")
 }
 
 repositories {
@@ -46,7 +46,7 @@ java {
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "com.github.csukuangfj.piper.phonemize.example.PhonemizeText")
+        attributes("Main-Class" to "com.github.csukuangfj.piper-phonemize.piper.phonemize.example.PhonemizeText")
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })

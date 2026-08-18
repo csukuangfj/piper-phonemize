@@ -27,3 +27,4 @@ build-ios
 build-wasm-simd-nodejs
 .build
 target/
+java-api/src/main/resources/piper-phonemize/espeak-ng-data

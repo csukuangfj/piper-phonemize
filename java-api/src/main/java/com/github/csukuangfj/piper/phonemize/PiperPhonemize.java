@@ -123,30 +123,57 @@ public class PiperPhonemize {
     }
 
     private static String extractEspeakNgData() {
-        String resourcePath = "piper-phonemize/espeak-ng-data/phontab";
-        try (InputStream in = PiperPhonemize.class.getClassLoader().getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                throw new RuntimeException("espeak-ng-data not found in JAR resources");
+        // Check if already extracted
+        String cacheKey = "piper-phonemize-espeak-ng-data";
+        Path tempDir = new File(System.getProperty("java.io.tmpdir"), cacheKey).toPath();
+        if (Files.exists(tempDir.resolve("phontab"))) {
+            return tempDir.toString();
+        }
+
+        try {
+            // Find the JAR file containing this class
+            java.net.URL location = PiperPhonemize.class.getProtectionDomain().getCodeSource().getLocation();
+            java.net.URI uri = location.toURI();
+
+            if (uri.getScheme().equals("file")) {
+                // Running from a JAR file
+                File jarFile = new File(uri);
+                if (jarFile.isFile()) {
+                    // Extract from JAR
+                    Files.createDirectories(tempDir);
+                    try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile)) {
+                        java.util.Enumeration<java.util.jar.JarEntry> entries = jar.entries();
+                        while (entries.hasMoreElements()) {
+                            java.util.jar.JarEntry entry = entries.nextElement();
+                            String name = entry.getName();
+                            if (name.startsWith("piper-phonemize/espeak-ng-data/") && !entry.isDirectory()) {
+                                String relativePath = name.substring("piper-phonemize/espeak-ng-data/".length());
+                                Path target = tempDir.resolve(relativePath);
+                                Files.createDirectories(target.getParent());
+                                try (InputStream in = jar.getInputStream(entry)) {
+                                    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+                                }
+                            }
+                        }
+                    }
+                    return tempDir.toString();
+                }
             }
 
-            Path tempDir = Files.createTempDirectory("piper-phonemize-espeak-ng-data");
-            // We found the resource, so the data directory is the parent of "phontab"
-            // We need to extract the entire directory
-            String dataDirResource = "piper-phonemize/espeak-ng-data/";
-            String[] files = {"phontab", "phondata", "phonindex", "intonations", "intonation"};
-            // Try to extract common files
-            for (String file : files) {
-                String fullPath = dataDirResource + file;
-                try (InputStream fis = PiperPhonemize.class.getClassLoader().getResourceAsStream(fullPath)) {
-                    if (fis != null) {
-                        Files.copy(fis, tempDir.resolve(file), StandardCopyOption.REPLACE_EXISTING);
+            // Fallback: try to extract from classpath resources
+            Files.createDirectories(tempDir);
+            String prefix = "piper-phonemize/espeak-ng-data/";
+            // Try common file names
+            String[] commonFiles = {"phontab", "phondata", "phonindex", "intonations", "intonation"};
+            for (String file : commonFiles) {
+                try (InputStream in = PiperPhonemize.class.getClassLoader().getResourceAsStream(prefix + file)) {
+                    if (in != null) {
+                        Files.copy(in, tempDir.resolve(file), StandardCopyOption.REPLACE_EXISTING);
                     }
                 }
             }
-            // Also try to extract all files by listing the directory (not always possible with JAR resources)
-            // Fallback: return the temp dir with whatever we extracted
             return tempDir.toString();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to extract espeak-ng-data", e);
         }
     }
