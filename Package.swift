@@ -8,25 +8,62 @@ let package = Package(
     .macOS(.v10_15),
   ],
   products: [
-    .library(
-      name: "piper-phonemize",
-      targets: ["piper-phonemize"]
-    ),
+    // Static xcframework (default)
+    .library(name: "piper-phonemize", targets: ["PiperPhonemize"]),
+    // Shared/dynamic xcframework
+    .library(name: "piper-phonemize-shared", targets: ["PiperPhonemizeShared"]),
   ],
   targets: [
+    // --- Static binary targets ---
     .binaryTarget(
-      name: "piper-phonemize-core",
-      url: "https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-macos.xcframework.zip",
-      checksum: "9c62ef2959c895e194d05efbd3ae2128fc5e393d3d4c41f55cec0e4436ab0cb4"
+      name: "PiperPhonemizeMacOS",
+      url: "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.7-macos.xcframework.zip",
+      checksum: "0000000000000000000000000000000000000000000000000000000000000000"
     ),
+    .binaryTarget(
+      name: "PiperPhonemizeIOS",
+      url: "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.7-ios.xcframework.zip",
+      checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+    ),
+
+    // --- Shared binary targets ---
+    .binaryTarget(
+      name: "PiperPhonemizeMacOSShared",
+      url: "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.7-macos-shared.xcframework.zip",
+      checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+    ),
+    .binaryTarget(
+      name: "PiperPhonemizeIOSShared",
+      url: "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.7-ios-shared.xcframework.zip",
+      checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+    ),
+
+    // --- Static wrapper target (default) ---
     .target(
-      name: "piper-phonemize",
-      dependencies: ["piper-phonemize-core"],
+      name: "PiperPhonemize",
+      dependencies: [
+        .target(name: "PiperPhonemizeMacOS", condition: .when(platforms: [.macOS])),
+        .target(name: "PiperPhonemizeIOS", condition: .when(platforms: [.iOS])),
+      ],
       path: "swift-api-examples",
       exclude: ["example.swift", "example", "run.sh", "PiperPhonemize-Bridging-Header.h"],
-      resources: [
-        .copy("espeak-ng-data")
-      ]
+      sources: ["PiperPhonemize.swift"],
+      resources: [.copy("espeak-ng-data")],
+      linkerSettings: [.linkedLibrary("c++")]
+    ),
+
+    // --- Shared wrapper target ---
+    .target(
+      name: "PiperPhonemizeShared",
+      dependencies: [
+        .target(name: "PiperPhonemizeMacOSShared", condition: .when(platforms: [.macOS])),
+        .target(name: "PiperPhonemizeIOSShared", condition: .when(platforms: [.iOS])),
+      ],
+      path: "swift-api-examples",
+      exclude: ["example.swift", "example", "run.sh", "PiperPhonemize-Bridging-Header.h"],
+      sources: ["PiperPhonemize.swift"],
+      resources: [.copy("espeak-ng-data")],
+      linkerSettings: [.linkedLibrary("c++")]
     ),
   ]
 )

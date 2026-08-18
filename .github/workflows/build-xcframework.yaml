@@ -1,0 +1,387 @@
+name: build-xcframework
+
+on:
+  push:
+    branches:
+      - xcframework
+
+  workflow_dispatch:
+
+concurrency:
+  group: build-xcframework-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_macos_static_xcframework:
+    name: macos-static
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update version
+        shell: bash
+        run: |
+          ./new-release.sh
+          git diff .
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: macos-static
+
+      - name: Build macOS static
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos.sh
+
+      - name: Display artifacts
+        shell: bash
+        run: |
+          ls -lh build-macos/*.xcframework.zip
+
+      - name: Test xcframework
+        shell: bash
+        run: |
+          mkdir -p /tmp/test-xcframework
+          cd /tmp/test-xcframework
+          unzip -o $GITHUB_WORKSPACE/build-macos/*.xcframework.zip -d .
+          ls -lh piper-phonemize.xcframework/
+
+          # Find the framework bundle
+          fw_path=$(find piper-phonemize.xcframework -name "PiperPhonemizeC.framework" -type d | head -1)
+          echo "fw_path: $fw_path"
+
+          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          echo "macOS static xcframework structure verified"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-macos-xcframework
+          path: build-macos/*.xcframework.zip
+
+  build_macos_shared_xcframework:
+    name: macos-shared
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update version
+        shell: bash
+        run: |
+          ./new-release.sh
+          git diff .
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: macos-shared
+
+      - name: Build macOS shared
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared.sh
+
+      - name: Display artifacts
+        shell: bash
+        run: |
+          ls -lh build-macos-shared/*.xcframework.zip
+
+      - name: Test xcframework
+        shell: bash
+        run: |
+          mkdir -p /tmp/test-xcframework
+          cd /tmp/test-xcframework
+          unzip -o $GITHUB_WORKSPACE/build-macos-shared/*.xcframework.zip -d .
+          ls -lh piper-phonemize.xcframework/
+
+          # Find the framework bundle
+          fw_path=$(find piper-phonemize.xcframework -name "PiperPhonemizeC.framework" -type d | head -1)
+          echo "fw_path: $fw_path"
+
+          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          echo "macOS shared xcframework structure verified"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-macos-shared-xcframework
+          path: build-macos-shared/*.xcframework.zip
+
+  build_ios_static_xcframework:
+    name: ios-static
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update version
+        shell: bash
+        run: |
+          ./new-release.sh
+          git diff .
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ios-static
+
+      - name: Build iOS static
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios.sh
+
+      - name: Display artifacts
+        shell: bash
+        run: |
+          ls -lh build-ios/*.xcframework.zip
+
+      - name: Test xcframework
+        shell: bash
+        run: |
+          mkdir -p /tmp/test-xcframework
+          cd /tmp/test-xcframework
+          unzip -o $GITHUB_WORKSPACE/build-ios/*.xcframework.zip -d .
+          ls -lh piper-phonemize.xcframework/
+
+          # Verify xcframework structure (framework bundle)
+          fw_path=$(find piper-phonemize.xcframework -path "*simulator*" -name "PiperPhonemizeC.framework" -type d | head -1)
+          echo "fw_path: $fw_path"
+
+          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          echo "iOS static xcframework structure verified"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-ios-xcframework
+          path: build-ios/*.xcframework.zip
+
+  build_ios_shared_xcframework:
+    name: ios-shared
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update version
+        shell: bash
+        run: |
+          ./new-release.sh
+          git diff .
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ios-shared
+
+      - name: Build iOS shared
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios-shared.sh
+
+      - name: Display artifacts
+        shell: bash
+        run: |
+          ls -lh build-ios-shared/*.xcframework.zip
+
+      - name: Test xcframework
+        shell: bash
+        run: |
+          mkdir -p /tmp/test-xcframework
+          cd /tmp/test-xcframework
+          unzip -o $GITHUB_WORKSPACE/build-ios-shared/*.xcframework.zip -d .
+          ls -lh piper-phonemize.xcframework/
+
+          # Verify xcframework structure (framework bundle)
+          fw_path=$(find piper-phonemize.xcframework -path "*simulator*" -name "PiperPhonemizeC.framework" -type d | head -1)
+          echo "fw_path: $fw_path"
+
+          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          echo "iOS shared xcframework structure verified"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-ios-shared-xcframework
+          path: build-ios-shared/*.xcframework.zip
+
+  test_spm:
+    name: test-spm
+    needs:
+      - build_macos_static_xcframework
+      - build_macos_shared_xcframework
+      - build_ios_static_xcframework
+      - build_ios_shared_xcframework
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Prepare local xcframeworks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-macos build-ios build-macos-shared build-ios-shared
+
+          # Extract static xcframeworks
+          unzip -o artifacts/piper-phonemize-macos-xcframework/*.zip -d build-macos/
+          unzip -o artifacts/piper-phonemize-ios-xcframework/*.zip -d build-ios/
+
+          # Extract shared xcframeworks
+          unzip -o artifacts/piper-phonemize-macos-shared-xcframework/*.zip -d build-macos-shared/
+          unzip -o artifacts/piper-phonemize-ios-shared-xcframework/*.zip -d build-ios-shared/
+
+          echo "=== macOS static xcframework ==="
+          ls -lh build-macos/piper-phonemize.xcframework/
+          echo "=== iOS static xcframework ==="
+          ls -lh build-ios/piper-phonemize.xcframework/
+          echo "=== macOS shared xcframework ==="
+          ls -lh build-macos-shared/piper-phonemize.xcframework/
+          echo "=== iOS shared xcframework ==="
+          ls -lh build-ios-shared/piper-phonemize.xcframework/
+
+      - name: Test SPM (local, static)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples
+
+          # Patch Package.swift to use local package
+          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "..")|' Package.swift
+
+          # Patch root Package.swift to use local xcframework paths
+          cd ..
+          cp Package.swift Package.swift.bak
+          python3 -c "
+          import re
+          text = open('Package.swift').read()
+          # Patch static macOS binary target to local path
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeMacOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeMacOS\", path: \"build-macos/piper-phonemize.xcframework\")',
+              text
+          )
+          # Patch static iOS binary target to local path
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeIOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeIOS\", path: \"build-ios/piper-phonemize.xcframework\")',
+              text
+          )
+          # Patch shared macOS binary target to local path
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeMacOSShared\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeMacOSShared\", path: \"build-macos-shared/piper-phonemize.xcframework\")',
+              text
+          )
+          # Patch shared iOS binary target to local path
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeIOSShared\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeIOSShared\", path: \"build-ios-shared/piper-phonemize.xcframework\")',
+              text
+          )
+          open('Package.swift', 'w').write(text)
+          "
+          cd spm-examples
+
+          echo "=== Package.swift ==="
+          cat Package.swift
+          echo "=== Root Package.swift ==="
+          cat ../Package.swift
+
+          rm -rf .build
+          swift build --verbose
+          swift run piper-phonemize-example
+
+      - name: Test SPM (local, shared)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd spm-examples
+
+          # Patch Package.swift to use shared product
+          sed -i.bak2 's|.product(name: "piper-phonemize", package: "piper-phonemize")|.product(name: "piper-phonemize-shared", package: "piper-phonemize")|' Package.swift
+
+          echo "=== Package.swift (shared) ==="
+          cat Package.swift
+          echo "=== Root Package.swift ==="
+          cat ../Package.swift
+
+          rm -rf .build
+          swift build --verbose
+          swift run piper-phonemize-example
+
+      - name: Test swift-api-examples
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -OL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
+          tar xvf espeak-ng-data.tar.bz2
+          rm -f espeak-ng-data.tar.bz2
+
+          cd swift-api-examples
+          bash run.sh
+
+      - name: Restore modified files
+        if: always()
+        shell: bash
+        run: |
+          [ -f spm-examples/Package.swift.bak ] && mv spm-examples/Package.swift.bak spm-examples/Package.swift || true
+          [ -f Package.swift.bak ] && mv Package.swift.bak Package.swift || true
+
+  release:
+    name: release
+    needs:
+      - build_macos_static_xcframework
+      - build_macos_shared_xcframework
+      - build_ios_static_xcframework
+      - build_ios_shared_xcframework
+      - test_spm
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all xcframework artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Release xcframework
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: false
+          file: artifacts/**/*.xcframework.zip
+          tag: xcframework

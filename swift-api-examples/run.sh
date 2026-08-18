@@ -12,10 +12,10 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROJECT_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 
 # Build xcframework if not exists
-if [ ! -d "$PROJECT_DIR/build-swift-macos/install" ]; then
+if [ ! -d "$PROJECT_DIR/build-macos/install" ]; then
   echo "Building piper-phonemize..."
   cd "$PROJECT_DIR"
-  bash build-swift-macos.sh
+  bash build-macos.sh
 fi
 
 # Download espeak-ng-data if not present
@@ -33,14 +33,14 @@ cd "$SCRIPT_DIR"
 echo "Compiling example..."
 swiftc \
   -lc++ \
-  -I "$PROJECT_DIR/build-swift-macos/install/include/piper-phonemize" \
+  -I "$PROJECT_DIR/build-macos/install/include/piper-phonemize" \
   -import-objc-header ./PiperPhonemize-Bridging-Header.h \
   ./example.swift ./PiperPhonemize.swift \
-  -L "$PROJECT_DIR/build-swift-macos/install/lib/" \
+  -L "$PROJECT_DIR/build-macos/install/lib/" \
   -l piper_phonemize \
   -o example
 
 # Run
 echo "Running example..."
-export DYLD_LIBRARY_PATH="$PROJECT_DIR/build-swift-macos/install/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$PROJECT_DIR/build-macos/install/lib:$DYLD_LIBRARY_PATH"
 ./example "$PROJECT_DIR/espeak-ng-data"
