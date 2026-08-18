@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.github.csukuangfj.piper-phonemize.piper.phonemize.demo"
+    namespace = "com.github.csukuangfj.piper.phonemize.demo"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.github.csukuangfj.piper-phonemize.piper.phonemize.demo"
+        applicationId = "com.github.csukuangfj.piper.phonemize.demo"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
