@@ -9,9 +9,9 @@ let package = Package(
   ],
   products: [
     // Static xcframework (default)
-    .library(name: "piper-phonemize", targets: ["PiperPhonemize"]),
+    .library(name: "piper-phonemize", targets: ["piper_phonemize"]),
     // Shared/dynamic xcframework
-    .library(name: "piper-phonemize-shared", targets: ["PiperPhonemizeShared"]),
+    .library(name: "piper-phonemize-shared", targets: ["piper_phonemize_shared"]),
   ],
   targets: [
     // --- Static binary targets ---
@@ -40,7 +40,7 @@ let package = Package(
 
     // --- Static wrapper target (default) ---
     .target(
-      name: "PiperPhonemize",
+      name: "piper_phonemize",
       dependencies: [
         .target(name: "PiperPhonemizeMacOS", condition: .when(platforms: [.macOS])),
         .target(name: "PiperPhonemizeIOS", condition: .when(platforms: [.iOS])),
@@ -54,7 +54,7 @@ let package = Package(
 
     // --- Shared wrapper target ---
     .target(
-      name: "PiperPhonemizeShared",
+      name: "piper_phonemize_shared",
       dependencies: [
         .target(name: "PiperPhonemizeMacOSShared", condition: .when(platforms: [.macOS])),
         .target(name: "PiperPhonemizeIOSShared", condition: .when(platforms: [.iOS])),
