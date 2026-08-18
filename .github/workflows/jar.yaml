@@ -50,9 +50,16 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.arch }}
+
       - name: Build JNI
         shell: bash
         run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           cmake -Bbuild \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
@@ -114,8 +121,8 @@ jobs:
           ls -lh target/*.jar
 
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ../CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          cp target/piper-phonemize-jvm-${VERSION}.jar ./
-          ls -lh piper-phonemize-jvm-*.jar
+          cp target/piper-phonemize-jvm-${VERSION}.jar ../
+          ls -lh ../piper-phonemize-jvm-*.jar
 
       - name: Release JVM JAR
         # if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')

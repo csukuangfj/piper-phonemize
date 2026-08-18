@@ -30,6 +30,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: android
+
       - name: Build AAR
         run: |
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
@@ -39,6 +44,8 @@ jobs:
           mkdir -p $AAR_DIR/{jni,classes,assets,res/values}
 
           # Build JNI for all 4 Android ABIs
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           for ABI in arm64-v8a armeabi-v7a x86_64 x86; do
             echo "=== Building for $ABI ==="
             cmake -Bbuild-$ABI \
