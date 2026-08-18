@@ -59,10 +59,7 @@ let package = Package(
         .target(name: "PiperPhonemizeMacOSShared", condition: .when(platforms: [.macOS])),
         .target(name: "PiperPhonemizeIOSShared", condition: .when(platforms: [.iOS])),
       ],
-      path: "swift-api-examples",
-      exclude: ["example.swift", "example", "run.sh", "PiperPhonemize-Bridging-Header.h"],
-      sources: ["PiperPhonemize.swift"],
-      resources: [.copy("espeak-ng-data")],
+      path: "Sources/PiperPhonemizeShared",
       linkerSettings: [.linkedLibrary("c++")]
     ),
   ]
