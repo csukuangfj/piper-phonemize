@@ -1,23 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
-    <PackageId>com.github.csukuangfj.piper.phonemize.runtime.$dotnet_rid</PackageId>
-    <Version>$version</Version>
-    <Authors>Fangjun Kuang</Authors>
-    <Description>piper-phonemize native library for $dotnet_rid</Description>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net10.0;net8.0;net7.0;net6.0;net45;net40;net35;net20;netstandard2.0</TargetFrameworks>
+    <RuntimeIdentifier>{{ dotnet_rid }}</RuntimeIdentifier>
+    <AssemblyName>piper-phonemize</AssemblyName>
+    <Version>{{ version }}</Version>
+
     <PackageProjectUrl>https://github.com/csukuangfj/piper-phonemize</PackageProjectUrl>
     <RepositoryUrl>https://github.com/csukuangfj/piper-phonemize</RepositoryUrl>
+    <PackageTags>phonemize text-to-speech tts espeak-ng phonemes ipa offline</PackageTags>
+    <Authors>Michael Hansen, Fangjun Kuang</Authors>
+
+    <!-- Nuget Properties -->
+    <Description>.NET native {{ dotnet_rid }} wrapper for the piper-phonemize project.
+
+    In general, you don't need to use this package directly.
+
+    Please use https://www.nuget.org/packages/com.github.csukuangfj.piper.phonemize instead
+    </Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Pack Option -->
+    <Title>piper-phonemize {{ dotnet_rid }} v{{ version }}</Title>
+    <PackageId>com.github.csukuangfj.piper.phonemize.runtime.{{ dotnet_rid }}</PackageId>
+
+    <!-- Signing -->
+    <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$libs">
-      <PackagePath>runtimes/$dotnet_rid/native/%(Filename)%(Extension)</PackagePath>
+    <!-- Native library must be in native directory... -->
+    <Content Include="
+      {{ libs }}
+    ">
+      <PackagePath>runtimes/{{ dotnet_rid }}/native/%(Filename)%(Extension)</PackagePath>
       <Pack>true</Pack>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

@@ -4,10 +4,14 @@
 # Generate .csproj files from Jinja2 templates for NuGet packaging.
 
 import os
-import sys
-from string import Template
+import re
+import shutil
+from pathlib import Path
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+import jinja2
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = SCRIPT_DIR.parent.parent
 
 # RID -> (dotnet_rid, lib_filename)
 PLATFORMS = {
@@ -22,76 +26,93 @@ PLATFORMS = {
 }
 
 
-def generate(version: str, output_dir: str):
-    os.makedirs(output_dir, exist_ok=True)
+def get_version():
+    cmake_file = PROJECT_DIR / "CMakeLists.txt"
+    with open(cmake_file) as f:
+        content = f.read()
+    version = re.search(r"set\(PIPER_PHONEMIZE_VERSION (.*)\)", content).group(1)
+    return version.strip('"')
+
+
+def generate(src_dir: str, output_dir: str):
+    src_dir = Path(src_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    version = get_version()
+    print(f"Version: {version}")
+
+    environment = jinja2.Environment()
 
     # Read templates
-    with open(os.path.join(SCRIPT_DIR, "PiperPhonemize.csproj.in")) as f:
-        common_template = Template(f.read())
+    with open(SCRIPT_DIR / "PiperPhonemize.Runtime.csproj.in") as f:
+        runtime_template = environment.from_string(f.read())
 
-    with open(os.path.join(SCRIPT_DIR, "PiperPhonemize.Runtime.csproj.in")) as f:
-        runtime_template = Template(f.read())
+    with open(SCRIPT_DIR / "PiperPhonemize.csproj.in") as f:
+        common_template = environment.from_string(f.read())
 
-    # Generate common package csproj
-    common_csproj = common_template.substitute(version=version)
-    common_dir = os.path.join(output_dir, "all")
-    os.makedirs(common_dir, exist_ok=True)
-
-    # Copy C# source files
-    for src_file in ["Dll.cs", "PiperPhonemizeApi.cs", "PhonemizeResult.cs"]:
-        src_path = os.path.join(SCRIPT_DIR, src_file)
-        dst_path = os.path.join(common_dir, src_file)
-        with open(src_path, "r") as f_in:
-            with open(dst_path, "w") as f_out:
-                f_out.write(f_in.read())
-
-    # Copy espeak-ng-data
-    espeak_src = os.path.join(SCRIPT_DIR, "..", "..", "swift-api-examples", "espeak-ng-data")
-    espeak_dst = os.path.join(common_dir, "espeak-ng-data")
-    if os.path.isdir(espeak_src) and not os.path.isdir(espeak_dst):
-        import shutil
-        shutil.copytree(espeak_src, espeak_dst)
-
-    with open(os.path.join(common_dir, "PiperPhonemize.csproj"), "w") as f:
-        f.write(common_csproj)
-
-    print(f"Generated common package csproj in {common_dir}")
-
-    # Generate per-RID runtime package csproj
+    # Generate per-RID runtime packages
     for rid, (dotnet_rid, lib_filename) in PLATFORMS.items():
-        rid_dir = os.path.join(output_dir, rid)
-        os.makedirs(rid_dir, exist_ok=True)
+        rid_dir = output_dir / rid
+        rid_dir.mkdir(parents=True, exist_ok=True)
 
-        # Find the native lib
-        lib_path = os.path.join(rid_dir, lib_filename)
-        if not os.path.exists(lib_path):
-            # Try relative to output_dir parent
-            lib_path = os.path.join(output_dir, "..", rid, lib_filename)
-
-        if not os.path.exists(lib_path):
+        lib_path = src_dir / rid / lib_filename
+        if not lib_path.exists():
             print(f"  WARNING: {lib_filename} not found for {rid}, skipping")
             continue
 
-        csproj = runtime_template.substitute(
-            version=version,
-            dotnet_rid=dotnet_rid,
-            libs=lib_filename,
-        )
+        # Copy native lib to rid directory (skip if same file)
+        dst = rid_dir / lib_filename
+        if lib_path.resolve() != dst.resolve():
+            shutil.copy2(lib_path, dst)
 
-        with open(os.path.join(rid_dir, "PiperPhonemize.Runtime.csproj"), "w") as f:
-            f.write(csproj)
+        libs_str = str(rid_dir / lib_filename)
+        d = {"version": version, "dotnet_rid": dotnet_rid, "libs": libs_str}
+        s = runtime_template.render(**d)
+
+        with open(rid_dir / "PiperPhonemize.Runtime.csproj", "w") as f:
+            f.write(s)
 
         print(f"  Generated runtime csproj for {rid}")
 
+    # Generate common (metapackage) package
+    common_dir = output_dir / "all"
+    common_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy C# source files
+    for src_file in ["Dll.cs", "PiperPhonemizeApi.cs", "PhonemizeResult.cs"]:
+        shutil.copy2(SCRIPT_DIR / src_file, common_dir / src_file)
+
+    # Copy espeak-ng-data
+    espeak_src = PROJECT_DIR / "swift-api-examples" / "espeak-ng-data"
+    espeak_dst = common_dir / "espeak-ng-data"
+    if espeak_src.is_dir() and not espeak_dst.exists():
+        shutil.copytree(espeak_src, espeak_dst)
+
+    packages_dir = str(output_dir / "packages")
+    d = {"version": version, "packages_dir": packages_dir}
+    s = common_template.render(**d)
+
+    with open(common_dir / "PiperPhonemize.csproj", "w") as f:
+        f.write(s)
+
+    print(f"Generated common package csproj in {common_dir}")
+
 
 def main():
+    import sys
+
     if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <version> <output_dir>")
+        print(f"Usage: {sys.argv[0]} <src_dir> <output_dir>")
+        print("")
+        print("  src_dir:   directory containing per-RID native libs")
+        print("             e.g. /tmp/dotnet with linux-x64/, osx-arm64/, etc.")
+        print("  output_dir: where to write generated csproj files")
         sys.exit(1)
 
-    version = sys.argv[1]
+    src_dir = sys.argv[1]
     output_dir = sys.argv[2]
-    generate(version, output_dir)
+    generate(src_dir, output_dir)
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ project(
     LANGUAGES C CXX
 )
 # set(PIPER_PHONEMIZE_VERSION 1.4.7)
-set(PIPER_PHONEMIZE_VERSION 1.4.0)
+set(PIPER_PHONEMIZE_VERSION 1.3.0)
 
 # ---- Cross-platform build settings (following sherpa-onnx) ----
 

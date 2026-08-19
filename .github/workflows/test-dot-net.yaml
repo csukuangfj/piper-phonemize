@@ -13,7 +13,23 @@ concurrency:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: ubuntu-22.04-arm
+            rid: linux-arm64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+          - os: windows-2022
+            rid: win-x64
+          - os: windows-11-arm
+            rid: win-arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -21,32 +37,8 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build native lib
+      - name: Run example
         shell: bash
         run: |
-          cmake -Bbuild \
-            -DCMAKE_INSTALL_PREFIX=build/install \
-            -DCMAKE_OSX_ARCHITECTURES="arm64" \
-            -DBUILD_SHARED_LIBS=ON \
-            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
-            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
-          cmake --build build -j$(sysctl -n hw.ncpu) --target install
-
-          mkdir -p /tmp/dotnet/osx-arm64
-          cp build/install/lib/libpiper_phonemize_core.dylib /tmp/dotnet/osx-arm64/
-
-      - name: Pack NuGet packages
-        run: |
-          chmod +x scripts/dotnet/run.sh
-          ./scripts/dotnet/run.sh
-
-      - name: Run example
-        run: |
           cd dotnet-examples/PhonemizeText
-
-          # Use local packages
-          dotnet add package com.github.csukuangfj.piper.phonemize \
-            --source /tmp/dotnet/packages/ \
-            --prerelease
-
           dotnet run

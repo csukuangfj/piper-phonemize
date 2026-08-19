@@ -1,16 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
-    <PackageId>com.github.csukuangfj.piper.phonemize</PackageId>
-    <Version>$version</Version>
-    <Authors>Fangjun Kuang</Authors>
-    <Description>C# bindings for piper-phonemize</Description>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <OutputType>Library</OutputType>
+    <LangVersion>10.0</LangVersion>
+    <TargetFrameworks>net10.0;net8.0;net7.0;net6.0;net45;net40;net35;net20;netstandard2.0</TargetFrameworks>
+    <RuntimeIdentifiers>linux-x64;linux-arm64;android-arm64;android-x64;osx-x64;osx-arm64;win-x64;win-arm64</RuntimeIdentifiers>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>piper-phonemize</AssemblyName>
+    <Version>{{ version }}</Version>
+
     <PackageProjectUrl>https://github.com/csukuangfj/piper-phonemize</PackageProjectUrl>
     <RepositoryUrl>https://github.com/csukuangfj/piper-phonemize</RepositoryUrl>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
+    <PackageTags>phonemize text-to-speech tts espeak-ng phonemes ipa offline</PackageTags>
+
+    <Authors>Michael Hansen, Fangjun Kuang</Authors>
+    <Description>C# bindings for piper-phonemize, a text-to-phoneme library based on espeak-ng.
+    See https://github.com/csukuangfj/piper-phonemize for details.
+    </Description>
+
+    <!-- Pack Option -->
+    <Title>piper-phonemize v{{ version }}</Title>
+    <PackageId>com.github.csukuangfj.piper.phonemize</PackageId>
+
+    <!-- Signing -->
+    <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreSources>{{ packages_dir }};$(RestoreSources);https://api.nuget.org/v3/index.json</RestoreSources>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,14 +41,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-x64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-arm64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-arm64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-x64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-x64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-arm64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-x64" Version="$version" />
-    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-arm64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-x64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-arm64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-arm64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-x64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-x64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-arm64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-x64" Version="{{ version }}" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-arm64" Version="{{ version }}" />
   </ItemGroup>
 
 </Project>

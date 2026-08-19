@@ -17,6 +17,7 @@ cd "$(dirname "$0")/../.."
 VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
 echo "VERSION=$VERSION"
 
+SRC_DIR=/tmp/dotnet
 OUT_DIR=/tmp/dotnet
 PACKAGES_DIR=$OUT_DIR/packages
 
@@ -27,7 +28,7 @@ mkdir -p $PACKAGES_DIR
 RIDS="linux-x64 linux-arm64 android-arm64 android-x64 osx-x64 osx-arm64 win-x64 win-arm64"
 
 # Generate .csproj files
-python3 ./scripts/dotnet/generate.py "$VERSION" "$OUT_DIR"
+python3 ./scripts/dotnet/generate.py "$SRC_DIR" "$OUT_DIR"
 
 # Build and pack each runtime package
 for rid in $RIDS; do
