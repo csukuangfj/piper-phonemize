@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <None Include="espeak-ng-data/**">
-      <PackagePath>contentFiles/any/any/</PackagePath>
+      <PackagePath>contentFiles/any/any/espeak-ng-data/</PackagePath>
       <Pack>true</Pack>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

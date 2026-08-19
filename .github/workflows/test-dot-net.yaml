@@ -12,7 +12,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  test-local:
+    name: test-local-${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: windows-2022
+            rid: win-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build native lib
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            cmake -Bbuild \
+              -DCMAKE_INSTALL_PREFIX=build/install \
+              -DCMAKE_OSX_ARCHITECTURES="arm64" \
+              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+            cmake --build build -j$(sysctl -n hw.ncpu) --target install
+            mkdir -p /tmp/dotnet/${{ matrix.rid }}
+            cp build/install/lib/libpiper_phonemize_core.dylib /tmp/dotnet/${{ matrix.rid }}/
+          elif [[ "${{ matrix.os }}" == windows-* ]]; then
+            cmake -Bbuild \
+              -DCMAKE_INSTALL_PREFIX=build/install \
+              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+            cmake --build build --config Release --target install
+            mkdir -p /tmp/dotnet/${{ matrix.rid }}
+            cp build/install/bin/piper_phonemize_core.dll /tmp/dotnet/${{ matrix.rid }}/
+          else
+            cmake -Bbuild \
+              -DCMAKE_INSTALL_PREFIX=build/install \
+              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+            cmake --build build -j$(nproc) --target install
+            mkdir -p /tmp/dotnet/${{ matrix.rid }}
+            cp build/install/lib/libpiper_phonemize_core.so /tmp/dotnet/${{ matrix.rid }}/
+          fi
+
+      - name: Pack NuGet packages
+        shell: bash
+        run: |
+          chmod +x scripts/dotnet/run.sh
+          ./scripts/dotnet/run.sh
+
+      - name: Run example with local packages
+        shell: bash
+        run: |
+          cd dotnet-examples/PhonemizeText
+          dotnet add package com.github.csukuangfj.piper.phonemize \
+            --source /tmp/dotnet/packages/ \
+            --prerelease
+          dotnet run
+
+  test-published:
+    name: test-published-${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -37,7 +106,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Run example
+      - name: Run example with published packages
         shell: bash
         run: |
           cd dotnet-examples/PhonemizeText
