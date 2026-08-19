@@ -63,7 +63,7 @@ jobs:
         run: |
           cd java-api-examples/maven-examples
           mvn package -q
-          java -jar target/piper-phonemize-maven-example-jni-SNAPSHOT.jar
+          java -jar target/piper-phonemize-maven-example-v1.4.7.jar
 
   test-gradle-examples:
     name: test-gradle

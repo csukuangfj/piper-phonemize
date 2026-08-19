@@ -29,3 +29,5 @@ build-wasm-simd-nodejs
 target/
 java-api/src/main/resources/piper-phonemize/espeak-ng-data
 .gradle
+todo*
+plan.md
