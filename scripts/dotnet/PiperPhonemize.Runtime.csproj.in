@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <PackageId>com.github.csukuangfj.piper.phonemize.runtime.$dotnet_rid</PackageId>
+    <Version>$version</Version>
+    <Authors>Fangjun Kuang</Authors>
+    <Description>piper-phonemize native library for $dotnet_rid</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/csukuangfj/piper-phonemize</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/csukuangfj/piper-phonemize</RepositoryUrl>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="$libs">
+      <PackagePath>runtimes/$dotnet_rid/native/%(Filename)%(Extension)</PackagePath>
+      <Pack>true</Pack>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

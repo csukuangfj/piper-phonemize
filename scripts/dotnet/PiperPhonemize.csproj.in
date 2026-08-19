@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <PackageId>com.github.csukuangfj.piper.phonemize</PackageId>
+    <Version>$version</Version>
+    <Authors>Fangjun Kuang</Authors>
+    <Description>C# bindings for piper-phonemize</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/csukuangfj/piper-phonemize</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/csukuangfj/piper-phonemize</RepositoryUrl>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="espeak-ng-data/**">
+      <PackagePath>contentFiles/any/any/espeak-ng-data/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+      <Pack>true</Pack>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-x64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.linux-arm64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-arm64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.android-x64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-x64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.osx-arm64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-x64" Version="$version" />
+    <PackageReference Include="com.github.csukuangfj.piper.phonemize.runtime.win-arm64" Version="$version" />
+  </ItemGroup>
+
+</Project>

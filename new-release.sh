@@ -35,6 +35,9 @@ sed -i.bak "$replace_str" ./rust-api-examples/Cargo.toml
 sed -i.bak "$replace_str" ./tauri-examples/src-tauri/tauri.conf.json
 sed -i.bak "$replace_str" ./tauri-examples/src-tauri/Cargo.toml
 
+sed -i.bak "$replace_str" ./scripts/dotnet/PiperPhonemize.csproj.in
+sed -i.bak "$replace_str" ./scripts/dotnet/PiperPhonemize.Runtime.csproj.in
+
 sed -i.bak "$replace_str" ./.github/workflows/build-wheel-macos-arm64.yaml
 
 find ./.github/workflows -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
