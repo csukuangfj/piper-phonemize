@@ -33,10 +33,10 @@ logger.lifecycle("--> Auto-detected platform native lib: $targetNativeClassifier
 
 dependencies {
     // 1. JVM core API
-    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize-jvm:v1.4.7")
+    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize-jvm:v1.4.8")
 
     // 2. Platform native lib (auto-detected)
-    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-$targetNativeClassifier:v1.4.7")
+    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize-native-lib-$targetNativeClassifier:v1.4.8")
 }
 
 java {

@@ -44,7 +44,7 @@ jobs:
         run: |
           cd java-api-examples
           java \
-            -cp "../java-api/target/piper-phonemize-jvm-1.4.7.jar" \
+            -cp "../java-api/target/piper-phonemize-jvm-1.4.8.jar" \
             -Dpiper_phonemize.native.path=../build-jni/install/lib \
             PhonemizeText.java
 
@@ -63,7 +63,7 @@ jobs:
         run: |
           cd java-api-examples/maven-examples
           mvn package -q
-          java -jar target/piper-phonemize-maven-example-v1.4.7.jar
+          java -jar target/piper-phonemize-maven-example-v1.4.8.jar
 
   test-gradle-examples:
     name: test-gradle

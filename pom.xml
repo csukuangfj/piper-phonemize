@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.csukuangfj.piper.phonemize</groupId>
     <artifactId>piper-phonemize-android</artifactId>
-    <version>1.4.7</version>
+    <version>1.4.8</version>
     <url>https://github.com/csukuangfj/piper-phonemize</url>
     <packaging>pom</packaging>
     <description>piper-phonemize Android Library</description>
