@@ -79,6 +79,7 @@ jobs:
           dotnet add package com.github.csukuangfj.piper.phonemize \
             --source /tmp/dotnet/packages/ \
             --prerelease
+          dotnet restore --source /tmp/dotnet/packages/
           dotnet run
 
   test-published:

@@ -88,6 +88,12 @@ def generate(src_dir: str, output_dir: str):
     for src_file in ["Dll.cs", "PiperPhonemizeApi.cs", "PhonemizeResult.cs"]:
         shutil.copy2(SCRIPT_DIR / src_file, common_dir / src_file)
 
+    # Copy .targets file
+    targets_src = SCRIPT_DIR / "build" / "com.github.csukuangfj.piper.phonemize.targets"
+    targets_dst = common_dir / "build" / "com.github.csukuangfj.piper.phonemize.targets"
+    targets_dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(targets_src, targets_dst)
+
     # Copy espeak-ng-data
     espeak_src = PROJECT_DIR / "swift-api-examples" / "espeak-ng-data"
     espeak_dst = common_dir / "espeak-ng-data"

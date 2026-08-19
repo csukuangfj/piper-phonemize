@@ -33,11 +33,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="espeak-ng-data/**">
-      <PackagePath>contentFiles/any/any/espeak-ng-data/</PackagePath>
-      <Pack>true</Pack>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- Pack espeak-ng-data into the contentFiles folder -->
+    <Content Include="espeak-ng-data/**" Pack="true"
+             PackagePath="contentFiles/any/any/espeak-ng-data/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include a .targets file that copies espeak-ng-data to output -->
+    <None Include="build/com.github.csukuangfj.piper.phonemize.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
 
   <ItemGroup>

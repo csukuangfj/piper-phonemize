@@ -31,3 +31,5 @@ java-api/src/main/resources/piper-phonemize/espeak-ng-data
 .gradle
 todo*
 plan.md
+bin
+obj
