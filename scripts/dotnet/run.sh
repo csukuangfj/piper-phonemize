@@ -14,7 +14,7 @@ set -ex
 
 cd "$(dirname "$0")/../.."
 
-VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | grep -v "^#" | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
 echo "VERSION=$VERSION"
 
 SRC_DIR=/tmp/dotnet

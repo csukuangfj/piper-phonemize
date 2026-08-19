@@ -29,9 +29,14 @@ PLATFORMS = {
 def get_version():
     cmake_file = PROJECT_DIR / "CMakeLists.txt"
     with open(cmake_file) as f:
-        content = f.read()
-    version = re.search(r"set\(PIPER_PHONEMIZE_VERSION (.*)\)", content).group(1)
-    return version.strip('"')
+        for line in f:
+            line = line.strip()
+            if line.startswith("#"):
+                continue
+            m = re.search(r"set\(PIPER_PHONEMIZE_VERSION (.*)\)", line)
+            if m:
+                return m.group(1).strip('"')
+    raise RuntimeError("PIPER_PHONEMIZE_VERSION not found in CMakeLists.txt")
 
 
 def generate(src_dir: str, output_dir: str):

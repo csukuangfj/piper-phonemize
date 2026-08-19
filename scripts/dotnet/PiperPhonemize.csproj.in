@@ -33,11 +33,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="espeak-ng-data/**">
-      <PackagePath>contentFiles/any/any/espeak-ng-data/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+    <None Include="espeak-ng-data/**">
+      <PackagePath>contentFiles/any/any/</PackagePath>
       <Pack>true</Pack>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
