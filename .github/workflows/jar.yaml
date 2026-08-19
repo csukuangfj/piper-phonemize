@@ -101,7 +101,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-native-lib-*.jar
-          tag: v1.4.7
+          tag: v1.4.8
 
   build-jvm-jar:
     name: build-jvm-jar
@@ -135,4 +135,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-jvm-*.jar
-          tag: v1.4.7
+          tag: v1.4.8

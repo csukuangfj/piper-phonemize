@@ -27,7 +27,7 @@ bash run-phonemize-text.sh
 ```bash
 cd maven-examples
 mvn package -q
-java -jar target/piper-phonemize-maven-example-1.4.7.jar
+java -jar target/piper-phonemize-maven-example-1.4.8.jar
 ```
 
 ## Gradle example

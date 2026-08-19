@@ -1,0 +1,253 @@
+name: dot-net
+
+on:
+  push:
+    branches:
+      - dot-net
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+concurrency:
+  group: dot-net-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/shared/ \
+            quay.io/pypa/manylinux2014_x86_64 \
+            bash -c '
+              cd /shared
+              cmake -Bbuild \
+                -DCMAKE_INSTALL_PREFIX=build/install \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+              cmake --build build -j$(nproc) --target install
+            '
+          mkdir -p /tmp/dotnet/linux-x64
+          cp build/install/lib/libpiper_phonemize_core.so /tmp/dotnet/linux-x64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: /tmp/dotnet/linux-x64/
+
+  build-linux-arm64:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/shared/ \
+            quay.io/pypa/manylinux2014_aarch64 \
+            bash -c '
+              cd /shared
+              cmake -Bbuild \
+                -DCMAKE_INSTALL_PREFIX=build/install \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+                -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+              cmake --build build -j$(nproc) --target install
+            '
+          mkdir -p /tmp/dotnet/linux-arm64
+          cp build/install/lib/libpiper_phonemize_core.so /tmp/dotnet/linux-arm64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: /tmp/dotnet/linux-arm64/
+
+  build-macos-x64:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build -j$(sysctl -n hw.ncpu) --target install
+          mkdir -p /tmp/dotnet/osx-x64
+          cp build/install/lib/libpiper_phonemize_core.dylib /tmp/dotnet/osx-x64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osx-x64
+          path: /tmp/dotnet/osx-x64/
+
+  build-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build -j$(sysctl -n hw.ncpu) --target install
+          mkdir -p /tmp/dotnet/osx-arm64
+          cp build/install/lib/libpiper_phonemize_core.dylib /tmp/dotnet/osx-arm64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osx-arm64
+          path: /tmp/dotnet/osx-arm64/
+
+  build-windows-x64:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build --config Release --target install
+          mkdir -p "$RUNNER_TEMP/dotnet/win-x64"
+          cp build/install/bin/piper_phonemize_core.dll "$RUNNER_TEMP/dotnet/win-x64/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: win-x64
+          path: ${{ runner.temp }}/dotnet/win-x64/
+
+  build-windows-arm64:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_INSTALL_PREFIX=build/install \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build --config Release --target install
+          mkdir -p "$RUNNER_TEMP/dotnet/win-arm64"
+          cp build/install/bin/piper_phonemize_core.dll "$RUNNER_TEMP/dotnet/win-arm64/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: win-arm64
+          path: ${{ runner.temp }}/dotnet/win-arm64/
+
+  build-android-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-26 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build -j4
+          mkdir -p /tmp/dotnet/android-arm64
+          cp build/lib/libpiper_phonemize_core.so /tmp/dotnet/android-arm64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-arm64
+          path: /tmp/dotnet/android-arm64/
+
+  build-android-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build
+        shell: bash
+        run: |
+          cmake -Bbuild \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=x86_64 \
+            -DANDROID_PLATFORM=android-26 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+            -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF
+          cmake --build build -j4
+          mkdir -p /tmp/dotnet/android-x64
+          cp build/lib/libpiper_phonemize_core.so /tmp/dotnet/android-x64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-x64
+          path: /tmp/dotnet/android-x64/
+
+  pack-nuget:
+    needs:
+      - build-linux-x64
+      - build-linux-arm64
+      - build-macos-x64
+      - build-macos-arm64
+      - build-windows-x64
+      - build-windows-arm64
+      - build-android-arm64
+      - build-android-x64
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/dotnet
+
+      - name: List downloaded files
+        run: find /tmp/dotnet -type f | sort
+
+      - name: Pack NuGet packages
+        run: |
+          chmod +x scripts/dotnet/run.sh
+          ./scripts/dotnet/run.sh
+
+      - name: Upload nupkg as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: /tmp/dotnet/packages/*.nupkg
+
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: csukuangfj
+
+      - name: Push to nuget.org
+        run: |
+          dotnet nuget push "/tmp/dotnet/packages/*.nupkg" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

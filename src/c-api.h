@@ -38,7 +38,7 @@ extern "C" {
  * The returned pointer refers to statically allocated memory owned by the
  * library. Do not free it and do not modify it.
  *
- * @return Version string, for example `"1.4.7"`.
+ * @return Version string, for example `"1.4.8"`.
  */
 PIPER_PHONEMIZE_API const char *PiperPhonemizeGetVersionStr();
 

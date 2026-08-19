@@ -4,15 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.csukuangfj.piper.phonemize</groupId>
     <artifactId>piper-phonemize-android</artifactId>
-    <version>1.4.7</version>
+    <version>1.4.8</version>
     <url>https://github.com/csukuangfj/piper-phonemize</url>
     <packaging>pom</packaging>
     <description>piper-phonemize Android Library</description>
 
     <licenses>
         <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>GNU General Public License v3.0 or later</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
