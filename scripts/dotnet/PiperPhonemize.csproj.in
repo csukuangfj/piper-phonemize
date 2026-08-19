@@ -40,7 +40,7 @@
 
   <ItemGroup>
     <!-- Include a .targets file that copies espeak-ng-data to output -->
-    <None Include="build/com.github.csukuangfj.piper.phonemize.targets" Pack="true" PackagePath="build/" />
+    <None Include="targets/com.github.csukuangfj.piper.phonemize.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
 
   <ItemGroup>

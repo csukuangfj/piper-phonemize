@@ -89,8 +89,8 @@ def generate(src_dir: str, output_dir: str):
         shutil.copy2(SCRIPT_DIR / src_file, common_dir / src_file)
 
     # Copy .targets file
-    targets_src = SCRIPT_DIR / "build" / "com.github.csukuangfj.piper.phonemize.targets"
-    targets_dst = common_dir / "build" / "com.github.csukuangfj.piper.phonemize.targets"
+    targets_src = SCRIPT_DIR / "targets" / "com.github.csukuangfj.piper.phonemize.targets"
+    targets_dst = common_dir / "targets" / "com.github.csukuangfj.piper.phonemize.targets"
     targets_dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(targets_src, targets_dst)
 
