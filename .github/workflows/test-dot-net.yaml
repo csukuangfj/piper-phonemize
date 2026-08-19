@@ -68,6 +68,7 @@ jobs:
       - name: Pack NuGet packages
         shell: bash
         run: |
+          pip install jinja2
           chmod +x scripts/dotnet/run.sh
           ./scripts/dotnet/run.sh
 
