@@ -85,6 +85,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
-          overwrite: false
+          overwrite: true
           file: piper-phonemize-*.aar
           tag: v1.4.7
