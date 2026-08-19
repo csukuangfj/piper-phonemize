@@ -12,7 +12,7 @@ before_install:
   - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.4.7/piper-phonemize-native-lib-win-arm64-1.4.7.jar
 
 install:
-  - mvn install:install-file -Dfile=piper-phonemize-1.4.7.aar -DgroupId=com.github.csukuangfj -DartifactId=piper-phonemize -Dversion=1.4.7 -Dpackaging=aar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-1.4.7.aar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize -Dversion=1.4.7 -Dpackaging=aar -DgeneratePom=true
   - mvn install:install-file -Dfile=piper-phonemize-jvm-1.4.7.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-jvm -Dversion=1.4.7 -Dpackaging=jar -DgeneratePom=true
   - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-aarch64-1.4.7.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-aarch64 -Dversion=1.4.7 -Dpackaging=jar -DgeneratePom=true
   - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-x64-1.4.7.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-x64 -Dversion=1.4.7 -Dpackaging=jar -DgeneratePom=true
