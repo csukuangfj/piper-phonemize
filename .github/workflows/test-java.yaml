@@ -33,6 +33,10 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=build-jni/install
           cmake --build build-jni -j4 --target install
 
+          # Copy espeak-ng-data to resources
+          mkdir -p java-api/src/main/resources/piper-phonemize
+          cp -r swift-api-examples/espeak-ng-data java-api/src/main/resources/piper-phonemize/
+
           cd java-api
           mvn package -q
 
