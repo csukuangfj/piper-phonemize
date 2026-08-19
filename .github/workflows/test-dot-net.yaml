@@ -28,6 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -68,7 +73,7 @@ jobs:
       - name: Pack NuGet packages
         shell: bash
         run: |
-          pip install jinja2
+          python3 -m pip install jinja2
           chmod +x scripts/dotnet/run.sh
           ./scripts/dotnet/run.sh
 
@@ -76,10 +81,21 @@ jobs:
         shell: bash
         run: |
           cd dotnet-examples/PhonemizeText
+          echo "=== Available local packages ==="
+          ls /tmp/dotnet/packages/*.nupkg 2>&1
           dotnet add package com.github.csukuangfj.piper.phonemize \
             --source /tmp/dotnet/packages/ \
             --prerelease
           dotnet restore --source /tmp/dotnet/packages/
+          echo "=== Package version ==="
+          dotnet list package 2>&1
+          echo "=== Building ==="
+          dotnet build -v normal 2>&1 | tail -20
+          echo "=== espeak-ng-data in output ==="
+          find bin -name "phontab" 2>/dev/null || echo "NOT FOUND"
+          echo "=== Native libs in output ==="
+          find bin -name "libpiper_phonemize_core*" -o -name "piper_phonemize_core*" 2>/dev/null | head -5
+          echo "=== Running ==="
           dotnet run
 
   test-published:
@@ -112,4 +128,15 @@ jobs:
         shell: bash
         run: |
           cd dotnet-examples/PhonemizeText
+          echo "=== Restoring ==="
+          dotnet restore -v normal 2>&1 | tail -20
+          echo "=== Package version ==="
+          dotnet list package 2>&1
+          echo "=== Building ==="
+          dotnet build -v normal 2>&1 | tail -20
+          echo "=== espeak-ng-data in output ==="
+          find bin -name "phontab" 2>/dev/null || echo "NOT FOUND"
+          echo "=== Native libs in output ==="
+          find bin -name "libpiper_phonemize_core*" -o -name "piper_phonemize_core*" 2>/dev/null | head -5
+          echo "=== Running ==="
           dotnet run
