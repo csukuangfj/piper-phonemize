@@ -90,6 +90,7 @@ option(BUILD_PIPER_PHONEMIZE_CORE_EXE "Whether to build piper_phonemize_exe" OFF
 option(BUILD_PIPER_PHONEMIZE_CORE_TESTS "Whether to build tests" OFF)
 option(ENABLE_PIPER_PHONEMIZE_CORE_SONAME "Whether to enable soname" OFF)
 option(BUILD_PIPER_PHONEMIZE_PYTHON "Whether to build Python extension" OFF)
+option(BUILD_PIPER_PHONEMIZE_JNI "Whether to build JNI library" OFF)
 
 # WASM support
 option(PIPER_PHONEMIZE_ENABLE_WASM "Build for WebAssembly" OFF)
@@ -447,4 +448,11 @@ if(PIPER_PHONEMIZE_ENABLE_WASM)
     message(STATUS "Building WASM for browser")
     add_subdirectory(wasm/browser)
   endif()
+endif()
+
+# ---- JNI support ----
+
+if(BUILD_PIPER_PHONEMIZE_JNI)
+  message(STATUS "Building JNI library")
+  add_subdirectory(jni)
 endif()

@@ -21,9 +21,13 @@ htmlcov
 /_install/
 node_modules
 package-lock.json
-example
+/example
 build-swift-macos
 build-ios
 build-wasm-simd-nodejs
 .build
 target/
+java-api/src/main/resources/piper-phonemize/espeak-ng-data
+.gradle
+todo*
+plan.md
