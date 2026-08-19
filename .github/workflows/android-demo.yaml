@@ -29,13 +29,13 @@ jobs:
         run: |
           cd android-demo
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug
 
       - name: Rename APK
         shell: bash
         run: |
           VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          cp android-demo/app/build/outputs/apk/release/app-release-unsigned.apk \
+          cp android-demo/app/build/outputs/apk/debug/app-debug.apk \
              piper-phonemize-v${VERSION}-android-demo.apk
           ls -lh piper-phonemize-*.apk
 
