@@ -112,12 +112,17 @@ private fun extractEspeakNgData(context: Context): String {
     outputDir.mkdirs()
 
     val assetManager = context.assets
-    val files = assetManager.list("espeak-ng-data") ?: emptyArray()
+    extractAssetDir(assetManager, "espeak-ng-data", outputDir)
 
-    for (fileName in files) {
-        val assetPath = "espeak-ng-data/$fileName"
+    return outputDir.absolutePath
+}
+
+private fun extractAssetDir(assetManager: android.content.res.AssetManager, assetPath: String, outputDir: File) {
+    val entries = assetManager.list(assetPath) ?: emptyArray()
+    if (entries.isEmpty()) {
+        // It's a file, extract it
+        val fileName = assetPath.substringAfterLast('/')
         val outputFile = File(outputDir, fileName)
-
         if (!outputFile.exists()) {
             assetManager.open(assetPath).use { input ->
                 FileOutputStream(outputFile).use { output ->
@@ -125,7 +130,13 @@ private fun extractEspeakNgData(context: Context): String {
                 }
             }
         }
+    } else {
+        // It's a directory, recurse
+        val dirName = assetPath.substringAfterLast('/')
+        val subDir = File(outputDir, dirName)
+        subDir.mkdirs()
+        for (entry in entries) {
+            extractAssetDir(assetManager, "$assetPath/$entry", subDir)
+        }
     }
-
-    return outputDir.absolutePath
 }
