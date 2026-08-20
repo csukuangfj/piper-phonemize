@@ -48,17 +48,19 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-      - name: Download macOS xcframework
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-flutter-macos-xcframework
+
+      - name: Build macOS xcframework for Flutter
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download xcframework \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
-            --dir /tmp/libs
-          cd /tmp/libs && unzip -o *.zip
-          cp -r piper-phonemize.xcframework \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
+          unzip -o build-macos-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
 
       - name: Disable SPM, use CocoaPods
         run: flutter config --no-enable-swift-package-manager
@@ -127,17 +129,19 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-      - name: Download macOS xcframework
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-flutter-macos-xcframework
+
+      - name: Build macOS xcframework for Flutter
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download xcframework \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
-            --dir /tmp/libs
-          cd /tmp/libs && unzip -o *.zip
-          cp -r piper-phonemize.xcframework \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
+          unzip -o build-macos-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
 
       - name: Enable SPM
         run: flutter config --enable-swift-package-manager
@@ -170,6 +174,132 @@ jobs:
         with:
           name: flutter-hello-world-macos-spm
           path: flutter-examples/hello_world/flutter-hello-world-macos-spm.zip
+
+  flutter_local_ios_cocoapods:
+    name: flutter-local-ios-cocoapods
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Fix version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          cd flutter-examples/hello_world
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-flutter-ios-xcframework
+
+      - name: Build iOS xcframework for Flutter
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios-shared-flutter.sh
+          unzip -o build-ios-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/ios/piper_phonemize/
+
+      - name: Disable SPM, use CocoaPods
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: pod install
+        working-directory: flutter-examples/hello_world/ios
+        run: pod install
+
+      - name: flutter build ios
+        working-directory: flutter-examples/hello_world
+        run: flutter build ios --no-codesign
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-ios-cocoapods
+          path: flutter-examples/hello_world/build/ios/iphoneos/Runner.app
+
+  flutter_local_ios_spm:
+    name: flutter-local-ios-spm
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Fix version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          cd flutter-examples/hello_world
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-flutter-ios-xcframework
+
+      - name: Build iOS xcframework for Flutter
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios-shared-flutter.sh
+          unzip -o build-ios-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/ios/piper_phonemize/
+
+      - name: Enable SPM
+        run: flutter config --enable-swift-package-manager
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: flutter build ios
+        working-directory: flutter-examples/hello_world
+        run: flutter build ios --no-codesign
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-ios-spm
+          path: flutter-examples/hello_world/build/ios/iphoneos/Runner.app
 
   flutter_local_linux:
     name: flutter-local-linux

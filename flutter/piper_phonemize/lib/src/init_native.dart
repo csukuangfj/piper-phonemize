@@ -13,10 +13,10 @@ DynamicLibrary loadDylib(String? path) {
     if (path == null) {
       return DynamicLibrary.process();
     } else {
-      // The dylib lives inside the xcframework bundle:
-      // macos/piper_phonemize/piper-phonemize.xcframework/macos-arm64_x86_64/PiperPhonemizeC.framework/PiperPhonemizeC
+      // The dylib lives inside the xcframework:
+      // macos/piper_phonemize/piper-phonemize.xcframework/macos-arm64_x86_64/libpiper_phonemize_core.dylib
       return DynamicLibrary.open(
-          '$path/piper_phonemize/piper-phonemize.xcframework/macos-arm64_x86_64/PiperPhonemizeC.framework/PiperPhonemizeC');
+          '$path/piper_phonemize/piper-phonemize.xcframework/macos-arm64_x86_64/libpiper_phonemize_core.dylib');
     }
   }
 

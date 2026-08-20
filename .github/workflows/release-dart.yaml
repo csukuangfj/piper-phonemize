@@ -3,7 +3,7 @@ name: release-dart
 on:
   push:
     branches:
-      - dart
+      - dart-2
     tags:
       - 'dart-v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
   workflow_dispatch:
@@ -49,35 +49,30 @@ jobs:
         run: |
           rm -fv flutter/piper_phonemize/.gitignore
 
-      - name: Download pre-built macOS xcframework
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: flutter-xcframework
+
+      - name: Build macOS shared xcframework for Flutter
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          cd flutter/piper_phonemize/macos/piper_phonemize
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
 
-          gh release download xcframework \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
-            --dir /tmp
-          unzip -o /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip
-          rm /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip
+          unzip -o build-macos-shared-flutter/*.xcframework.zip -d flutter/piper_phonemize/macos/piper_phonemize/
+          ls -lh flutter/piper_phonemize/macos/piper_phonemize/piper-phonemize.xcframework/
 
-          ls -lh piper-phonemize.xcframework/
-
-      - name: Download pre-built iOS xcframework
+      - name: Build iOS shared xcframework for Flutter
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          cd flutter/piper_phonemize/ios/piper_phonemize
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios-shared-flutter.sh
 
-          gh release download xcframework \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip" \
-            --dir /tmp
-          unzip -o /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip
-          rm /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip
-
-          ls -lh piper-phonemize.xcframework/
+          unzip -o build-ios-shared-flutter/*.xcframework.zip -d flutter/piper_phonemize/ios/piper_phonemize/
+          ls -lh flutter/piper_phonemize/ios/piper_phonemize/piper-phonemize.xcframework/
 
       - name: Download pre-built Linux shared libs
         shell: bash
