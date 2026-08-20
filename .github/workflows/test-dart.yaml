@@ -42,9 +42,9 @@ jobs:
       - name: Use local piper_phonemize
         shell: bash
         run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd dart-api-examples/version
-          sed -i.bak 's|piper_phonemize:$|piper_phonemize:|' pubspec.yaml
-          sed -i.bak 's|    path: ../../flutter/piper_phonemize|    path: ../../flutter/piper_phonemize|' pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
           cat pubspec.yaml
 
@@ -142,12 +142,7 @@ jobs:
       - name: Use published piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd dart-api-examples/version
-          # Replace path dependency with published version
-          sed -i.bak '/piper_phonemize:/,/path:/{/path:/d}' pubspec.yaml
-          sed -i.bak "s|piper_phonemize:|piper_phonemize: ^$PIPER_VERSION|" pubspec.yaml
-          rm -f pubspec.yaml.bak
           cat pubspec.yaml
 
       - name: dart pub get

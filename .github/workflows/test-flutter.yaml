@@ -13,18 +13,13 @@ concurrency:
   group: test-flutter-${{ github.ref }}
   cancel-in-progress: true
 
-# Native libs version to download from releases.
 env:
   NATIVE_LIBS_VERSION: "v1.4.8"
 
 jobs:
-  flutter_local:
-    name: flutter-local-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-2022]
+  flutter_local_cocoapods:
+    name: flutter-local-cocoapods
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -36,16 +31,15 @@ jobs:
         shell: bash
         run: |
           PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          echo "PIPER_VERSION=$PIPER_VERSION"
           sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak 's|piper_phonemize:$|piper_phonemize:|' pubspec.yaml
-          sed -i.bak 's|    path: ../../flutter/piper_phonemize|    path: ../../flutter/piper_phonemize|' pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
           cat pubspec.yaml
 
@@ -55,60 +49,57 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-      - name: Download native libs
+      - name: Download macOS xcframework
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            gh release download xcframework \
-              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
-              --dir /tmp/libs
-            cd /tmp/libs && unzip -o *.zip
-            cp -r piper-phonemize.xcframework \
-              $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
-          elif [ "$RUNNER_OS" = "Linux" ]; then
-            sudo apt-get update && sudo apt-get install -y ninja-build libgtk-3-dev
-            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
-              --dir /tmp/libs
-            cd /tmp/libs && tar xjf *.tar.bz2
-            mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64
-            cp lib/libpiper_phonemize_core.so \
-              $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64/
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
-              --dir /tmp/libs
-            cd /tmp/libs && tar xjf *.tar.bz2
-            mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64
-            cp bin/piper_phonemize_core.dll \
-              $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64/
-          fi
+          gh release download xcframework \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
+            --dir /tmp/libs
+          cd /tmp/libs && unzip -o *.zip
+          cp -r piper-phonemize.xcframework \
+            $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
+
+      - name: Disable SPM, use CocoaPods
+        run: flutter config --no-enable-swift-package-manager
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
         run: flutter pub get
 
-      - name: flutter build
-        working-directory: flutter-examples/hello_world
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            flutter build macos
-          elif [ "$RUNNER_OS" = "Linux" ]; then
-            flutter build linux
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            flutter build windows
-          fi
+      - name: pod install
+        working-directory: flutter-examples/hello_world/macos
+        run: pod install
 
-  flutter_published:
-    name: flutter-published-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-2022]
+      - name: flutter build macos
+        working-directory: flutter-examples/hello_world
+        run: flutter build macos
+
+      - name: Codesign
+        shell: bash
+        working-directory: flutter-examples/hello_world
+        run: |
+          codesign --force --deep -s - build/macos/Build/Products/Release/hello_world.app
+          xattr -cr build/macos/Build/Products/Release/hello_world.app
+
+      - name: Zip app
+        shell: bash
+        working-directory: flutter-examples/hello_world
+        run: |
+          mkdir -p flutter-hello-world-macos-cocoapods
+          cp -r build/macos/Build/Products/Release/hello_world.app \
+            flutter-hello-world-macos-cocoapods/
+          zip -r -y flutter-hello-world-macos-cocoapods.zip flutter-hello-world-macos-cocoapods/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-macos-cocoapods
+          path: flutter-examples/hello_world/flutter-hello-world-macos-cocoapods.zip
+
+  flutter_local_spm:
+    name: flutter-local-spm
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -120,34 +111,204 @@ jobs:
         shell: bash
         run: |
           PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          echo "PIPER_VERSION=$PIPER_VERSION"
           sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
-      - name: Use published piper_phonemize
+      - name: Use local piper_phonemize
         shell: bash
         run: |
           PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          # Replace path dependency with published version
-          sed -i.bak '/piper_phonemize:/,/path:/{/path:/d}' pubspec.yaml
-          sed -i.bak "s|piper_phonemize:|piper_phonemize: ^$PIPER_VERSION|" pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
           cat pubspec.yaml
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: Download macOS xcframework
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download xcframework \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
+            --dir /tmp/libs
+          cd /tmp/libs && unzip -o *.zip
+          cp -r piper-phonemize.xcframework \
+            $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
+
+      - name: Enable SPM
+        run: flutter config --enable-swift-package-manager
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
         run: flutter pub get
 
-      - name: flutter build
+      - name: flutter build macos
         working-directory: flutter-examples/hello_world
+        run: flutter build macos
+
+      - name: Codesign
+        shell: bash
+        working-directory: flutter-examples/hello_world
+        run: |
+          codesign --force --deep -s - build/macos/Build/Products/Release/hello_world.app
+          xattr -cr build/macos/Build/Products/Release/hello_world.app
+
+      - name: Zip app
+        shell: bash
+        working-directory: flutter-examples/hello_world
+        run: |
+          mkdir -p flutter-hello-world-macos-spm
+          cp -r build/macos/Build/Products/Release/hello_world.app \
+            flutter-hello-world-macos-spm/
+          zip -r -y flutter-hello-world-macos-spm.zip flutter-hello-world-macos-spm/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-macos-spm
+          path: flutter-examples/hello_world/flutter-hello-world-macos-spm.zip
+
+  flutter_local_linux:
+    name: flutter-local-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: Fix version
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            flutter build macos
-          elif [ "$RUNNER_OS" = "Linux" ]; then
-            sudo apt-get update && sudo apt-get install -y ninja-build libgtk-3-dev
-            flutter build linux
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            flutter build windows
-          fi
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          cd flutter-examples/hello_world
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: Download Linux x64 shared lib
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p flutter/piper_phonemize/linux/lib/x64
+          cp lib/libpiper_phonemize_core.so flutter/piper_phonemize/linux/lib/x64/
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: flutter build linux
+        working-directory: flutter-examples/hello_world
+        run: flutter build linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-linux-x64
+          path: flutter-examples/hello_world/build/linux/x64/release/bundle/
+
+  flutter_local_windows:
+    name: flutter-local-windows
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Fix version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          cd flutter-examples/hello_world
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: Download Windows x64 shared lib
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p flutter/piper_phonemize/windows/lib/x64
+          cp bin/piper_phonemize_core.dll flutter/piper_phonemize/windows/lib/x64/
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: flutter build windows
+        working-directory: flutter-examples/hello_world
+        run: flutter build windows
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-win-x64
+          path: flutter-examples/hello_world/build/windows/x64/runner/Release/
+
+  flutter_published:
+    name: flutter-published-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: flutter build linux
+        working-directory: flutter-examples/hello_world
+        run: flutter build linux
