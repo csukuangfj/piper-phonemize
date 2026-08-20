@@ -1,0 +1,156 @@
+name: test-dart
+
+on:
+  push:
+    branches:
+      - dart
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: test-dart-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dart_local:
+    name: dart-local-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Fix version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          cd dart-api-examples/version
+          sed -i.bak 's|piper_phonemize:$|piper_phonemize:|' pubspec.yaml
+          sed -i.bak 's|    path: ../../flutter/piper_phonemize|    path: ../../flutter/piper_phonemize|' pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+
+      - name: Download native shared libs (Linux x64)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          gh release download $PIPER_VERSION \
+            --pattern "piper-phonemize-${PIPER_VERSION}-linux-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p linux/x64
+          cp lib/libpiper_phonemize_core.so linux/x64/
+
+      - name: Download native shared libs (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          gh release download xcframework \
+            --pattern "piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip" \
+            --dir /tmp/libs
+          cd /tmp/libs && unzip *.zip
+          mkdir -p macos
+          cp -r piper-phonemize.xcframework macos/
+
+      - name: Download native shared libs (Windows x64)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          gh release download $PIPER_VERSION \
+            --pattern "piper-phonemize-${PIPER_VERSION}-windows-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p windows/x64
+          cp bin/piper_phonemize_core.dll windows/x64/
+
+      - name: Place native libs
+        shell: bash
+        run: |
+          if [ -d /tmp/libs/linux ]; then
+            cp -r /tmp/libs/linux/ flutter/piper_phonemize/linux/lib/
+          fi
+          if [ -d /tmp/libs/macos ]; then
+            cp -r /tmp/libs/macos/piper-phonemize.xcframework \
+              flutter/piper_phonemize/macos/piper_phonemize/
+          fi
+          if [ -d /tmp/libs/windows ]; then
+            cp -r /tmp/libs/windows/ flutter/piper_phonemize/windows/lib/
+          fi
+
+      - name: dart pub get
+        working-directory: dart-api-examples/version
+        run: dart pub get
+
+      - name: dart analyze
+        working-directory: flutter/piper_phonemize
+        run: dart analyze
+
+      - name: Run main_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_sync.dart
+
+      - name: Run main_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_async.dart
+
+      - name: Run main_isolate_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_isolate_sync.dart
+
+      - name: Run main_isolate_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_isolate_async.dart
+
+  dart_published:
+    name: dart-published-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Use published piper_phonemize
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          cd dart-api-examples/version
+          # Replace path dependency with published version
+          sed -i.bak '/piper_phonemize:/,/path:/{/path:/d}' pubspec.yaml
+          sed -i.bak "s|piper_phonemize:|piper_phonemize: ^$PIPER_VERSION|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+
+      - name: dart pub get
+        working-directory: dart-api-examples/version
+        run: dart pub get
+
+      - name: Run main_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_sync.dart
+
+      - name: Run main_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_async.dart
