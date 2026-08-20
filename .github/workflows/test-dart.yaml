@@ -145,6 +145,15 @@ jobs:
         working-directory: dart-api-examples/version
         run: dart run bin/main_isolate_async.dart
 
+      - name: flutter pub get (hello_world)
+        working-directory: dart-api-examples/hello_world
+        run: flutter pub get
+
+      - name: Run hello_world
+        shell: bash
+        working-directory: dart-api-examples/hello_world
+        run: dart run bin/main.dart $GITHUB_WORKSPACE/swift-api-examples/espeak-ng-data
+
   dart_published:
     name: dart-published-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -184,3 +193,12 @@ jobs:
       - name: Run main_async.dart
         working-directory: dart-api-examples/version
         run: dart run bin/main_async.dart
+
+      - name: flutter pub get (hello_world)
+        working-directory: dart-api-examples/hello_world
+        run: flutter pub get
+
+      - name: Run hello_world
+        shell: bash
+        working-directory: dart-api-examples/hello_world
+        run: dart run bin/main.dart $GITHUB_WORKSPACE/swift-api-examples/espeak-ng-data
