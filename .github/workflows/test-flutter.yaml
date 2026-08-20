@@ -474,3 +474,21 @@ jobs:
         if: matrix.os == 'windows-2022'
         working-directory: flutter-examples/hello_world
         run: flutter build windows
+
+  flutter_published_ios:
+    name: flutter-published-ios
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: flutter pub get
+        working-directory: flutter-examples/hello_world
+        run: flutter pub get
+
+      - name: flutter build ios
+        working-directory: flutter-examples/hello_world
+        run: flutter build ios --no-codesign
