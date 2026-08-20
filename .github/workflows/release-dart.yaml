@@ -2,6 +2,8 @@ name: release-dart
 
 on:
   push:
+    branches:
+      - dart
     tags:
       - 'dart-v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
   workflow_dispatch:
@@ -49,6 +51,8 @@ jobs:
 
       - name: Download pre-built macOS xcframework
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd flutter/piper_phonemize/macos/piper_phonemize
 
@@ -62,6 +66,8 @@ jobs:
 
       - name: Download pre-built iOS xcframework
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd flutter/piper_phonemize/ios/piper_phonemize
 
@@ -75,6 +81,8 @@ jobs:
 
       - name: Download pre-built Linux shared libs
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           for arch in x64 arm64; do
             gh release download ${{ env.NATIVE_LIBS_VERSION }} \
@@ -94,6 +102,8 @@ jobs:
 
       - name: Download pre-built Windows shared libs
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           for arch in x64 arm64; do
             gh release download ${{ env.NATIVE_LIBS_VERSION }} \
@@ -116,6 +126,8 @@ jobs:
 
       - name: Download pre-built Android shared libs
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download ${{ env.NATIVE_LIBS_VERSION }} \
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-android.tar.bz2" \
