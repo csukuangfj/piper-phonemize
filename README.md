@@ -35,7 +35,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-piper-phonemize = "0.3.6"
+piper-phonemize = "1.4.8"
 ```
 
 The crate automatically downloads prebuilt libraries and embeds espeak-ng-data.
