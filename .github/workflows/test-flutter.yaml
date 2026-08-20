@@ -314,6 +314,20 @@ jobs:
         working-directory: flutter-examples/hello_world
         run: flutter pub get
 
+      - name: Show published package contents
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "=== Looking for piper_phonemize $PIPER_VERSION in pub cache ==="
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f 2>/dev/null | head -50
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f 2>/dev/null | head -50
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            find "$LOCALAPPDATA/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | head -50 || \
+            find "$USERPROFILE/AppData/Local/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | head -50
+          fi
+
       - name: flutter build (Linux)
         if: matrix.os == 'ubuntu-latest'
         working-directory: flutter-examples/hello_world

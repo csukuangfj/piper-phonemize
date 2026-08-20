@@ -87,6 +87,14 @@ jobs:
           mkdir -p windows/x64
           cp bin/piper_phonemize_core.dll windows/x64/
 
+      - name: Show downloaded files
+        shell: bash
+        run: |
+          echo "=== /tmp/libs contents ==="
+          find /tmp/libs -type f 2>/dev/null | sort
+          echo "=== flutter/piper_phonemize native dirs ==="
+          find flutter/piper_phonemize/linux flutter/piper_phonemize/windows flutter/piper_phonemize/macos -type f 2>/dev/null | sort
+
       - name: Place native libs
         shell: bash
         run: |
@@ -100,6 +108,12 @@ jobs:
           if [ -d /tmp/libs/windows ]; then
             cp -r /tmp/libs/windows/ flutter/piper_phonemize/windows/lib/
           fi
+
+      - name: Show placed native libs
+        shell: bash
+        run: |
+          echo "=== flutter/piper_phonemize native dirs after place ==="
+          find flutter/piper_phonemize/linux flutter/piper_phonemize/windows flutter/piper_phonemize/macos -type f 2>/dev/null | sort
 
       - name: flutter pub get
         working-directory: dart-api-examples/version
@@ -148,6 +162,20 @@ jobs:
       - name: flutter pub get
         working-directory: dart-api-examples/version
         run: flutter pub get
+
+      - name: Show published package contents
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "=== Looking for piper_phonemize $PIPER_VERSION in pub cache ==="
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f | sort
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f | sort
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            find "$LOCALAPPDATA/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | sort || \
+            find "$USERPROFILE/AppData/Local/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | sort
+          fi
 
       - name: Run main_sync.dart
         working-directory: dart-api-examples/version

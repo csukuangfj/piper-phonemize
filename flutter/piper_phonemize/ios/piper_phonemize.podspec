@@ -12,7 +12,7 @@ backed by espeak-ng.
 
   s.source           = { :path => '.' }
   s.dependency 'Flutter'
-  s.platform = :ios, '13.0'
+  s.platform = :ios, '14.0'
 
   s.vendored_frameworks = 'piper_phonemize/piper-phonemize.xcframework'
 

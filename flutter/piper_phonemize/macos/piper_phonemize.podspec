@@ -15,7 +15,7 @@ backed by espeak-ng.
 
   s.vendored_libraries = 'piper_phonemize/piper-phonemize.xcframework/macos-arm64_x86_64/PiperPhonemizeC.framework/PiperPhonemizeC'
 
-  s.platform = :osx, '10.15'
+  s.platform = :osx, '12.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
 end
