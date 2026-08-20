@@ -141,13 +141,14 @@ jobs:
               $GITHUB_WORKSPACE/flutter/piper_phonemize/android/src/main/jniLibs/$abi/
           done
 
-      - name: Copy example and README
+      - name: Copy example, README, and CHANGELOG
         shell: bash
         run: |
           dst=flutter/piper_phonemize
           mkdir -p $dst/example
           cp -v dart-api-examples/version/bin/main_sync.dart $dst/example/
           cp -v README.md $dst/
+          cp -v CHANGELOG.md $dst/
 
       - name: Prepare for publish
         shell: bash

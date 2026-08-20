@@ -1,6 +1,7 @@
 # Copied by CI from repo root — not committed
 espeak-ng-data/
 LICENSE
+CHANGELOG.md
 
 # Native libraries are not committed — downloaded by CI from releases
 macos/piper_phonemize/piper-phonemize.xcframework/
