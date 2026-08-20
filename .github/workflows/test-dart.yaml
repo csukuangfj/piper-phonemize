@@ -28,9 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: stable
 
       - name: Fix version
         shell: bash
@@ -101,13 +101,13 @@ jobs:
             cp -r /tmp/libs/windows/ flutter/piper_phonemize/windows/lib/
           fi
 
-      - name: dart pub get
+      - name: flutter pub get
         working-directory: dart-api-examples/version
-        run: dart pub get
+        run: flutter pub get
 
-      - name: dart analyze
+      - name: flutter analyze
         working-directory: flutter/piper_phonemize
-        run: dart analyze
+        run: flutter analyze
 
       - name: Run main_sync.dart
         working-directory: dart-api-examples/version
@@ -135,19 +135,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: stable
 
-      - name: Use published piper_phonemize
-        shell: bash
-        run: |
-          cd dart-api-examples/version
-          cat pubspec.yaml
-
-      - name: dart pub get
+      - name: flutter pub get
         working-directory: dart-api-examples/version
-        run: dart pub get
+        run: flutter pub get
 
       - name: Run main_sync.dart
         working-directory: dart-api-examples/version
