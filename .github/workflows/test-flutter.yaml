@@ -35,7 +35,7 @@ jobs:
       - name: Fix version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           echo "PIPER_VERSION=$PIPER_VERSION"
           sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
@@ -119,7 +119,7 @@ jobs:
       - name: Fix version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           echo "PIPER_VERSION=$PIPER_VERSION"
           sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
@@ -127,7 +127,7 @@ jobs:
       - name: Use published piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
           # Replace path dependency with published version
           sed -i.bak '/piper_phonemize:/,/path:/{/path:/d}' pubspec.yaml

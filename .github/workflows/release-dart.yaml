@@ -30,7 +30,7 @@ jobs:
       - name: Fix version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           echo "PIPER_VERSION=$PIPER_VERSION"
 
           dst=flutter/piper_phonemize

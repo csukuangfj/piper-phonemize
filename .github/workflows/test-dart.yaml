@@ -35,7 +35,7 @@ jobs:
       - name: Fix version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
@@ -51,6 +51,8 @@ jobs:
       - name: Download native shared libs (Linux x64)
         if: matrix.os == 'ubuntu-latest'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download ${{ env.NATIVE_LIBS_VERSION }} \
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
@@ -62,6 +64,8 @@ jobs:
       - name: Download native shared libs (macOS)
         if: matrix.os == 'macos-latest'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download xcframework \
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
@@ -73,6 +77,8 @@ jobs:
       - name: Download native shared libs (Windows x64)
         if: matrix.os == 'windows-latest'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download ${{ env.NATIVE_LIBS_VERSION }} \
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
@@ -136,7 +142,7 @@ jobs:
       - name: Use published piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd dart-api-examples/version
           # Replace path dependency with published version
           sed -i.bak '/piper_phonemize:/,/path:/{/path:/d}' pubspec.yaml
