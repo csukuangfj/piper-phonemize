@@ -105,6 +105,12 @@ jobs:
         working-directory: dart-api-examples/version
         run: flutter pub get
 
+      - name: Copy espeak-ng-data (needed for flutter analyze)
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
       - name: flutter analyze
         working-directory: flutter/piper_phonemize
         run: flutter analyze
