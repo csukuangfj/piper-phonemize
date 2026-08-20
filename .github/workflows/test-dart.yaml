@@ -13,6 +13,10 @@ concurrency:
   group: test-dart-${{ github.ref }}
   cancel-in-progress: true
 
+# Native libs version to download from releases.
+env:
+  NATIVE_LIBS_VERSION: "v1.4.8"
+
 jobs:
   dart_local:
     name: dart-local-${{ matrix.os }}
@@ -48,9 +52,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
-          gh release download $PIPER_VERSION \
-            --pattern "piper-phonemize-${PIPER_VERSION}-linux-x64-shared-lib.tar.bz2" \
+          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
           mkdir -p linux/x64
@@ -60,9 +63,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
           gh release download xcframework \
-            --pattern "piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip" \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
             --dir /tmp/libs
           cd /tmp/libs && unzip *.zip
           mkdir -p macos
@@ -72,9 +74,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
-          gh release download $PIPER_VERSION \
-            --pattern "piper-phonemize-${PIPER_VERSION}-windows-x64-shared-lib.tar.bz2" \
+          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
           mkdir -p windows/x64

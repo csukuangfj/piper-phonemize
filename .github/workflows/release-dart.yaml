@@ -2,8 +2,6 @@ name: release-dart
 
 on:
   push:
-    branches:
-      - dart
     tags:
       - 'dart-v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
   workflow_dispatch:
@@ -11,6 +9,11 @@ on:
 concurrency:
   group: release-dart-${{ github.ref }}
   cancel-in-progress: true
+
+# Native libs version to download from releases.
+# Update this when new native libs are released.
+env:
+  NATIVE_LIBS_VERSION: "v1.4.8"
 
 jobs:
   release_piper_phonemize:
@@ -25,7 +28,7 @@ jobs:
       - name: Fix version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
           echo "PIPER_VERSION=$PIPER_VERSION"
 
           dst=flutter/piper_phonemize
@@ -47,39 +50,35 @@ jobs:
       - name: Download pre-built macOS xcframework
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd flutter/piper_phonemize/macos/piper_phonemize
 
           gh release download xcframework \
-            --pattern "piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip" \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
             --dir /tmp
-          unzip -o /tmp/piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip
-          rm /tmp/piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip
+          unzip -o /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip
+          rm /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip
 
           ls -lh piper-phonemize.xcframework/
 
       - name: Download pre-built iOS xcframework
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
           cd flutter/piper_phonemize/ios/piper_phonemize
 
           gh release download xcframework \
-            --pattern "piper-phonemize-${PIPER_VERSION}-ios-shared.xcframework.zip" \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip" \
             --dir /tmp
-          unzip -o /tmp/piper-phonemize-${PIPER_VERSION}-ios-shared.xcframework.zip
-          rm /tmp/piper-phonemize-${PIPER_VERSION}-ios-shared.xcframework.zip
+          unzip -o /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip
+          rm /tmp/piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-ios-shared.xcframework.zip
 
           ls -lh piper-phonemize.xcframework/
 
       - name: Download pre-built Linux shared libs
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-
           for arch in x64 arm64; do
-            gh release download $PIPER_VERSION \
-              --pattern "piper-phonemize-${PIPER_VERSION}-linux-${arch}-shared-lib.tar.bz2" \
+            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-${arch}-shared-lib.tar.bz2" \
               --dir /tmp/linux
           done
 
@@ -91,17 +90,14 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/aarch64
           cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64/
-          # arm64 tarball also extracts to lib/
           cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/aarch64/
 
       - name: Download pre-built Windows shared libs
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-
           for arch in x64 arm64; do
-            gh release download $PIPER_VERSION \
-              --pattern "piper-phonemize-${PIPER_VERSION}-windows-${arch}-shared-lib.tar.bz2" \
+            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-${arch}-shared-lib.tar.bz2" \
               --dir /tmp/win
           done
 
@@ -121,10 +117,8 @@ jobs:
       - name: Download pre-built Android shared libs
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-
-          gh release download $PIPER_VERSION \
-            --pattern "piper-phonemize-${PIPER_VERSION}-android.tar.bz2" \
+          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-android.tar.bz2" \
             --dir /tmp/android
 
           cd /tmp/android && tar xjf *.tar.bz2

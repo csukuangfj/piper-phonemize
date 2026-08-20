@@ -13,6 +13,10 @@ concurrency:
   group: test-flutter-${{ github.ref }}
   cancel-in-progress: true
 
+# Native libs version to download from releases.
+env:
+  NATIVE_LIBS_VERSION: "v1.4.8"
+
 jobs:
   flutter_local:
     name: flutter-local-${{ matrix.os }}
@@ -54,27 +58,25 @@ jobs:
       - name: Download native libs
         shell: bash
         run: |
-          PIPER_VERSION=v$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*(\(.*\))/\1/' | tr -d ' ")')
-
           if [ "$RUNNER_OS" = "macOS" ]; then
             gh release download xcframework \
-              --pattern "piper-phonemize-${PIPER_VERSION}-macos-shared.xcframework.zip" \
+              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
               --dir /tmp/libs
             cd /tmp/libs && unzip -o *.zip
             cp -r piper-phonemize.xcframework \
               $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
           elif [ "$RUNNER_OS" = "Linux" ]; then
             sudo apt-get update && sudo apt-get install -y ninja-build libgtk-3-dev
-            gh release download $PIPER_VERSION \
-              --pattern "piper-phonemize-${PIPER_VERSION}-linux-x64-shared-lib.tar.bz2" \
+            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
               --dir /tmp/libs
             cd /tmp/libs && tar xjf *.tar.bz2
             mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64
             cp lib/libpiper_phonemize_core.so \
               $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64/
           elif [ "$RUNNER_OS" = "Windows" ]; then
-            gh release download $PIPER_VERSION \
-              --pattern "piper-phonemize-${PIPER_VERSION}-windows-x64-shared-lib.tar.bz2" \
+            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
               --dir /tmp/libs
             cd /tmp/libs && tar xjf *.tar.bz2
             mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64
