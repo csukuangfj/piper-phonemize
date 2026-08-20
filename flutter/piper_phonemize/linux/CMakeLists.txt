@@ -17,6 +17,6 @@ endif()
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 set(piper_phonemize_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/lib/${LIB_ARCH_DIR}/libpiper_phonemize_core.so"
+  "${CMAKE_CURRENT_SOURCE_DIR}/${LIB_ARCH_DIR}/libpiper_phonemize_core.so"
   PARENT_SCOPE
 )

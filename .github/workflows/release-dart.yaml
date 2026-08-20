@@ -95,10 +95,10 @@ jobs:
             tar xjf "$f"
           done
 
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/aarch64
-          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64/
-          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/aarch64/
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64
+          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
+          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64/
 
       - name: Download pre-built Windows shared libs
         shell: bash
@@ -119,10 +119,10 @@ jobs:
             cd ..
           done
 
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/arm64
-          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64/
-          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/arm64/
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64
+          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
+          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64/
 
       - name: Download pre-built Android shared libs
         shell: bash

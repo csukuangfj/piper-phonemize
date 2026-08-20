@@ -216,9 +216,9 @@ jobs:
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
           cp lib/libpiper_phonemize_core.so \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/lib/x64/
+            $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
@@ -273,9 +273,9 @@ jobs:
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
           cp bin/piper_phonemize_core.dll \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/lib/x64/
+            $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world

@@ -58,8 +58,8 @@ jobs:
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p linux/x64
-          cp lib/libpiper_phonemize_core.so linux/x64/
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
+          cp lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
 
       - name: Download native shared libs (macOS)
         if: matrix.os == 'macos-latest'
@@ -84,8 +84,8 @@ jobs:
             --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p windows/x64
-          cp bin/piper_phonemize_core.dll windows/x64/
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
+          cp bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
 
       - name: Show downloaded files
         shell: bash
