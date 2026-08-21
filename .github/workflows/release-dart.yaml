@@ -12,11 +12,6 @@ concurrency:
   group: release-dart-${{ github.ref }}
   cancel-in-progress: true
 
-# Native libs version to download from releases.
-# Update this when new native libs are released.
-env:
-  NATIVE_LIBS_VERSION: "v1.4.9"
-
 jobs:
   release_piper_phonemize:
     permissions:
@@ -27,14 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix version
+      - name: Set version from CMakeLists.txt
+        id: version
         shell: bash
         run: |
           PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           echo "PIPER_VERSION=$PIPER_VERSION"
+          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
+          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Fix version
+        shell: bash
+        run: |
           dst=flutter/piper_phonemize
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" $dst/pubspec.yaml
+          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" $dst/pubspec.yaml
           rm -f $dst/pubspec.yaml.bak
           git diff
 
@@ -80,8 +81,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           for arch in x64 arm64; do
-            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-${arch}-shared-lib.tar.bz2" \
+            gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-${arch}-shared-lib.tar.bz2" \
               --dir /tmp/linux
           done
 
@@ -101,8 +102,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           for arch in x64 arm64; do
-            gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-              --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-${arch}-shared-lib.tar.bz2" \
+            gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-${arch}-shared-lib.tar.bz2" \
               --dir /tmp/win
           done
 
@@ -124,8 +125,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-android.tar.bz2" \
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-android.tar.bz2" \
             --dir /tmp/android
 
           cd /tmp/android && tar xjf *.tar.bz2
