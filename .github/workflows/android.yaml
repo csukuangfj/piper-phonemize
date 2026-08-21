@@ -87,4 +87,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.aar
-          tag: v1.4.8
+          tag: v1.4.9

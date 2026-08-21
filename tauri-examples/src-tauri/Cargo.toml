@@ -1,6 +1,6 @@
 [package]
 name = "piper-phonemize-tauri"
-version = "1.4.8"
+version = "1.4.9"
 edition = "2021"
 
 [lib]
@@ -19,4 +19,4 @@ tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # piper-phonemize = { path = "../../rust/piper-phonemize", default-features = false }
-piper-phonemize= { version = "1.4.8", default-features = false }
+piper-phonemize= { version = "1.4.9", default-features = false }

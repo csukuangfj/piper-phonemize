@@ -145,7 +145,7 @@ fn download_prebuilt_libs(
             }
             copy_file_atomically(&local_archive_path, &archive_path)?;
         } else {
-            let version = "1.4.8";
+            let version = "1.4.9";
             let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
             eprintln!("Downloading piper-phonemize libs from {url}");
 
@@ -216,7 +216,7 @@ fn archive_name(
     target_os: &str,
     target_arch: &str,
 ) -> Result<String, DynError> {
-    let version = "1.4.8";
+    let version = "1.4.9";
     let name = match (link_mode, target_os, target_arch) {
         (LinkMode::Static, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-static-lib.tar.bz2")

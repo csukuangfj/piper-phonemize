@@ -33,3 +33,5 @@ todo*
 plan.md
 bin
 obj
+.dart_tool
+pubspec.lock

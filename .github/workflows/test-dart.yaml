@@ -1,0 +1,208 @@
+name: test-dart
+
+on:
+  push:
+    branches:
+      - dart
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: test-dart-${{ github.ref }}
+  cancel-in-progress: true
+
+# Native libs version to download from releases.
+jobs:
+  dart_local:
+    name: dart-local-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Set version from CMakeLists.txt
+        id: version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "PIPER_VERSION=$PIPER_VERSION"
+          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
+          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fix version
+        shell: bash
+        run: |
+          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" flutter/piper_phonemize/pubspec.yaml
+          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          cd dart-api-examples/version
+          sed -i.bak "s|  piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}|  # piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+
+      - name: Download native shared libs (Linux x64)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
+          cp lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
+
+      - name: ccache (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-dart-macos-xcframework
+
+      - name: Build macOS xcframework for Flutter (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
+          unzip -o build-macos-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
+
+      - name: Download native shared libs (Windows x64)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
+            --dir /tmp/libs
+          cd /tmp/libs && tar xjf *.tar.bz2
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
+          cp bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
+
+      - name: Show downloaded files
+        shell: bash
+        run: |
+          echo "=== /tmp/libs contents ==="
+          find /tmp/libs -type f 2>/dev/null | sort
+          echo "=== flutter/piper_phonemize native dirs ==="
+          find flutter/piper_phonemize/linux flutter/piper_phonemize/windows flutter/piper_phonemize/macos -type f 2>/dev/null | sort
+
+      - name: Place native libs (Linux/Windows)
+        if: matrix.os != 'macos-latest'
+        shell: bash
+        run: |
+          if [ -d /tmp/libs/linux ]; then
+            cp -r /tmp/libs/linux/ flutter/piper_phonemize/linux/lib/
+          fi
+          if [ -d /tmp/libs/windows ]; then
+            cp -r /tmp/libs/windows/ flutter/piper_phonemize/windows/lib/
+          fi
+
+      - name: Show placed native libs
+        shell: bash
+        run: |
+          echo "=== flutter/piper_phonemize native dirs after place ==="
+          find flutter/piper_phonemize/linux flutter/piper_phonemize/windows flutter/piper_phonemize/macos -type f 2>/dev/null | sort
+
+      - name: flutter pub get
+        working-directory: dart-api-examples/version
+        run: flutter pub get
+
+      - name: Copy espeak-ng-data (needed for flutter analyze)
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: flutter analyze
+        working-directory: flutter/piper_phonemize
+        run: flutter analyze
+
+      - name: Run main_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_sync.dart
+
+      - name: Run main_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_async.dart
+
+      - name: Run main_isolate_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_isolate_sync.dart
+
+      - name: Run main_isolate_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_isolate_async.dart
+
+      - name: flutter pub get (hello_world)
+        working-directory: dart-api-examples/hello_world
+        run: flutter pub get
+
+      - name: Run hello_world
+        shell: bash
+        working-directory: dart-api-examples/hello_world
+        run: dart run bin/main.dart $GITHUB_WORKSPACE/swift-api-examples/espeak-ng-data
+
+  dart_published:
+    name: dart-published-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: flutter pub get
+        working-directory: dart-api-examples/version
+        run: flutter pub get
+
+      - name: Show published package contents
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "=== Looking for piper_phonemize $PIPER_VERSION in pub cache ==="
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f | sort
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f | sort
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            find "$LOCALAPPDATA/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | sort || \
+            find "$USERPROFILE/AppData/Local/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | sort
+          fi
+
+      - name: Run main_sync.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_sync.dart
+
+      - name: Run main_async.dart
+        working-directory: dart-api-examples/version
+        run: dart run bin/main_async.dart
+
+      - name: flutter pub get (hello_world)
+        working-directory: dart-api-examples/hello_world
+        run: flutter pub get
+
+      - name: Run hello_world
+        shell: bash
+        working-directory: dart-api-examples/hello_world
+        run: dart run bin/main.dart $GITHUB_WORKSPACE/swift-api-examples/espeak-ng-data

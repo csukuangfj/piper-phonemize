@@ -1,0 +1,182 @@
+name: release-dart
+
+on:
+  push:
+    branches:
+      - dart-2
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
+  workflow_dispatch:
+
+concurrency:
+  group: release-dart-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release_piper_phonemize:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    name: release_piper_phonemize
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from CMakeLists.txt
+        id: version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "PIPER_VERSION=$PIPER_VERSION"
+          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
+          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fix version
+        shell: bash
+        run: |
+          dst=flutter/piper_phonemize
+          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" $dst/pubspec.yaml
+          rm -f $dst/pubspec.yaml.bak
+          git diff
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: Remove .gitignore so binary files are included in package
+        shell: bash
+        run: |
+          rm -fv flutter/piper_phonemize/.gitignore
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: flutter-xcframework
+
+      - name: Build macOS shared xcframework for Flutter
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
+
+          unzip -o build-macos-shared-flutter/*.xcframework.zip -d flutter/piper_phonemize/macos/piper_phonemize/
+          ls -lh flutter/piper_phonemize/macos/piper_phonemize/piper-phonemize.xcframework/
+
+      - name: Build iOS shared xcframework for Flutter
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios-shared-flutter.sh
+
+          unzip -o build-ios-shared-flutter/*.xcframework.zip -d flutter/piper_phonemize/ios/piper_phonemize/
+          ls -lh flutter/piper_phonemize/ios/piper_phonemize/piper-phonemize.xcframework/
+
+      - name: Download pre-built Linux shared libs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for arch in x64 arm64; do
+            gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-${arch}-shared-lib.tar.bz2" \
+              --dir /tmp/linux
+          done
+
+          cd /tmp/linux
+          for f in *.tar.bz2; do
+            tar xjf "$f"
+          done
+
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64
+          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
+          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64/
+
+      - name: Download pre-built Windows shared libs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for arch in x64 arm64; do
+            gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+              --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-${arch}-shared-lib.tar.bz2" \
+              --dir /tmp/win
+          done
+
+          cd /tmp/win
+          for f in *.tar.bz2; do
+            mkdir -p "extract-${f%.tar.bz2}"
+            cd "extract-${f%.tar.bz2}"
+            tar xjf "../$f"
+            cd ..
+          done
+
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64
+          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
+          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64/
+
+      - name: Download pre-built Android shared libs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-android.tar.bz2" \
+            --dir /tmp/android
+
+          cd /tmp/android && tar xjf *.tar.bz2
+
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/android/src/main/jniLibs/$abi
+            cp -v jniLibs/$abi/libpiper_phonemize_core.so \
+              $GITHUB_WORKSPACE/flutter/piper_phonemize/android/src/main/jniLibs/$abi/
+          done
+
+      - name: Copy example, README, and CHANGELOG
+        shell: bash
+        run: |
+          dst=flutter/piper_phonemize
+          mkdir -p $dst/example
+          cp -v dart-api-examples/version/bin/main_sync.dart $dst/example/
+          cp -v README.md $dst/
+          cp -v CHANGELOG.md $dst/
+
+      - name: Prepare for publish
+        shell: bash
+        run: |
+          mv -v flutter/piper_phonemize /tmp/to_be_published
+          du -h -d1 /tmp/to_be_published
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Zip package for inspection
+        shell: bash
+        run: |
+          cd /tmp
+          zip -r -y /tmp/piper_phonemize.zip to_be_published
+          ls -lh /tmp/piper_phonemize.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-piper_phonemize
+          path: /tmp/piper_phonemize.zip
+
+      - name: Release
+        shell: bash
+        run: |
+          cd /tmp/to_be_published
+          du -h -d1 .
+
+          flutter pub get
+          flutter pub publish --dry-run
+          flutter pub publish --force

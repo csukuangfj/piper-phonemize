@@ -1,0 +1,16 @@
+# Copied by CI from repo root — not committed
+espeak-ng-data/
+LICENSE
+CHANGELOG.md
+
+# Native libraries are not committed — downloaded by CI from releases
+macos/piper_phonemize/piper-phonemize.xcframework/
+ios/piper_phonemize/piper-phonemize.xcframework/
+linux/x64/
+linux/aarch64/
+windows/x64/
+windows/arm64/
+android/src/main/jniLibs/arm64-v8a/libpiper_phonemize_core.so
+android/src/main/jniLibs/armeabi-v7a/libpiper_phonemize_core.so
+android/src/main/jniLibs/x86/libpiper_phonemize_core.so
+android/src/main/jniLibs/x86_64/libpiper_phonemize_core.so

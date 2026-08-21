@@ -1,0 +1,73 @@
+name: piper_phonemize
+description: >
+  Dart and Flutter bindings for piper-phonemize, a fast phonemization library
+  backed by espeak-ng. Converts text to phoneme code points for use with
+  text-to-speech systems.
+version: 1.4.9
+homepage: https://github.com/csukuangfj/piper-phonemize
+repository: https://github.com/csukuangfj/piper-phonemize
+license: GPL-3.0
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+  flutter: ">=2.8.1"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.0
+  path: ^1.9.0
+  path_provider: ^2.1.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true
+      linux:
+        ffiPlugin: true
+      macos:
+        ffiPlugin: true
+      windows:
+        ffiPlugin: true
+
+  assets:
+    - espeak-ng-data/
+    - espeak-ng-data/lang/
+    - espeak-ng-data/lang/aav/
+    - espeak-ng-data/lang/art/
+    - espeak-ng-data/lang/azc/
+    - espeak-ng-data/lang/bat/
+    - espeak-ng-data/lang/bnt/
+    - espeak-ng-data/lang/ccs/
+    - espeak-ng-data/lang/cel/
+    - espeak-ng-data/lang/cus/
+    - espeak-ng-data/lang/dra/
+    - espeak-ng-data/lang/esx/
+    - espeak-ng-data/lang/gmq/
+    - espeak-ng-data/lang/gmw/
+    - espeak-ng-data/lang/grk/
+    - espeak-ng-data/lang/inc/
+    - espeak-ng-data/lang/ine/
+    - espeak-ng-data/lang/ira/
+    - espeak-ng-data/lang/iro/
+    - espeak-ng-data/lang/itc/
+    - espeak-ng-data/lang/jpx/
+    - espeak-ng-data/lang/map/
+    - espeak-ng-data/lang/miz/
+    - espeak-ng-data/lang/myn/
+    - espeak-ng-data/lang/poz/
+    - espeak-ng-data/lang/roa/
+    - espeak-ng-data/lang/sai/
+    - espeak-ng-data/lang/sem/
+    - espeak-ng-data/lang/sit/
+    - espeak-ng-data/lang/tai/
+    - espeak-ng-data/lang/trk/
+    - espeak-ng-data/lang/urj/
+    - espeak-ng-data/lang/zle/
+    - espeak-ng-data/lang/zls/
+    - espeak-ng-data/lang/zlw/
+    - espeak-ng-data/voices/
+    - espeak-ng-data/voices/!v/

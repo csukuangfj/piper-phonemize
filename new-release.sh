@@ -4,8 +4,8 @@ set -ex
 
 cd "$(dirname "$0")"
 
-old_version="1\.4\.7"
-new_version="1\.4\.8"
+old_version="1\.4\.8"
+new_version="1\.4\.9"
 
 replace_str="s/$old_version/$new_version/g"
 
@@ -37,6 +37,9 @@ sed -i.bak "$replace_str" ./tauri-examples/src-tauri/Cargo.toml
 sed -i.bak "$replace_str" ./scripts/dotnet/PiperPhonemize.csproj.in
 sed -i.bak "$replace_str" ./scripts/dotnet/PiperPhonemize.Runtime.csproj.in
 
+sed -i.bak "$replace_str" ./build-macos-shared-flutter.sh
+sed -i.bak "$replace_str" ./build-ios-shared-flutter.sh
+
 sed -i.bak "$replace_str" ./.github/workflows/build-wheel-macos-arm64.yaml
 
 find ./.github/workflows -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
@@ -47,5 +50,8 @@ find ./rust -name "*.toml" -type f -exec sed -i.bak "s/$old_version/$new_version
 find ./rust -name "*.toml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 find ./rust-api-examples -name "*.toml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 find ./tauri-examples -name "*.toml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+find ./flutter -name "*.podspec" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+find ./flutter -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+find ./flutter -name "*.swift" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 
 find . -name "*.bak" -exec rm {} \;

@@ -126,9 +126,9 @@ MEOF
   <key>CFBundleExecutable</key>
   <string>PiperPhonemizeC</string>
   <key>CFBundleVersion</key>
-  <string>1.4.8</string>
+  <string>1.4.9</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.4.8</string>
+  <string>1.4.9</string>
   <key>MinimumOSVersion</key>
   <string>13.0</string>
   <key>CFBundleSupportedPlatforms</key>
