@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
   name: "piper_phonemize",
   platforms: [
-    .iOS(.v14)
+    .iOS(.v15)
   ],
   products: [
     .library(name: "piper-phonemize", targets: ["piper_phonemize"])
