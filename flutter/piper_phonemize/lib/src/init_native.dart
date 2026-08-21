@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // Native library loader for piper-phonemize.
 // Following sherpa-onnx init_native.dart pattern.

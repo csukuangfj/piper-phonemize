@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // Stub for extractEspeakNgData in pure Dart CLI (no Flutter).
 // Throws if called — this function only works in Flutter apps.

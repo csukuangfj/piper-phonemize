@@ -1,6 +1,6 @@
 // The Android Gradle Plugin builds the native code with the Android NDK.
 
-group = "com.xiaomi.piper_phonemize"
+group = "com.github.csukuangfj.piper.phonemize"
 version = "1.0"
 
 buildscript {
@@ -24,7 +24,7 @@ rootProject.allprojects {
 apply plugin: "com.android.library"
 
 android {
-    namespace 'com.xiaomi.piper_phonemize'
+    namespace 'com.github.csukuangfj.piper.phonemize'
 
     compileSdk = 34
 

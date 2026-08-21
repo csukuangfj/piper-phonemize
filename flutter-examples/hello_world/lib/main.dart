@@ -1,7 +1,9 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // Flutter hello_world example for piper-phonemize.
 // Supports phonemization with language selection and example texts.
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:piper_phonemize/piper_phonemize.dart' as piper;
@@ -51,13 +53,20 @@ class _PhonemizePageState extends State<PhonemizePage> {
   Future<void> _initialize() async {
     try {
       final dataDir = await piper.extractEspeakNgData();
+      debugPrint('espeak-ng-data at: $dataDir');
+      debugPrint('exists: ${Directory(dataDir).existsSync()}');
+      debugPrint('files: ${Directory(dataDir).listSync().length}');
+
       final result = piper.PiperPhonemize.initialize(dataDir);
+      debugPrint('initialize result: $result (sample rate)');
+
       if (result >= 0) {
         setState(() => _initialized = true);
       } else {
         setState(() => _initError = 'Failed to initialize espeak-ng (code: $result)');
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Init error: $e\n$st');
       setState(() => _initError = 'Error: $e');
     }
   }
@@ -72,12 +81,19 @@ class _PhonemizePageState extends State<PhonemizePage> {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
 
+    debugPrint('Phonemizing: "$text" with voice: $_selectedLanguage');
+
     final stopwatch = Stopwatch()..start();
     final sentences = piper.PiperPhonemize.phonemize(
       text,
       voice: _selectedLanguage,
     );
     stopwatch.stop();
+
+    debugPrint('Result: ${sentences.length} sentences, time: ${stopwatch.elapsedMilliseconds}ms');
+    for (var i = 0; i < sentences.length; i++) {
+      debugPrint('  Sentence $i: ${sentences[i].length} phonemes');
+    }
 
     final buffer = StringBuffer();
     buffer.writeln('Voice: $_selectedLanguage');

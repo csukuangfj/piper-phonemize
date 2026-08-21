@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // FFI bindings for piper-phonemize C API.
 // Hand-written (no ffigen) following sherpa-onnx pattern.

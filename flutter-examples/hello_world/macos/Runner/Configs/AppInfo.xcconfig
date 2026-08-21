@@ -8,7 +8,7 @@
 PRODUCT_NAME = hello_world
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.xiaomi.helloWorld
+PRODUCT_BUNDLE_IDENTIFIER = com.github.csukuangfj.piper.phonemize.helloWorld
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.xiaomi. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.github.csukuangfj. All rights reserved.

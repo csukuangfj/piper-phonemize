@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // Main export for piper_phonemize package.
 // Initialization logic follows sherpa-onnx pattern exactly.

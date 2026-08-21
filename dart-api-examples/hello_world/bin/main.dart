@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // Dart CLI hello_world example for piper-phonemize.
 // Mirrors the Swift example in swift-api-examples/example.swift.

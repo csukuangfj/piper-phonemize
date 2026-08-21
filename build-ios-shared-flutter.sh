@@ -129,7 +129,7 @@ MEOF
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key>
-  <string>com.xiaomi.piper-phonemize</string>
+  <string>com.github.csukuangfj.piper-phonemize</string>
   <key>CFBundleName</key>
   <string>PiperPhonemizeC</string>
   <key>CFBundlePackageType</key>

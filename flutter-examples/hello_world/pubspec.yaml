@@ -4,7 +4,7 @@ description: >
 
 publish_to: 'none'
 
-version: 1.0.0
+version: 1.3.4
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -13,7 +13,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  piper_phonemize: ^1.3.3
+  piper_phonemize: ^1.3.4
   # piper_phonemize:
   #   path: ../../flutter/piper_phonemize
 

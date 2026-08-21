@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Xiaomi Corporation
+// Copyright (c) 2026 piper-phonemize contributors
 //
 // No-op stub for web. On native platforms, PiperPhonemizeWeb is not needed.
 
