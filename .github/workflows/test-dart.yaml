@@ -61,18 +61,21 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
           cp lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
 
-      - name: Download native shared libs (macOS)
+      - name: ccache (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-dart-macos-xcframework
+
+      - name: Build macOS xcframework for Flutter (macOS)
         if: matrix.os == 'macos-latest'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download xcframework \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-macos-shared.xcframework.zip" \
-            --dir /tmp/libs
-          cd /tmp/libs && unzip *.zip
-          mkdir -p macos
-          cp -r piper-phonemize.xcframework macos/
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos-shared-flutter.sh
+          unzip -o build-macos-shared-flutter/*.xcframework.zip \
+            -d $GITHUB_WORKSPACE/flutter/piper_phonemize/macos/piper_phonemize/
 
       - name: Download native shared libs (Windows x64)
         if: matrix.os == 'windows-latest'
@@ -95,15 +98,12 @@ jobs:
           echo "=== flutter/piper_phonemize native dirs ==="
           find flutter/piper_phonemize/linux flutter/piper_phonemize/windows flutter/piper_phonemize/macos -type f 2>/dev/null | sort
 
-      - name: Place native libs
+      - name: Place native libs (Linux/Windows)
+        if: matrix.os != 'macos-latest'
         shell: bash
         run: |
           if [ -d /tmp/libs/linux ]; then
             cp -r /tmp/libs/linux/ flutter/piper_phonemize/linux/lib/
-          fi
-          if [ -d /tmp/libs/macos ]; then
-            cp -r /tmp/libs/macos/piper-phonemize.xcframework \
-              flutter/piper_phonemize/macos/piper_phonemize/
           fi
           if [ -d /tmp/libs/windows ]; then
             cp -r /tmp/libs/windows/ flutter/piper_phonemize/windows/lib/
