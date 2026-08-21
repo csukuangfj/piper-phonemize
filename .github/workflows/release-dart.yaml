@@ -15,7 +15,7 @@ concurrency:
 # Native libs version to download from releases.
 # Update this when new native libs are released.
 env:
-  NATIVE_LIBS_VERSION: "v1.4.8"
+  NATIVE_LIBS_VERSION: "v1.4.9"
 
 jobs:
   release_piper_phonemize:

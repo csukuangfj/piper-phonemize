@@ -43,7 +43,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-linux-arm64-static:
     runs-on: ubuntu-22.04-arm
@@ -77,7 +77,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-linux-x64-shared:
     runs-on: ubuntu-latest
@@ -111,7 +111,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-linux-arm64-shared:
     runs-on: ubuntu-22.04-arm
@@ -145,7 +145,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-macos-x64-static:
     runs-on: macos-15-intel
@@ -174,7 +174,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-macos-arm64-static:
     runs-on: macos-latest
@@ -203,7 +203,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-macos-x64-shared:
     runs-on: macos-15-intel
@@ -232,7 +232,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-macos-arm64-shared:
     runs-on: macos-latest
@@ -261,7 +261,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-windows-x64-static:
     runs-on: windows-2022
@@ -287,7 +287,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-windows-x64-shared:
     runs-on: windows-2022
@@ -313,7 +313,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-windows-arm64-static:
     runs-on: windows-11-arm
@@ -339,7 +339,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9
 
   build-windows-arm64-shared:
     runs-on: windows-11-arm
@@ -365,4 +365,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.4.8
+          tag: v1.4.9

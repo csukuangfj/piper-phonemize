@@ -13,9 +13,6 @@ concurrency:
   group: test-flutter-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NATIVE_LIBS_VERSION: "v1.4.8"
-
 jobs:
   flutter_local_cocoapods:
     name: flutter-local-cocoapods
@@ -310,6 +307,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+
+      - name: Set version from CMakeLists.txt
+        id: version
+        shell: bash
+        run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
+          echo "PIPER_VERSION=$PIPER_VERSION"
+          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
+          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
 
       - name: Install build dependencies
         run: |

@@ -14,9 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 # Native libs version to download from releases.
-env:
-  NATIVE_LIBS_VERSION: "v1.4.8"
-
 jobs:
   dart_local:
     name: dart-local-${{ matrix.os }}
@@ -32,19 +29,26 @@ jobs:
         with:
           channel: stable
 
-      - name: Fix version
+      - name: Set version from CMakeLists.txt
+        id: version
         shell: bash
         run: |
           PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
+          echo "PIPER_VERSION=$PIPER_VERSION"
+          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
+          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fix version
+        shell: bash
+        run: |
+          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" flutter/piper_phonemize/pubspec.yaml
           rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd dart-api-examples/version
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}|  # piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
           cat pubspec.yaml
 
@@ -54,8 +58,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
@@ -83,8 +87,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download ${{ env.NATIVE_LIBS_VERSION }} \
-            --pattern "piper-phonemize-${{ env.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
+          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
             --dir /tmp/libs
           cd /tmp/libs && tar xjf *.tar.bz2
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64

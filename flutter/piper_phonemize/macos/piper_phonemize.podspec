@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'piper_phonemize'
-  s.version          = '1.4.8'
+  s.version          = '1.4.9'
   s.summary          = 'Flutter FFI plugin for piper-phonemize.'
   s.description      = <<-DESC
 Dart and Flutter bindings for piper-phonemize, a fast phonemization library

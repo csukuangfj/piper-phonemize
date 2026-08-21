@@ -25,14 +25,14 @@ The project uses [JitPack](https://jitpack.io/) to fetch piper-phonemize artifac
 <dependency>
     <groupId>com.github.csukuangfj.piper-phonemize</groupId>
     <artifactId>piper-phonemize-jvm</artifactId>
-    <version>v1.4.8</version>
+    <version>v1.4.9</version>
 </dependency>
 
 <!-- 2. Platform native lib — pick ONE for your target platform -->
 <dependency>
     <groupId>com.github.csukuangfj.piper-phonemize</groupId>
     <artifactId>piper-phonemize-native-lib-osx-aarch64</artifactId>
-    <version>v1.4.8</version>
+    <version>v1.4.9</version>
 </dependency>
 ```
 
@@ -57,5 +57,5 @@ mvn package -q
 ## Run
 
 ```bash
-java -jar target/piper-phonemize-maven-example-1.4.8.jar
+java -jar target/piper-phonemize-maven-example-1.4.9.jar
 ```
