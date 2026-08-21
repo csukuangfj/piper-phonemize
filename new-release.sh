@@ -4,8 +4,8 @@ set -ex
 
 cd "$(dirname "$0")"
 
-old_version="1\.4\.8"
-new_version="1\.4\.9"
+old_version="1\.4\.9"
+new_version="1\.4\.10"
 
 replace_str="s/$old_version/$new_version/g"
 

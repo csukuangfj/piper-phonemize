@@ -87,7 +87,7 @@ PIPER_PHONEMIZE_API PhonemizeResult Phonemize(const std::string &text,
 /**
  * @brief Return the piper-phonemize version string.
  *
- * @return Version string, for example `"1.4.9"`.
+ * @return Version string, for example `"1.4.10"`.
  */
 PIPER_PHONEMIZE_API std::string GetVersionStr();
 
