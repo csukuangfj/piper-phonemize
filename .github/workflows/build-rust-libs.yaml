@@ -3,7 +3,7 @@ name: build-rust-libs
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
   workflow_dispatch:
 
 concurrency:
