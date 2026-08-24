@@ -19,17 +19,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Fix version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          ./new-release.sh
+          git diff .
 
       - name: Use local piper_phonemize
         shell: bash
@@ -100,17 +101,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Fix version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          ./new-release.sh
+          git diff .
 
       - name: Use local piper_phonemize
         shell: bash
@@ -177,17 +179,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Fix version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          ./new-release.sh
+          git diff .
 
       - name: Use local piper_phonemize
         shell: bash
@@ -242,17 +245,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Fix version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          sed -i.bak "s/^version: .*/version: $PIPER_VERSION/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          ./new-release.sh
+          git diff .
 
       - name: Use local piper_phonemize
         shell: bash
@@ -303,36 +307,54 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Set version from CMakeLists.txt
-        id: version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          echo "PIPER_VERSION=$PIPER_VERSION"
-          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
-          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
+          ./new-release.sh
+          git diff .
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build libgtk-3-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
 
-      - name: Fix version
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-flutter-linux
+
+      - name: Build piper-phonemize from source
         shell: bash
         run: |
-          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          mkdir build
+          cd build
+          cmake \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            ..
+          cmake --build . --target install --config Release
+
+      - name: Copy libs
+        shell: bash
+        run: |
+          cp -fv build/install/lib/lib* ./flutter/piper_phonemize/linux/x64/
+          ls -lh ./flutter/piper_phonemize/linux/x64/
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}|  # piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -340,19 +362,6 @@ jobs:
         run: |
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
-
-      - name: Download Linux x64 shared lib
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
-            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-x64-shared-lib.tar.bz2" \
-            --dir /tmp/libs
-          cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
-          cp lib/libpiper_phonemize_core.so \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
@@ -372,31 +381,42 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Set version from CMakeLists.txt
-        id: version
+      - name: Update version
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          echo "PIPER_VERSION=$PIPER_VERSION"
-          echo "PIPER_VERSION=$PIPER_VERSION" >> $GITHUB_OUTPUT
-          echo "NATIVE_LIBS_VERSION=v$PIPER_VERSION" >> $GITHUB_OUTPUT
+          ./new-release.sh
+          git diff .
 
-      - name: Fix version
+      - name: Build piper-phonemize from source
         shell: bash
         run: |
-          sed -i.bak "s/^version: .*/version: ${{ steps.version.outputs.PIPER_VERSION }}/" flutter/piper_phonemize/pubspec.yaml
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
+          mkdir build
+          cd build
+          cmake \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            ..
+          cmake --build . --target install --config Release
+
+      - name: Copy libs
+        shell: bash
+        run: |
+          cp -fv build/install/bin/*.dll ./flutter/piper_phonemize/windows/x64/
+          ls -lh ./flutter/piper_phonemize/windows/x64/
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
+          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}|  # piper_phonemize: ^${{ steps.version.outputs.PIPER_VERSION }}\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -404,19 +424,6 @@ jobs:
         run: |
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
-
-      - name: Download Windows x64 shared lib
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
-            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-x64-shared-lib.tar.bz2" \
-            --dir /tmp/libs
-          cd /tmp/libs && tar xjf *.tar.bz2
-          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
-          cp bin/piper_phonemize_core.dll \
-            $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
