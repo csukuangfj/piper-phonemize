@@ -476,6 +476,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
-          overwrite: true
+          overwrite: false
           file: artifacts/**/*.xcframework.zip
           tag: xcframework
