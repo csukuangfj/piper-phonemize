@@ -4,8 +4,8 @@ set -ex
 
 cd "$(dirname "$0")"
 
-old_version="1\.4\.8"
-new_version="1\.4\.9"
+old_version="1\.4\.9"
+new_version="1\.4\.10"
 
 replace_str="s/$old_version/$new_version/g"
 
@@ -53,5 +53,8 @@ find ./tauri-examples -name "*.toml" -type f -exec sed -i.bak "s/$old_version/$n
 find ./flutter -name "*.podspec" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 find ./flutter -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 find ./flutter -name "*.swift" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+
+find ./flutter-examples -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+find ./dart-api-examples -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 
 find . -name "*.bak" -exec rm {} \;

@@ -100,7 +100,7 @@ lipo \
   -output \
     ios-arm64_x86_64-simulator/libpiper_phonemize_core.dylib
 
-rm -rf piper-phonemize.xcframework
+rm -rf PiperPhonemizeC.xcframework
 
 # Create framework bundles (iOS supports shallow frameworks)
 create_framework() {
@@ -137,9 +137,9 @@ MEOF
   <key>CFBundleExecutable</key>
   <string>PiperPhonemizeC</string>
   <key>CFBundleVersion</key>
-  <string>1.4.9</string>
+  <string>1.4.10</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.4.9</string>
+  <string>1.4.10</string>
   <key>MinimumOSVersion</key>
   <string>13.0</string>
   <key>CFBundleSupportedPlatforms</key>
@@ -163,12 +163,12 @@ create_framework ios-arm64_x86_64-simulator/libpiper_phonemize_core.dylib ios-ar
 xcodebuild -create-xcframework \
   -framework "ios-arm64/PiperPhonemizeC.framework" \
   -framework "ios-arm64_x86_64-simulator/PiperPhonemizeC.framework" \
-  -output piper-phonemize.xcframework
+  -output PiperPhonemizeC.xcframework
 
 PIPER_PHONEMIZE_VERSION=v$(grep "PIPER_PHONEMIZE_VERSION" ../CMakeLists.txt | cut -d " " -f 2 | cut -d ")" -f 1)
 
 rm -f piper-phonemize-${PIPER_PHONEMIZE_VERSION}-ios-shared-flutter.xcframework.zip
-zip -r -y piper-phonemize-${PIPER_PHONEMIZE_VERSION}-ios-shared-flutter.xcframework.zip piper-phonemize.xcframework
+zip -r -y piper-phonemize-${PIPER_PHONEMIZE_VERSION}-ios-shared-flutter.xcframework.zip PiperPhonemizeC.xcframework
 
 echo "Checksum:"
 swift package compute-checksum piper-phonemize-${PIPER_PHONEMIZE_VERSION}-ios-shared-flutter.xcframework.zip | tee checksum.txt

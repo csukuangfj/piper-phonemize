@@ -6,12 +6,6 @@ on:
       - master
       - main
       - pascal-api
-    paths:
-      - '.github/workflows/pascal.yaml'
-      - 'CMakeLists.txt'
-      - 'src/**'
-      - 'src/pascal-api/**'
-      - 'pascal-api-examples/**'
   workflow_dispatch:
 
 concurrency:

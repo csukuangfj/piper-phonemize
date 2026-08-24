@@ -15,7 +15,7 @@ let package = Package(
   targets: [
     .binaryTarget(
       name: "PiperPhonemizeC",
-      path: "piper-phonemize.xcframework"
+      path: "PiperPhonemizeC.xcframework"
     ),
     .target(
       name: "piper_phonemize",

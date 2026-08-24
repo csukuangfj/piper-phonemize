@@ -1,3 +1,6 @@
+## 1.4.9
+* Support Flutter.
+
 ## 1.3.1
 
 * Initial release of piper_phonemize Dart/Flutter package.
