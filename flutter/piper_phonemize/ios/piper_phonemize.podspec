@@ -14,7 +14,7 @@ backed by espeak-ng.
   s.dependency 'Flutter'
   s.platform = :ios, '15.0'
 
-  s.vendored_frameworks = 'piper_phonemize/piper-phonemize.xcframework'
+  s.vendored_frameworks = 'piper_phonemize/PiperPhonemizeC.xcframework'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'

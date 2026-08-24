@@ -73,7 +73,7 @@ jobs:
           ./build-ios-shared-flutter.sh
 
           unzip -o build-ios-shared-flutter/*.xcframework.zip -d flutter/piper_phonemize/ios/piper_phonemize/
-          ls -lh flutter/piper_phonemize/ios/piper_phonemize/piper-phonemize.xcframework/
+          ls -lh flutter/piper_phonemize/ios/piper_phonemize/PiperPhonemizeC.xcframework/
 
       - name: Download pre-built Linux shared libs
         shell: bash
