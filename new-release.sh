@@ -54,4 +54,7 @@ find ./flutter -name "*.podspec" -type f -exec sed -i.bak "s/$old_version/$new_v
 find ./flutter -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 find ./flutter -name "*.swift" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
 
+find ./flutter-examples -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+find ./dart-api-examples -name "*.yaml" -type f -exec sed -i.bak "s/$old_version/$new_version/g" {} \;
+
 find . -name "*.bak" -exec rm {} \;

@@ -35,9 +35,8 @@ jobs:
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -117,9 +116,8 @@ jobs:
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -195,9 +193,8 @@ jobs:
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -261,9 +258,8 @@ jobs:
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -346,15 +342,15 @@ jobs:
       - name: Copy libs
         shell: bash
         run: |
+          mkdir -p ./flutter/piper_phonemize/linux/x64/
           cp -fv build/install/lib/lib* ./flutter/piper_phonemize/linux/x64/
           ls -lh ./flutter/piper_phonemize/linux/x64/
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
@@ -408,15 +404,15 @@ jobs:
       - name: Copy libs
         shell: bash
         run: |
+          mkdir -p ./flutter/piper_phonemize/windows/x64/
           cp -fv build/install/bin/*.dll ./flutter/piper_phonemize/windows/x64/
           ls -lh ./flutter/piper_phonemize/windows/x64/
 
       - name: Use local piper_phonemize
         shell: bash
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
           cd flutter-examples/hello_world
-          sed -i.bak "s|  piper_phonemize: ^$PIPER_VERSION|  # piper_phonemize: ^$PIPER_VERSION\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|" pubspec.yaml
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
           rm -f pubspec.yaml.bak
 
       - name: Copy espeak-ng-data and LICENSE
