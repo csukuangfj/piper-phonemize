@@ -1,3 +1,6 @@
+## 1.4.11
+* Fix Flutter for iOS.
+
 ## 1.4.9
 * Support Flutter.
 
