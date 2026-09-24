@@ -34,11 +34,11 @@
   },
   "homepage": "https://github.com/csukuangfj/piper-phonemize#readme",
   "optionalDependencies": {
-    "piper-phonemize-darwin-arm64": "^PIPER_PHONEMIZE_VERSION",
-    "piper-phonemize-darwin-x64": "^PIPER_PHONEMIZE_VERSION",
-    "piper-phonemize-linux-x64": "^PIPER_PHONEMIZE_VERSION",
-    "piper-phonemize-linux-arm64": "^PIPER_PHONEMIZE_VERSION",
-    "piper-phonemize-win-x64": "^PIPER_PHONEMIZE_VERSION",
-    "piper-phonemize-win-ia32": "^PIPER_PHONEMIZE_VERSION"
+    "piper-phonemize-darwin-arm64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-darwin-x64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-linux-x64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-linux-arm64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-win-x64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-win-ia32": "PIPER_PHONEMIZE_VERSION"
   }
 }
