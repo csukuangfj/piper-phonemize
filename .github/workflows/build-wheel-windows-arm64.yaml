@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - wheel
-      - release-v1.4.12
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
   workflow_dispatch:
