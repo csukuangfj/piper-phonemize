@@ -1,0 +1,132 @@
+name: build-wheels-android
+
+on:
+  push:
+    branches:
+      - wheel
+      - release-v1.4.12
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
+  workflow_dispatch:
+
+concurrency:
+  group: build-wheels-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_wheels_android:
+    name: ${{ matrix.abi }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Runner/image split mirrors sherpa-onnx build-wheels-android-*.yaml:
+          # aarch64 + arm run on ubuntu-24.04-arm, i686 + x86_64 on ubuntu-latest.
+          - abi: aarch64
+            os: ubuntu-24.04-arm
+            docker: aarch64
+            plat: android_24_arm64_v8a
+          - abi: arm
+            os: ubuntu-24.04-arm
+            docker: arm
+            plat: android_24_armeabi_v7a
+          - abi: i686
+            os: ubuntu-latest
+            docker: i686
+            plat: android_24_x86
+          - abi: x86_64
+            os: ubuntu-latest
+            docker: x86_64
+            plat: android_24_x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare workspace for root-in-container build
+        shell: bash
+        run: |
+          mkdir -p build dist wheelhouse
+          chmod -R a+w "${{ github.workspace }}"
+
+      - name: Build wheel inside termux
+        shell: bash
+        run: |
+          docker run --rm \
+            --user 0:0 \
+            --volume ${{ github.workspace }}/:/piper-phonemize \
+            termux/termux-docker:${{ matrix.docker }} \
+          bash -c '
+            set -e
+            apt update -y
+            apt install -y cmake make git python python-pip clang libc++
+            apt install -y android-liblog || true
+            apt install -y libandroid-dev || true
+            apt install -y android-libandroid || true
+
+            pip install --upgrade pip setuptools wheel
+
+            # termux "python" is unpinned; log what we actually built against.
+            python3 -VV
+            python3 -c "import sysconfig; print(sysconfig.get_platform())"
+
+            cd /piper-phonemize
+            export PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+            python3 setup.py bdist_wheel --plat-name=${{ matrix.plat }}
+            ls -lh dist
+          '
+
+      - name: Collect wheels
+        shell: bash
+        run: |
+          # setup.py rewrites piper_phonemize/__init__.py, so that dir is dirty too
+          sudo chown -R $USER ./build ./dist ./piper_phonemize ./wheelhouse
+          cp -v ./dist/*.whl ./wheelhouse
+
+      - name: Display wheels
+        shell: bash
+        run: |
+          ls -lh ./wheelhouse/
+
+          echo "---"
+          unzip -l ./wheelhouse/*.whl
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-android-${{ matrix.abi }}
+          path: wheelhouse/*.whl
+
+      - name: Smoke test
+        continue-on-error: true
+        shell: bash
+        run: |
+          docker run --rm \
+            --user 0:0 \
+            --volume ${{ github.workspace }}/wheelhouse:/wheels:ro \
+            --volume ${{ github.workspace }}/src:/test:ro \
+            termux/termux-docker:${{ matrix.docker }} \
+          bash -c '
+            set -e
+            apt update -y
+            apt install -y python python-pip libc++ clang
+            apt install -y android-liblog || true
+            apt install -y libandroid-dev || true
+            apt install -y android-libandroid || true
+
+            pip install --upgrade pip setuptools wheel
+            pip install /wheels/piper_phonemize-*.whl
+
+            python3 -c "import piper_phonemize; print(piper_phonemize.__file__)"
+            # /test holds only src/* (no piper_phonemize/ package), so the
+            # installed wheel is what gets imported.
+            cd /tmp && python3 /test/python_test.py
+          '
+
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.12
