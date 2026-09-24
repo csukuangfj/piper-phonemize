@@ -116,10 +116,14 @@ jobs:
             pip install --upgrade pip setuptools wheel
             pip install /wheels/piper_phonemize-*.whl
 
+            # termux has no /tmp and / is not writable, so there is no scratch
+            # dir to cd into -- use / (always present) as a clean cwd. The cwd
+            # does not affect which package python_test.py imports anyway:
+            # sys.path[0] is the directory of the script itself (/test = src/*,
+            # with no piper_phonemize/ package), so the installed wheel is used.
+            cd /
             python3 -c "import piper_phonemize; print(piper_phonemize.__file__)"
-            # /test holds only src/* (no piper_phonemize/ package), so the
-            # installed wheel is what gets imported.
-            cd /tmp && python3 /test/python_test.py
+            python3 /test/python_test.py
           '
 
       - name: Release wheels

@@ -25,10 +25,6 @@ jobs:
           # (nuget "pythonarm64": 3.9.10 / 3.10.11 / 3.11.9 / 3.12.10 /
           # 3.13.7 / 3.14.0-rc2). Same range as build-wheel-macos-arm64.yaml.
           # python-short is for actions/setup-python, used only by the smoke test.
-          - python-version: "cp39"
-            python-short: "3.9"
-          - python-version: "cp310"
-            python-short: "3.10"
           - python-version: "cp311"
             python-short: "3.11"
           - python-version: "cp312"
