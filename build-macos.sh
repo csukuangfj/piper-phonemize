@@ -30,21 +30,22 @@ libtool -static -o libpiper_phonemize.a \
 
 cd "$SCRIPT_DIR/$dir"
 
-# Create a framework bundle so SPM can resolve the module
+# Create a framework bundle (like onnxruntime does) so SPM can resolve the module
 FRAMEWORK_DIR=PiperPhonemizeC.framework
 rm -rf $FRAMEWORK_DIR
 
-mkdir -p $FRAMEWORK_DIR/Headers/piper-phonemize/c-api
-mkdir -p $FRAMEWORK_DIR/Modules
+mkdir -p $FRAMEWORK_DIR/Versions/A/Headers/piper-phonemize/c-api
+mkdir -p $FRAMEWORK_DIR/Versions/A/Modules
+mkdir -p $FRAMEWORK_DIR/Versions/A/Resources
 
 # Binary
-cp install/lib/libpiper_phonemize.a $FRAMEWORK_DIR/PiperPhonemizeC
+cp install/lib/libpiper_phonemize.a $FRAMEWORK_DIR/Versions/A/PiperPhonemizeC
 
 # Headers (preserve nested path for #include "piper-phonemize/c-api/c-api.h")
-cp install/include/piper-phonemize/c-api.h $FRAMEWORK_DIR/Headers/piper-phonemize/c-api/
+cp install/include/piper-phonemize/c-api.h $FRAMEWORK_DIR/Versions/A/Headers/piper-phonemize/c-api/
 
 # Modulemap
-cat > $FRAMEWORK_DIR/Modules/module.modulemap << 'EOF'
+cat > $FRAMEWORK_DIR/Versions/A/Modules/module.modulemap << 'EOF'
 framework module PiperPhonemizeC {
   header "piper-phonemize/c-api/c-api.h"
   export *
@@ -52,7 +53,7 @@ framework module PiperPhonemizeC {
 EOF
 
 # Info.plist
-cat > $FRAMEWORK_DIR/Info.plist << 'EOF'
+cat > $FRAMEWORK_DIR/Versions/A/Resources/Info.plist << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -73,11 +74,33 @@ cat > $FRAMEWORK_DIR/Info.plist << 'EOF'
 </plist>
 EOF
 
+# Versioned symlinks
+pushd $FRAMEWORK_DIR/Versions
+ln -sf A Current
+popd
+
+ln -sf Versions/Current/PiperPhonemizeC $FRAMEWORK_DIR/PiperPhonemizeC
+ln -sf Versions/Current/Headers $FRAMEWORK_DIR/Headers
+ln -sf Versions/Current/Modules $FRAMEWORK_DIR/Modules
+ln -sf Versions/Current/Resources $FRAMEWORK_DIR/Resources
+
 rm -rf piper-phonemize.xcframework
 
 xcodebuild -create-xcframework \
   -framework $FRAMEWORK_DIR \
   -output piper-phonemize.xcframework
+
+cd piper-phonemize.xcframework
+echo "PWD: $PWD"
+ls -lh
+echo "---"
+ls -lh */*
+echo "---"
+ls -lh */*/Versions
+echo "---"
+ls -lh */*/Versions/A
+
+cd ..
 
 PIPER_PHONEMIZE_VERSION=v$(grep "PIPER_PHONEMIZE_VERSION" ../CMakeLists.txt | cut -d " " -f 2 | cut -d ")" -f 1)
 
