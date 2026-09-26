@@ -25,7 +25,14 @@ def is_windows():
 
 
 try:
-    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    # setuptools >= 70.1 is the canonical home of bdist_wheel; `wheel` only
+    # re-exports it from a deprecated shim. Fall back to the shim for older
+    # setuptools. Either way `--plat-name` stays honored (get_tag is untouched),
+    # which the android_* wheels depend on.
+    try:
+        from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
+    except ImportError:
+        from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
     class bdist_wheel(_bdist_wheel):
         def finalize_options(self):

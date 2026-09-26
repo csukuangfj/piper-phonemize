@@ -56,10 +56,18 @@ jobs:
           fw_path=$(find piper-phonemize.xcframework -name "PiperPhonemizeC.framework" -type d | head -1)
           echo "fw_path: $fw_path"
 
-          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
-          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
-          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
-          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+          # macOS frameworks are versioned bundles: real files live under
+          # Versions/A, and Versions/Current + the top-level entries are symlinks.
+          test -f "$fw_path/Versions/A/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Resources/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          test -L "$fw_path/Versions/Current" || { echo "Versions/Current symlink not found"; exit 1; }
+          test -L "$fw_path/PiperPhonemizeC" || { echo "binary symlink not found"; exit 1; }
+          test -L "$fw_path/Headers" || { echo "Headers symlink not found"; exit 1; }
+          test -L "$fw_path/Modules" || { echo "Modules symlink not found"; exit 1; }
+          test -L "$fw_path/Resources" || { echo "Resources symlink not found"; exit 1; }
 
           echo "macOS static xcframework structure verified"
 
@@ -111,10 +119,18 @@ jobs:
           fw_path=$(find piper-phonemize.xcframework -name "PiperPhonemizeC.framework" -type d | head -1)
           echo "fw_path: $fw_path"
 
-          test -f "$fw_path/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
-          test -f "$fw_path/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
-          test -f "$fw_path/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
-          test -f "$fw_path/Info.plist" || { echo "Info.plist not found"; exit 1; }
+          # macOS frameworks are versioned bundles: real files live under
+          # Versions/A, and Versions/Current + the top-level entries are symlinks.
+          test -f "$fw_path/Versions/A/PiperPhonemizeC" || { echo "Binary not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Headers/piper-phonemize/c-api/c-api.h" || { echo "Header not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Modules/module.modulemap" || { echo "Modulemap not found"; exit 1; }
+          test -f "$fw_path/Versions/A/Resources/Info.plist" || { echo "Info.plist not found"; exit 1; }
+
+          test -L "$fw_path/Versions/Current" || { echo "Versions/Current symlink not found"; exit 1; }
+          test -L "$fw_path/PiperPhonemizeC" || { echo "binary symlink not found"; exit 1; }
+          test -L "$fw_path/Headers" || { echo "Headers symlink not found"; exit 1; }
+          test -L "$fw_path/Modules" || { echo "Modules symlink not found"; exit 1; }
+          test -L "$fw_path/Resources" || { echo "Resources symlink not found"; exit 1; }
 
           echo "macOS shared xcframework structure verified"
 

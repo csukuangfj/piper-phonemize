@@ -1,0 +1,89 @@
+name: build-wheels-windows-arm64
+
+on:
+  push:
+    branches:
+      - wheel
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
+  workflow_dispatch:
+
+concurrency:
+  group: build-wheels-windows-arm64-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_wheels_windows_arm64:
+    name: ${{ matrix.python-version }}
+    runs-on: windows-11-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # cp39..cp314 all have win_arm64 builds in cibuildwheel v3.1.4
+          # (nuget "pythonarm64": 3.9.10 / 3.10.11 / 3.11.9 / 3.12.10 /
+          # 3.13.7 / 3.14.0-rc2). Same range as build-wheel-macos-arm64.yaml.
+          # python-short is for actions/setup-python, used only by the smoke test.
+          - python-version: "cp311"
+            python-short: "3.11"
+          - python-version: "cp312"
+            python-short: "3.12"
+          - python-version: "cp313"
+            python-short: "3.13"
+          - python-version: "cp314"
+            python-short: "3.14"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-short }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-short }}
+
+      - name: Build wheel
+        uses: pypa/cibuildwheel@v3.1.4
+        env:
+          CIBW_BUILD: "${{ matrix.python-version}}-* "
+          CIBW_ARCHS: "ARM64"
+          CIBW_BUILD_VERBOSITY: 3
+          # No CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS is ignored on
+          # Windows (cmake_extension.py builds with `cmake --build ... -- -m`).
+          # No PIPER_PHONEMIZE_CMAKE_ARGS / -A ARM64: windows-11-arm already
+          # configures ARM64 by default (see build-rust-libs.yaml), and setting
+          # PIPER_PHONEMIZE_CMAKE_ARGS would drop the default -DCMAKE_BUILD_TYPE.
+          # No CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: cibuildwheel v3.1.4 ships no
+          # default Windows repair, and the module is self-contained.
+
+      - name: Display wheels
+        shell: bash
+        run: |
+          ls -lh ./wheelhouse/
+
+          echo "---"
+          unzip -l ./wheelhouse/*.whl
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-windows-arm64-${{ matrix.python-version }}
+          path: wheelhouse/*.whl
+
+      - name: Smoke test
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 -m pip install --force-reinstall ./wheelhouse/*.whl
+
+          # Run from outside the source tree so `import piper_phonemize`
+          # resolves to site-packages, i.e. the wheel we just installed.
+          cd "$RUNNER_TEMP"
+          python3 "$GITHUB_WORKSPACE/src/python_test.py"
+
+      - name: Release wheels
+        if: true
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: wheelhouse/*.whl
+          tag: v1.4.12
