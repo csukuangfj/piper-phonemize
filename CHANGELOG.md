@@ -1,3 +1,6 @@
+## 1.4.12
+* Fix for Android.
+
 ## 1.4.11
 * Fix Flutter for iOS.
 

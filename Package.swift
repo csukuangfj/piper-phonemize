@@ -18,28 +18,28 @@ let package = Package(
     .binaryTarget(
       name: "PiperPhonemizeMacOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.12-macos.xcframework.zip",
-      checksum: "c9f2177ac2065efa91487b2d2934921597ce328741a2144daa1fe150f4850bd4"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.13-macos.xcframework.zip",
+      checksum: "58c323984005eda83fd2d92422c7e8660aa8ae8be30df453177436778454121e"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.12-ios.xcframework.zip",
-      checksum: "42c96403fc526f1cd0c4614203d26c60b6fef783e2d9e87b82f352936976f86f"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.13-ios.xcframework.zip",
+      checksum: "f8e801a003bd0291d875cca94263f5853322fdc56c81fb8e58d80436f38b72ab"
     ),
 
     // --- Shared binary targets ---
     .binaryTarget(
       name: "PiperPhonemizeMacOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.12-macos-shared.xcframework.zip",
-      checksum: "61ac543e8ca2a059b97804a78eb6ba4c5dfc8994b821b021bdc537d686052e2e"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.13-macos-shared.xcframework.zip",
+      checksum: "e1bcde646ab59670b7c73d723a1606f35e5a524e1c590d61dc98a7a10e6ef6c1"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.12-ios-shared.xcframework.zip",
-      checksum: "4932d9e9a825524a041040ca43a0a3587f70d1ef93593ee18cc2f736ccb6948a"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.4.13-ios-shared.xcframework.zip",
+      checksum: "6cf37f14085e5857f3293e939bfe49a84e8931efe3434a42e9272ca9d1cd520b"
     ),
 
     // --- Static wrapper target (default) ---
