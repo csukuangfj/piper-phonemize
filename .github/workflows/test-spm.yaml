@@ -1,0 +1,228 @@
+name: test-spm
+
+on:
+  push:
+    branches:
+      - master
+      - fix
+  workflow_dispatch:
+
+concurrency:
+  group: test-spm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-local-spm-macos:
+    name: Test local SPM (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-spm-macos
+
+      - name: Build macOS xcframework
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-macos.sh
+
+      - name: Build and run local package (macOS)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples/macOS
+
+          # Use local package for CI testing
+          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "../../")|' Package.swift
+          git diff
+          cat Package.swift
+
+          # Use the locally built xcframework for the macOS binary target.
+          # The other binary targets are not linked on macOS and still resolve
+          # from the released artifacts.
+          cd ../..
+          cp Package.swift Package.swift.bak
+          python3 -c "
+          import re
+          text = open('Package.swift').read()
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeMacOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeMacOS\", path: \"build-macos/piper-phonemize.xcframework\")',
+              text
+          )
+          open('Package.swift', 'w').write(text)
+          "
+          cd spm-examples/macOS
+
+          echo "=== Package.swift ==="
+          cat Package.swift
+          echo "=== Root Package.swift ==="
+          cat ../../Package.swift
+
+          rm -rf .build
+          swift package resolve
+          swift package show-dependencies
+          swift build --verbose
+          swift run PiperPhonemizeExample
+
+      - name: Restore modified files
+        if: always()
+        shell: bash
+        run: |
+          [ -f Package.swift.bak ] && mv Package.swift.bak Package.swift || true
+          [ -f spm-examples/macOS/Package.swift.bak ] && mv spm-examples/macOS/Package.swift.bak spm-examples/macOS/Package.swift || true
+
+  test-remote-spm-macos:
+    name: Test remote SPM (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and run remote package (macOS)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples/macOS
+          rm -rf .build
+          swift package resolve
+          swift package show-dependencies
+          swift build --verbose
+          swift run PiperPhonemizeExample
+
+  test-local-spm-ios:
+    name: Test local SPM (iOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: test-spm-ios
+
+      - name: Build iOS xcframework
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./build-ios.sh
+
+      - name: Build and run local package (iOS)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples/iOS
+
+          # Use local package for CI testing
+          sed -i.bak 's|.package(url: "https://github.com/csukuangfj/piper-phonemize.git", branch: "master")|.package(path: "../../")|' Package.swift
+          git diff
+          cat Package.swift
+
+          # Use the locally built xcframework for the iOS binary target.
+          # The other binary targets are not linked on iOS and still resolve
+          # from the released artifacts.
+          cd ../..
+          cp Package.swift Package.swift.bak
+          python3 -c "
+          import re
+          text = open('Package.swift').read()
+          text = re.sub(
+              r'\.binaryTarget\(\s*name: \"PiperPhonemizeIOS\",\s*url:\s*\"[^\"]+\",\s*checksum: \"[a-f0-9]+\"\s*\)',
+              '.binaryTarget(name: \"PiperPhonemizeIOS\", path: \"build-ios/piper-phonemize.xcframework\")',
+              text
+          )
+          open('Package.swift', 'w').write(text)
+          "
+          cd spm-examples/iOS
+
+          echo "=== Package.swift ==="
+          cat Package.swift
+          echo "=== Root Package.swift ==="
+          cat ../../Package.swift
+
+          echo "=== Resolving ==="
+          swift package resolve
+
+          echo "=== Building for iOS Simulator ==="
+          xcodebuild -scheme PiperPhonemizeExample \
+            -destination "generic/platform=iOS Simulator" \
+            -skipPackagePluginValidation \
+            -verbose \
+            build 2>&1
+
+          echo "=== Finding built executable ==="
+          BINARY=$(find ~/Library/Developer/Xcode/DerivedData -path "*/Build/Products/*-iphonesimulator/PiperPhonemizeExample" -type f | head -1)
+          echo "Binary: $BINARY"
+
+          echo "=== Booting iOS Simulator ==="
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for key in devices:
+              for d in devices[key]:
+                  if d['isAvailable'] and 'iPhone' in d['name']:
+                      print(d['udid'])
+                      sys.exit(0)
+          ")
+          echo "Device: $DEVICE"
+          xcrun simctl boot "$DEVICE" 2>/dev/null || true
+
+          echo "=== Running on iOS Simulator ==="
+          xcrun simctl spawn "$DEVICE" "$BINARY"
+
+      - name: Restore modified files
+        if: always()
+        shell: bash
+        run: |
+          [ -f Package.swift.bak ] && mv Package.swift.bak Package.swift || true
+          [ -f spm-examples/iOS/Package.swift.bak ] && mv spm-examples/iOS/Package.swift.bak spm-examples/iOS/Package.swift || true
+
+  test-remote-spm-ios:
+    name: Test remote SPM (iOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and run remote package (iOS)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd spm-examples/iOS
+
+          echo "=== Resolving ==="
+          swift package resolve
+
+          echo "=== Building for iOS Simulator ==="
+          xcodebuild -scheme PiperPhonemizeExample \
+            -destination "generic/platform=iOS Simulator" \
+            -skipPackagePluginValidation \
+            -verbose \
+            build 2>&1
+
+          echo "=== Finding built executable ==="
+          BINARY=$(find ~/Library/Developer/Xcode/DerivedData -path "*/Build/Products/*-iphonesimulator/PiperPhonemizeExample" -type f | head -1)
+          echo "Binary: $BINARY"
+
+          echo "=== Booting iOS Simulator ==="
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for key in devices:
+              for d in devices[key]:
+                  if d['isAvailable'] and 'iPhone' in d['name']:
+                      print(d['udid'])
+                      sys.exit(0)
+          ")
+          echo "Device: $DEVICE"
+          xcrun simctl boot "$DEVICE" 2>/dev/null || true
+
+          echo "=== Running on iOS Simulator ==="
+          xcrun simctl spawn "$DEVICE" "$BINARY"
