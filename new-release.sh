@@ -4,6 +4,9 @@ set -ex
 
 cd "$(dirname "$0")"
 
+# remember to also update
+#  - ./CHANGELOG.md
+#  - ./Package.swift
 old_version="1\.4\.13"
 new_version="1\.5\.0"
 
