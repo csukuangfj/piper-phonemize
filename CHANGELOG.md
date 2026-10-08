@@ -1,3 +1,6 @@
+## 1.5.0
+* Fix for Android.
+
 ## 1.4.12
 * Fix for Android.
 
