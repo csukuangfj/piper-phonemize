@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.4.13"
+        versionName = "1.5.0"
     }
 
     buildTypes {
@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize:v1.4.13")
+    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize:v1.5.0")
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

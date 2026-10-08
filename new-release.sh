@@ -4,8 +4,11 @@ set -ex
 
 cd "$(dirname "$0")"
 
-old_version="1\.4\.12"
-new_version="1\.4\.13"
+# remember to also update
+#  - ./CHANGELOG.md
+#  - ./Package.swift
+old_version="1\.4\.13"
+new_version="1\.5\.0"
 
 replace_str="s/$old_version/$new_version/g"
 

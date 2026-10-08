@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "piper-phonemize-node": "^1.4.13"
+    "piper-phonemize-node": "^1.5.0"
   }
 }
