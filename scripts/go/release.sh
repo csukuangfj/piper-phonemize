@@ -18,6 +18,16 @@ GITHUB_RELEASE_URL="https://github.com/csukuangfj/piper-phonemize/releases/downl
 GO_PROXY_WAIT_SECS=30
 GO_PROXY_MAX_RETRIES=40
 
+# Shared libs are extracted from these wheels. Keep the names in sync with the
+# artifacts uploaded by the build-wheels-* workflows.
+WHEEL_LINUX_X86_64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl"
+WHEEL_LINUX_AARCH64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl"
+WHEEL_LINUX_ARMV7="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux_2_31_armv7l.whl"
+WHEEL_MACOS_X86_64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_10_14_x86_64.whl"
+WHEEL_MACOS_ARM64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_11_0_arm64.whl"
+WHEEL_WIN_AMD64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl"
+WHEEL_WIN_X86="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl"
+
 # Proactively tell the Go module proxy to fetch a specific version.
 kick_go_proxy() {
   local pkg="$1"
@@ -67,6 +77,10 @@ run_go_mod_tidy() {
 # Download a wheel, extract shared libs, and copy to destination.
 # Usage: download_libs <wheel_filename> <dst_dir> [filter]
 # filter: "win32" to only copy non-prefixed DLLs (for MSVC-built wheels)
+#
+# Exits with a non-zero status if the wheel cannot be downloaded, is not a
+# valid zip, or yields no shared libs. Never skip a failed download: that
+# publishes an empty lib/ directory to Go users.
 download_libs() {
   local wheel_name="$1"
   local dst="$2"
@@ -74,35 +88,87 @@ download_libs() {
   local url="${GITHUB_RELEASE_URL}/${wheel_name}"
 
   echo "Downloading $url ..."
-  mkdir -p t && cd t
-  curl -L -o wheel.whl "$url"
 
-  # Check if download was successful (file should be > 100 bytes)
-  if [ ! -f wheel.whl ] || [ $(stat -c%s wheel.whl 2>/dev/null || stat -f%z wheel.whl 2>/dev/null || echo 0) -lt 100 ]; then
-    echo "WARNING: Failed to download $wheel_name, skipping"
-    cd ..
-    rm -rf t
-    return 0
+  # Always start from a clean directory so a previous release's libs cannot
+  # leak into this one when a download fails or extracts nothing.
+  rm -rf "$dst"
+  mkdir -p "$dst"
+
+  local workdir
+  workdir=$(mktemp -d)
+
+  if ! curl --fail -L -o "$workdir/wheel.whl" "$url"; then
+    echo "ERROR: failed to download $wheel_name from $url"
+    echo "ERROR: the wheel may still be building; re-run this workflow once it is published"
+    rm -rf "$workdir"
+    exit 1
   fi
 
-  unzip -o wheel.whl
+  if ! unzip -q -o "$workdir/wheel.whl" -d "$workdir/x"; then
+    echo "ERROR: $wheel_name is not a valid wheel/zip"
+    rm -rf "$workdir"
+    exit 1
+  fi
 
   # Copy shared libs from the wheel
   if [ "$filter" = "win32" ]; then
     # For Windows MSVC wheels: only copy non-prefixed DLLs (piper_phonemize_*.dll)
     # and their import libraries (.lib)
-    find . -name "piper_phonemize_*.dll" -o -name "piper_phonemize_*.lib" -o -name "espeak-ng.lib" -o -name "ucd.lib" | while read f; do
+    find "$workdir/x" -name "piper_phonemize_*.dll" -o -name "piper_phonemize_*.lib" -o -name "espeak-ng.lib" -o -name "ucd.lib" | while read f; do
       cp -v "$f" "$dst/"
     done
   else
     # Copy shared libs but exclude Python extension modules (*.cpython-*.so)
-    find . \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) ! -name "*.cpython-*" | while read f; do
+    find "$workdir/x" \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) ! -name "*.cpython-*" | while read f; do
       cp -v "$f" "$dst/"
     done
   fi
+  rm -rf "$workdir"
 
+  if [ -z "$(ls -A "$dst" 2>/dev/null)" ]; then
+    echo "ERROR: no shared libs extracted from $wheel_name into $dst"
+    echo "ERROR: refusing to publish an empty lib/ directory"
+    exit 1
+  fi
+
+  echo "Extracted libs from $wheel_name into $dst:"
+  ls -l "$dst"
+}
+
+# Fail unless every listed lib subdirectory of <pkg_dir>/lib exists and is
+# non-empty. This is the last gate before pushing a package.
+# Usage: assert_libs_present <pkg_dir> <lib_subdir> [<lib_subdir> ...]
+assert_libs_present() {
+  local pkg_dir="$1"
+  shift
+  local sub
+
+  for sub in "$@"; do
+    if [ -z "$(ls -A "$pkg_dir/lib/$sub" 2>/dev/null)" ]; then
+      echo "ERROR: $pkg_dir/lib/$sub is missing or empty"
+      echo "ERROR: refusing to publish an incomplete Go package"
+      exit 1
+    fi
+    echo "OK: $pkg_dir/lib/$sub ->"
+    ls -l "$pkg_dir/lib/$sub"
+  done
+}
+
+# Commit, push and tag a Go package. Every step must succeed: a failure
+# swallowed here means a broken or untagged module is silently published.
+publish_go_package() {
+  local pkg_dir="$1"
+  local pkg_url="$2"
+
+  cd "$pkg_dir"
+  git status
+  git add .
+  git commit -m "Release v$PIPER_PHONEMIZE_VERSION"
+  git push
+  git tag v$PIPER_PHONEMIZE_VERSION
+  git push origin v$PIPER_PHONEMIZE_VERSION
   cd ..
-  rm -rf t
+  kick_go_proxy "$pkg_url" "v$PIPER_PHONEMIZE_VERSION"
 }
 
 # Download espeak-ng-data if not already present.
@@ -110,7 +176,7 @@ download_espeak_ng_data() {
   if [ ! -d "$PIPER_PHONEMIZE_DIR/espeak-ng-data" ]; then
     echo "Downloading espeak-ng-data..."
     cd "$PIPER_PHONEMIZE_DIR"
-    curl -L -o espeak-ng-data.tar.bz2 \
+    curl --fail -L -o espeak-ng-data.tar.bz2 \
       https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2
     tar xvf espeak-ng-data.tar.bz2
     rm -f espeak-ng-data.tar.bz2
@@ -136,33 +202,31 @@ go 1.17
 GOMOD
 
   # Download and extract libs from wheels
+  rm -rf piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu
   mkdir -p piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl" \
+    "$WHEEL_LINUX_X86_64" \
     "$(realpath piper-phonemize-go-linux/lib/x86_64-unknown-linux-gnu)"
 
   rm -rf piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
   mkdir -p piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl" \
+    "$WHEEL_LINUX_AARCH64" \
     "$(realpath piper-phonemize-go-linux/lib/aarch64-unknown-linux-gnu)"
 
   rm -rf piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
   mkdir -p piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-manylinux_2_31_armv7l.whl" \
+    "$WHEEL_LINUX_ARMV7" \
     "$(realpath piper-phonemize-go-linux/lib/arm-unknown-linux-gnueabihf)"
 
+  assert_libs_present piper-phonemize-go-linux \
+    x86_64-unknown-linux-gnu \
+    aarch64-unknown-linux-gnu \
+    arm-unknown-linux-gnueabihf
+
   echo "------------------------------"
-  cd piper-phonemize-go-linux
-  git status
-  git add .
-  git commit -m "Release v$PIPER_PHONEMIZE_VERSION" && \
-  git push && \
-  git tag v$PIPER_PHONEMIZE_VERSION && \
-  git push origin v$PIPER_PHONEMIZE_VERSION || true
-  cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-linux" "v$PIPER_PHONEMIZE_VERSION"
+  publish_go_package piper-phonemize-go-linux "github.com/csukuangfj/piper-phonemize-go-linux"
   rm -rf piper-phonemize-go-linux
 }
 
@@ -185,25 +249,21 @@ GOMOD
   rm -rf piper-phonemize-go-macos/lib/x86_64-apple-darwin
   mkdir -p piper-phonemize-go-macos/lib/x86_64-apple-darwin
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_10_14_x86_64.whl" \
+    "$WHEEL_MACOS_X86_64" \
     "$(realpath piper-phonemize-go-macos/lib/x86_64-apple-darwin)"
 
   rm -rf piper-phonemize-go-macos/lib/aarch64-apple-darwin
   mkdir -p piper-phonemize-go-macos/lib/aarch64-apple-darwin
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_11_0_arm64.whl" \
+    "$WHEEL_MACOS_ARM64" \
     "$(realpath piper-phonemize-go-macos/lib/aarch64-apple-darwin)"
 
+  assert_libs_present piper-phonemize-go-macos \
+    x86_64-apple-darwin \
+    aarch64-apple-darwin
+
   echo "------------------------------"
-  cd piper-phonemize-go-macos
-  git status
-  git add .
-  git commit -m "Release v$PIPER_PHONEMIZE_VERSION" && \
-  git push && \
-  git tag v$PIPER_PHONEMIZE_VERSION && \
-  git push origin v$PIPER_PHONEMIZE_VERSION || true
-  cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-macos" "v$PIPER_PHONEMIZE_VERSION"
+  publish_go_package piper-phonemize-go-macos "github.com/csukuangfj/piper-phonemize-go-macos"
   rm -rf piper-phonemize-go-macos
 }
 
@@ -227,27 +287,23 @@ GOMOD
   rm -rf piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
   mkdir -p piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl" \
+    "$WHEEL_WIN_AMD64" \
     "$(realpath piper-phonemize-go-windows/lib/x86_64-pc-windows-gnu)" \
     "win32"
 
   rm -rf piper-phonemize-go-windows/lib/i686-pc-windows-gnu
   mkdir -p piper-phonemize-go-windows/lib/i686-pc-windows-gnu
   download_libs \
-    "piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl" \
+    "$WHEEL_WIN_X86" \
     "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)" \
     "win32"
 
+  assert_libs_present piper-phonemize-go-windows \
+    x86_64-pc-windows-gnu \
+    i686-pc-windows-gnu
+
   echo "------------------------------"
-  cd piper-phonemize-go-windows
-  git status
-  git add .
-  git commit -m "Release v$PIPER_PHONEMIZE_VERSION" && \
-  git push && \
-  git tag v$PIPER_PHONEMIZE_VERSION && \
-  git push origin v$PIPER_PHONEMIZE_VERSION || true
-  cd ..
-  kick_go_proxy "github.com/csukuangfj/piper-phonemize-go-windows" "v$PIPER_PHONEMIZE_VERSION"
+  publish_go_package piper-phonemize-go-windows "github.com/csukuangfj/piper-phonemize-go-windows"
   rm -rf piper-phonemize-go-windows
 }
 
@@ -300,14 +356,7 @@ GOMOD
   cd ..
 
   echo "------------------------------"
-  cd piper-phonemize-go
-  git status
-  git add .
-  git commit -m "Release v$PIPER_PHONEMIZE_VERSION" && \
-    git push && \
-    git tag v$PIPER_PHONEMIZE_VERSION && \
-    git push origin v$PIPER_PHONEMIZE_VERSION
-  cd ..
+  publish_go_package piper-phonemize-go "github.com/csukuangfj/piper-phonemize-go"
   rm -rf piper-phonemize-go
 }
 
