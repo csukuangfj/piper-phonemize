@@ -1,3 +1,6 @@
+## 1.5.2
+* Fix publishing go packages for windows arm64
+
 ## 1.5.1
 * Fix publishing go packages
 

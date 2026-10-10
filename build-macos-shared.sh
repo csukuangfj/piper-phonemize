@@ -58,9 +58,9 @@ cat > $FRAMEWORK_DIR/Versions/A/Resources/Info.plist << 'EOF'
   <key>CFBundleExecutable</key>
   <string>PiperPhonemizeC</string>
   <key>CFBundleVersion</key>
-  <string>1.5.1</string>
+  <string>1.5.2</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.5.1</string>
+  <string>1.5.2</string>
 </dict>
 </plist>
 EOF
