@@ -50,7 +50,7 @@ def parse_golang(target):
 def render(output, defines, platform):
     build_info = ""
     if platform == "windows":
-        build_info = "//go:build (windows && amd64) || (windows && 386)"
+        build_info = "//go:build (windows && amd64) || (windows && 386) || (windows && arm64)"
     elif platform == "linux":
         build_info = "//go:build (!android && linux && arm64) || (!android && linux && amd64 && !musl) || (!android && linux && arm)"
     elif platform == "macos":
