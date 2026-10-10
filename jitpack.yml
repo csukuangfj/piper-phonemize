@@ -2,21 +2,21 @@ jdk:
   - openjdk17
 
 before_install:
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-1.5.1.aar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-jvm-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-linux-aarch64-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-linux-x64-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-osx-aarch64-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-osx-x64-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-win-x64-1.5.1.jar
-  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.1/piper-phonemize-native-lib-win-arm64-1.5.1.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-1.5.2.aar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-jvm-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-linux-aarch64-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-linux-x64-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-osx-aarch64-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-osx-x64-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-win-x64-1.5.2.jar
+  - wget https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.2/piper-phonemize-native-lib-win-arm64-1.5.2.jar
 
 install:
-  - mvn install:install-file -Dfile=piper-phonemize-1.5.1.aar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize -Dversion=1.5.1 -Dpackaging=aar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-jvm-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-jvm -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-aarch64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-aarch64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-x64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-x64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-osx-aarch64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-osx-aarch64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-osx-x64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-osx-x64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-win-x64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-win-x64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
-  - mvn install:install-file -Dfile=piper-phonemize-native-lib-win-arm64-1.5.1.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-win-arm64 -Dversion=1.5.1 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-1.5.2.aar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize -Dversion=1.5.2 -Dpackaging=aar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-jvm-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-jvm -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-aarch64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-aarch64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-linux-x64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-linux-x64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-osx-aarch64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-osx-aarch64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-osx-x64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-osx-x64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-win-x64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-win-x64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true
+  - mvn install:install-file -Dfile=piper-phonemize-native-lib-win-arm64-1.5.2.jar -DgroupId=com.github.csukuangfj.piper-phonemize -DartifactId=piper-phonemize-native-lib-win-arm64 -Dversion=1.5.2 -Dpackaging=jar -DgeneratePom=true

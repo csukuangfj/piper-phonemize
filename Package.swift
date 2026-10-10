@@ -18,28 +18,28 @@ let package = Package(
     .binaryTarget(
       name: "PiperPhonemizeMacOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.1-macos.xcframework.zip",
-      checksum: "376b05022a42631af6ad134c12a7784ddaedb88f6b715648b3abd0cab359cad1"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.2-macos.xcframework.zip",
+      checksum: "c412d5b6f124274a3bef28abe94ebbd8a3c6163b1a66ce1c3d7eb2e5bd857b74"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.1-ios.xcframework.zip",
-      checksum: "c90434829d4f43e1a3d6757e1b3fce60ea1a36dcf253fdd950f158fc12cc8c6d"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.2-ios.xcframework.zip",
+      checksum: "18ecd15bbe3c138a9f31728ad35248e1e3aa77f9a1b950e95edaf18a317e3a79"
     ),
 
     // --- Shared binary targets ---
     .binaryTarget(
       name: "PiperPhonemizeMacOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.1-macos-shared.xcframework.zip",
-      checksum: "3baffd5f297f982d9826c5034fc84ad2cac3f3726a620b40992a7c0195b30926"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.2-macos-shared.xcframework.zip",
+      checksum: "1ff82087d8a6c528e7e994e327ba0ee7b425bd1b7ffbb645fa2eca9a8431c18f"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.1-ios-shared.xcframework.zip",
-      checksum: "08ad4d62d34b36e3c70a401b4e9feae8be172d82430295211ed6d55807d3e680"
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.2-ios-shared.xcframework.zip",
+      checksum: "64129e755a3d946cf0c2b34a6ae014a0f23c478cd910968f64df7597bd0a18dd"
     ),
 
     // --- Static wrapper target (default) ---

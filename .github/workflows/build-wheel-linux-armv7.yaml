@@ -91,4 +91,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.5.1
+          tag: v1.5.2

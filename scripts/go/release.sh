@@ -27,6 +27,9 @@ WHEEL_MACOS_X86_64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macos
 WHEEL_MACOS_ARM64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-macosx_11_0_arm64.whl"
 WHEEL_WIN_AMD64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win_amd64.whl"
 WHEEL_WIN_X86="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp310-cp310-win32.whl"
+# win_arm64 is only built for cp311+ (no cp310 wheel exists), so use cp311 here.
+# Only the bundled DLLs matter to Go, not the Python ABI.
+WHEEL_WIN_ARM64="piper_phonemize-${PIPER_PHONEMIZE_VERSION}-cp311-cp311-win_arm64.whl"
 
 # Proactively tell the Go module proxy to fetch a specific version.
 kick_go_proxy() {
@@ -298,9 +301,17 @@ GOMOD
     "$(realpath piper-phonemize-go-windows/lib/i686-pc-windows-gnu)" \
     "win32"
 
+  rm -rf piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
+  mkdir -p piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu
+  download_libs \
+    "$WHEEL_WIN_ARM64" \
+    "$(realpath piper-phonemize-go-windows/lib/aarch64-pc-windows-gnu)" \
+    "win32"
+
   assert_libs_present piper-phonemize-go-windows \
     x86_64-pc-windows-gnu \
-    i686-pc-windows-gnu
+    i686-pc-windows-gnu \
+    aarch64-pc-windows-gnu
 
   echo "------------------------------"
   publish_go_package piper-phonemize-go-windows "github.com/csukuangfj/piper-phonemize-go-windows"
