@@ -18,13 +18,13 @@ let package = Package(
     .binaryTarget(
       name: "PiperPhonemizeMacOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.3-macos.xcframework.zip",
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.4-macos.xcframework.zip",
       checksum: "d12820f2c1278f405dea0286d6568333f845dcf2ee5f6a1ccb9033ba052d4995"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOS",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.3-ios.xcframework.zip",
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.4-ios.xcframework.zip",
       checksum: "7f7f6817d13739be974aa75181f584ab5458398a286c225bc4180c7de642d610"
     ),
 
@@ -32,13 +32,13 @@ let package = Package(
     .binaryTarget(
       name: "PiperPhonemizeMacOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.3-macos-shared.xcframework.zip",
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.4-macos-shared.xcframework.zip",
       checksum: "43105e50897e75e8f2eb5c1a8871120a4b298ae89d641ca35b16739a8518c2c1"
     ),
     .binaryTarget(
       name: "PiperPhonemizeIOSShared",
       url:
-        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.3-ios-shared.xcframework.zip",
+        "https://github.com/csukuangfj/piper-phonemize/releases/download/xcframework/piper-phonemize-v1.5.4-ios-shared.xcframework.zip",
       checksum: "b2e2cbe716fa0ddd475c229d6436e16795a952314cce8ffac99961811c9f33a4"
     ),
 

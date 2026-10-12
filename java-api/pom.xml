@@ -6,7 +6,7 @@
 
     <groupId>com.github.csukuangfj.piper.phonemize</groupId>
     <artifactId>piper-phonemize-jvm</artifactId>
-    <version>1.5.3</version>
+    <version>1.5.4</version>
     <packaging>jar</packaging>
 
     <name>piper-phonemize-jvm</name>

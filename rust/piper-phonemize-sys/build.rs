@@ -41,7 +41,7 @@ fn try_main() -> Result<(), DynError> {
 
     let target_os = env::var("CARGO_CFG_TARGET_OS")?;
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH")?;
-    let link_mode = resolve_link_mode()?;
+    let link_mode = resolve_link_mode(&target_os)?;
     let lib_dir = resolve_lib_dir(link_mode, &target_os, &target_arch)?;
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
@@ -68,7 +68,7 @@ fn try_main() -> Result<(), DynError> {
     Ok(())
 }
 
-fn resolve_link_mode() -> Result<LinkMode, DynError> {
+fn resolve_link_mode(target_os: &str) -> Result<LinkMode, DynError> {
     let static_enabled = env::var_os("CARGO_FEATURE_STATIC").is_some();
     let shared_enabled = env::var_os("CARGO_FEATURE_SHARED").is_some();
 
@@ -77,6 +77,14 @@ fn resolve_link_mode() -> Result<LinkMode, DynError> {
     }
 
     if shared_enabled {
+        Ok(LinkMode::Shared)
+    } else if target_os == "android" {
+        // Like sherpa-onnx: on Android we always link shared. Static archives
+        // would pull the C++ objects into the final binary, which then has to
+        // resolve the C++ runtime at link time -- and that library name is
+        // platform specific (Termux ships libc++_shared.so but no libc++.so,
+        // so "-lc++" leaves std::__ndk1 symbols undefined). With shared libs
+        // the C++ symbols are resolved at run time from libc++_shared.
         Ok(LinkMode::Shared)
     } else {
         Ok(LinkMode::Static)
@@ -145,7 +153,7 @@ fn download_prebuilt_libs(
             }
             copy_file_atomically(&local_archive_path, &archive_path)?;
         } else {
-            let version = "1.5.3";
+            let version = "1.5.4";
             let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
             eprintln!("Downloading piper-phonemize libs from {url}");
 
@@ -233,7 +241,7 @@ fn archive_name(
     target_os: &str,
     target_arch: &str,
 ) -> Result<String, DynError> {
-    let version = "1.5.3";
+    let version = "1.5.4";
     let name = match (link_mode, target_os, target_arch) {
         (LinkMode::Static, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-static-lib.tar.bz2")
@@ -311,7 +319,11 @@ fn emit_static_link_directives(target_os: &str) {
             println!("cargo:rustc-link-lib=gcc_s");
         }
         "android" => {
-            println!("cargo:rustc-link-lib=c++");
+            // Link the C++ runtime by its concrete name: Android/NDK and
+            // Termux both ship libc++_shared.so, while plain `-lc++` does not
+            // resolve there (Termux has no libc++.so at all), which made the
+            // std::__ndk1 symbols from the archives undefined at link time.
+            println!("cargo:rustc-link-lib=c++_shared");
             println!("cargo:rustc-link-lib=m");
         }
         "macos" => {
@@ -326,12 +338,11 @@ fn emit_static_link_directives(target_os: &str) {
     }
 }
 
-fn emit_shared_link_directives(target_os: &str) {
+fn emit_shared_link_directives(_target_os: &str) {
+    // espeak-ng and ucd are built static and bundled into
+    // libpiper_phonemize_core (see CMakeLists.txt: BUILD_SHARED_LIBS is
+    // forced OFF for them), so the shared library is all we need to link.
     println!("cargo:rustc-link-lib=dylib=piper_phonemize_core");
-    if target_os == "android" {
-        println!("cargo:rustc-link-lib=dylib=espeak-ng");
-        println!("cargo:rustc-link-lib=dylib=ucd");
-    }
 }
 
 fn target_dir_from_out_dir(out_dir: &Path) -> Result<PathBuf, DynError> {
