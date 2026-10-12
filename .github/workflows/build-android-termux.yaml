@@ -56,9 +56,12 @@ jobs:
       - name: Build with the Termux toolchain
         shell: bash
         run: |
-          # Create the staging directory on the host first: the container
-          # cannot always create directories in the mounted workspace.
+          # Pre-create the staging directory and make the workspace writable
+          # on the host: the container cannot create directories (no
+          # permissions), and its `rm`/`cp` must be able to write here too.
           mkdir -p libs/${{ matrix.abi }}
+          mkdir -p build-termux
+          chmod -R 777 "${{ github.workspace }}" || true
 
           docker run --rm \
             --volume ${{ github.workspace }}/:/work \
@@ -68,7 +71,9 @@ jobs:
             set -ex
             apt update -y
             apt install -y cmake make git clang libc++
-            BUILD_SHARED_LIBS=OFF ./build-termux.sh
+            # Invoke with `bash` explicitly: the image has no /usr/bin/env,
+            # so the scripts #!/usr/bin/env bash shebang cannot be exec()d.
+            BUILD_SHARED_LIBS=OFF bash ./build-termux.sh
           '
 
           cp -v ./build-termux/install/lib/*.a ./libs/${{ matrix.abi }}/
@@ -149,9 +154,12 @@ jobs:
       - name: Build with the Termux toolchain
         shell: bash
         run: |
-          # Create the staging directory on the host first: the container
-          # cannot always create directories in the mounted workspace.
+          # Pre-create the staging directory and make the workspace writable
+          # on the host: the container cannot create directories (no
+          # permissions), and its `rm`/`cp` must be able to write here too.
           mkdir -p jniLibs/${{ matrix.abi }}
+          mkdir -p build-termux-shared
+          chmod -R 777 "${{ github.workspace }}" || true
 
           docker run --rm \
             --volume ${{ github.workspace }}/:/work \
@@ -161,7 +169,9 @@ jobs:
             set -ex
             apt update -y
             apt install -y cmake make git clang libc++
-            BUILD_SHARED_LIBS=ON ./build-termux.sh
+            # Invoke with `bash` explicitly: the image has no /usr/bin/env,
+            # so the scripts #!/usr/bin/env bash shebang cannot be exec()d.
+            BUILD_SHARED_LIBS=ON bash ./build-termux.sh
           '
 
           cp -v ./build-termux-shared/install/lib/*.so ./jniLibs/${{ matrix.abi }}/
