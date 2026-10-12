@@ -233,6 +233,9 @@ fn archive_name(
         (LinkMode::Static, "windows", "x86_64") => {
             format!("piper-phonemize-v{version}-windows-x64-static-lib.tar.bz2")
         }
+        (LinkMode::Static, "windows", "aarch64") => {
+            format!("piper-phonemize-v{version}-windows-arm64-static-lib.tar.bz2")
+        }
         (LinkMode::Shared, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-shared-lib.tar.bz2")
         }
@@ -247,6 +250,9 @@ fn archive_name(
         }
         (LinkMode::Shared, "windows", "x86_64") => {
             format!("piper-phonemize-v{version}-windows-x64-shared-lib.tar.bz2")
+        }
+        (LinkMode::Shared, "windows", "aarch64") => {
+            format!("piper-phonemize-v{version}-windows-arm64-shared-lib.tar.bz2")
         }
         // Android: one archive with all ABIs
         (LinkMode::Shared, "android", "aarch64" | "arm" | "x86" | "x86_64") => {
@@ -413,10 +419,28 @@ fn copy_unix_runtime_libs(lib_dir: &Path, target_os: &str) -> Result<(), DynErro
 }
 
 fn copy_windows_runtime_dlls(lib_dir: &Path) -> Result<(), DynError> {
-    let dlls: Vec<PathBuf> = fs::read_dir(lib_dir)?
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .filter(|path| path.extension() == Some(OsStr::new("dll")))
-        .collect();
+    // CMake installs the import libraries into lib/ and the DLLs into bin/, and
+    // the released archives follow that layout. Scan both so the runtime
+    // libraries end up next to the built binary.
+    let mut search_dirs = vec![lib_dir.to_path_buf()];
+    if let Some(bin_dir) = lib_dir.parent().map(|dir| dir.join("bin")) {
+        if bin_dir.is_dir() {
+            search_dirs.push(bin_dir);
+        }
+    }
+
+    let mut dlls: Vec<PathBuf> = Vec::new();
+    for dir in &search_dirs {
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.extension() == Some(OsStr::new("dll")) {
+                dlls.push(path);
+            }
+        }
+    }
 
     if dlls.is_empty() {
         return Ok(());
