@@ -19,17 +19,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Case 1: Build native libs from source, then test Rust crate via local path
+  # Build native libs from source, then test the Rust crate via a local path.
+  #
+  # lib_setup picks how build.rs finds those libs:
+  #   lib_dir     - PIPER_PHONEMIZE_LIB_DIR points straight at install/lib
+  #   archive_dir - pack install/ into the tar.bz2 name build.rs expects and set
+  #                 PIPER_PHONEMIZE_ARCHIVE_DIR, which exercises archive_name()
   test-from-source:
+    name: ${{ matrix.os }} (${{ matrix.link }}, ${{ matrix.lib_setup }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-15-intel, ubuntu-22.04-arm]
+        os: [ubuntu-latest, macos-latest, macos-15-intel, ubuntu-22.04-arm, windows-latest, windows-11-arm]
         link: [shared, static]
+        lib_setup: [lib_dir, archive_dir]
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up MSVC
+        if: startsWith(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.os == 'windows-11-arm' && 'amd64_arm64' || 'x64' }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -37,25 +50,111 @@ jobs:
       - name: Build piper-phonemize
         shell: bash
         run: |
+          if [[ "${{ matrix.os }}" == "windows-11-arm" ]]; then
+            cmake_arch=ARM64
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cmake_arch=x64
+          fi
+
           mkdir build
           cd build
           cmake \
+            ${cmake_arch:+-A "$cmake_arch"} \
             -DCMAKE_INSTALL_PREFIX=./install \
             -DBUILD_SHARED_LIBS=${{ matrix.link == 'shared' && 'ON' || 'OFF' }} \
             -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
             -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
             ..
-          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) install
+
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
+            cmake --build . --config Release --target install
+          else
+            make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) install
+          fi
+
+      - name: Set library paths
+        shell: bash
+        run: |
+          if [[ "${{ matrix.lib_setup }}" == "lib_dir" ]]; then
+            echo "PIPER_PHONEMIZE_LIB_DIR=$PWD/build/install/lib" >> "$GITHUB_ENV"
+          else
+            # These names must match exactly what build.rs expects. The tarball
+            # keeps lib/ at its root (build.rs unpacks into <archive_stem>/ and
+            # then looks for <archive_stem>/lib).
+            case "${{ matrix.os }}" in
+              ubuntu-latest)    platform=linux-x64 ;;
+              ubuntu-22.04-arm) platform=linux-arm64 ;;
+              macos-latest)     platform=macos-arm64 ;;
+              macos-15-intel)   platform=macos-x64 ;;
+              windows-latest)   platform=windows-x64 ;;
+              windows-11-arm)   platform=windows-arm64 ;;
+            esac
+
+            VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+            archive_name="piper-phonemize-v${VERSION}-${platform}-${{ matrix.link }}-lib.tar.bz2"
+
+            archive_dir="$RUNNER_TEMP/piper-phonemize-archive"
+            # GNU tar reads "D:/..." as a remote host:path spec ("Cannot connect
+            # to D:"), so hand tar a POSIX path and keep the native path for Rust.
+            archive_dir_unix="$(cygpath -u "$archive_dir" 2>/dev/null || echo "$archive_dir")"
+            mkdir -p "$archive_dir_unix"
+            (
+              cd build/install
+              # Windows shared builds install DLLs under bin/, import libs under lib/
+              if [[ "${{ matrix.os }}" == windows-* && "${{ matrix.link }}" == "shared" ]]; then
+                tar cjf "$archive_dir_unix/$archive_name" bin/ lib/ include/
+              else
+                tar cjf "$archive_dir_unix/$archive_name" lib/ include/
+              fi
+            )
+            echo "PIPER_PHONEMIZE_ARCHIVE_DIR=$archive_dir" >> "$GITHUB_ENV"
+          fi
+
+          if [[ "${{ matrix.link }}" == "shared" ]]; then
+            if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+              echo "LD_LIBRARY_PATH=$PWD/build/install/lib:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            elif [[ "${{ matrix.os }}" == macos-* ]]; then
+              echo "DYLD_LIBRARY_PATH=$PWD/build/install/lib:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            fi
+            # Windows: build.rs copies the DLLs next to the example binaries.
+          fi
+
+      - name: Select MSVC linker
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          # Pin the linker so rustc does not pick up an unrelated link.exe from PATH
+          if ("${{ matrix.os }}" -eq "windows-11-arm") {
+            $linker = Join-Path $env:VCToolsInstallDir 'bin\HostX64\ARM64\link.exe'
+            $env_var = "CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER"
+          } else {
+            $linker = Join-Path $env:VCToolsInstallDir 'bin\HostX64\x64\link.exe'
+            $env_var = "CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER"
+          }
+          if (-not (Test-Path $linker)) {
+            throw "MSVC linker not found: $linker"
+          }
+          "$env_var=$linker" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Using linker: $linker"
+
+      - name: Show library setup
+        shell: bash
+        run: |
+          echo "os: ${{ matrix.os }}"
+          echo "link: ${{ matrix.link }}"
+          echo "lib_setup: ${{ matrix.lib_setup }}"
+          if [[ -n "${PIPER_PHONEMIZE_LIB_DIR:-}" ]]; then
+            echo "PIPER_PHONEMIZE_LIB_DIR: $PIPER_PHONEMIZE_LIB_DIR"
+            ls -lh "$PIPER_PHONEMIZE_LIB_DIR"
+          fi
+          if [[ -n "${PIPER_PHONEMIZE_ARCHIVE_DIR:-}" ]]; then
+            echo "PIPER_PHONEMIZE_ARCHIVE_DIR: $PIPER_PHONEMIZE_ARCHIVE_DIR"
+            ls -lh "$PIPER_PHONEMIZE_ARCHIVE_DIR"
+          fi
 
       - name: Test
         shell: bash
         run: |
-          export PIPER_PHONEMIZE_LIB_DIR=$PWD/build/install/lib
-          if [ "${{ matrix.link }}" = "shared" ]; then
-            if [ "$(uname)" = "Linux" ]; then
-              export LD_LIBRARY_PATH=$PIPER_PHONEMIZE_LIB_DIR:$LD_LIBRARY_PATH
-            fi
-          fi
           cd rust-api-examples
           # Switch to local path for from-source testing
           sed -i.bak 's|^piper-phonemize= .*|# &|' Cargo.toml
@@ -63,7 +162,10 @@ jobs:
           cargo run --example phonemize --no-default-features --features ${{ matrix.link }}
           cargo run --example multiple_languages --no-default-features --features ${{ matrix.link }}
 
-  # Case 2: Download prebuilt libs from crates.io (no local build)
+  # Case 2: Download prebuilt libs via the published crate (no local build).
+  # Windows is not in this matrix yet: the crate on crates.io predates Windows
+  # ARM64 support, so it would fail with "Unsupported target" until the next
+  # publish. Add windows-latest / windows-11-arm here once that ships.
   test-from-crates:
     runs-on: ${{ matrix.os }}
     strategy:

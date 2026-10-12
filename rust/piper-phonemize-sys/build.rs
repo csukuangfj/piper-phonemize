@@ -145,7 +145,7 @@ fn download_prebuilt_libs(
             }
             copy_file_atomically(&local_archive_path, &archive_path)?;
         } else {
-            let version = "1.5.2";
+            let version = "1.5.3";
             let url = format!("{RELEASE_BASE_URL}/v{version}/{archive_name}");
             eprintln!("Downloading piper-phonemize libs from {url}");
 
@@ -211,12 +211,29 @@ fn android_abi(target_arch: &str) -> &str {
     }
 }
 
+/// True when building inside Termux (as opposed to an NDK app or a desktop
+/// cross-compile).
+///
+/// Termux links its own libc++ (inline namespace std::__1) while the plain
+/// `-android` archives are built with the Android NDK toolchain and reference
+/// the NDK libc++ (inline namespace std::__ndk1), so those cannot be linked
+/// there. For Termux we therefore download the `-android-termux` archives,
+/// which are built with Termux's own clang/libc++.
+fn is_termux() -> bool {
+    if let Ok(prefix) = std::env::var("PREFIX") {
+        if prefix.starts_with("/data/data/com.termux") {
+            return true;
+        }
+    }
+    std::path::Path::new("/data/data/com.termux").exists()
+}
+
 fn archive_name(
     link_mode: LinkMode,
     target_os: &str,
     target_arch: &str,
 ) -> Result<String, DynError> {
-    let version = "1.5.2";
+    let version = "1.5.3";
     let name = match (link_mode, target_os, target_arch) {
         (LinkMode::Static, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-static-lib.tar.bz2")
@@ -233,6 +250,9 @@ fn archive_name(
         (LinkMode::Static, "windows", "x86_64") => {
             format!("piper-phonemize-v{version}-windows-x64-static-lib.tar.bz2")
         }
+        (LinkMode::Static, "windows", "aarch64") => {
+            format!("piper-phonemize-v{version}-windows-arm64-static-lib.tar.bz2")
+        }
         (LinkMode::Shared, "linux", "x86_64") => {
             format!("piper-phonemize-v{version}-linux-x64-shared-lib.tar.bz2")
         }
@@ -248,12 +268,24 @@ fn archive_name(
         (LinkMode::Shared, "windows", "x86_64") => {
             format!("piper-phonemize-v{version}-windows-x64-shared-lib.tar.bz2")
         }
-        // Android: one archive with all ABIs
+        (LinkMode::Shared, "windows", "aarch64") => {
+            format!("piper-phonemize-v{version}-windows-arm64-shared-lib.tar.bz2")
+        }
+        // Android: one archive with all ABIs. Termux needs its own variant:
+        // see the is_termux() comment above.
         (LinkMode::Shared, "android", "aarch64" | "arm" | "x86" | "x86_64") => {
-            format!("piper-phonemize-v{version}-android.tar.bz2")
+            if is_termux() {
+                format!("piper-phonemize-v{version}-android-termux.tar.bz2")
+            } else {
+                format!("piper-phonemize-v{version}-android.tar.bz2")
+            }
         }
         (LinkMode::Static, "android", "aarch64" | "arm" | "x86" | "x86_64") => {
-            format!("piper-phonemize-v{version}-android-static-lib.tar.bz2")
+            if is_termux() {
+                format!("piper-phonemize-v{version}-android-termux-static-lib.tar.bz2")
+            } else {
+                format!("piper-phonemize-v{version}-android-static-lib.tar.bz2")
+            }
         }
         _ => {
             return Err(format!(
@@ -285,7 +317,11 @@ fn emit_static_link_directives(target_os: &str) {
         "macos" => {
             println!("cargo:rustc-link-lib=c++");
         }
-        "windows" => {}
+        "windows" => {
+            // espeak-ng's espeak_ng_InitializePath() looks up the data dir in
+            // the Windows registry (RegOpenKeyExA/RegQueryValueExA).
+            println!("cargo:rustc-link-lib=advapi32");
+        }
         _ => {}
     }
 }
@@ -413,10 +449,28 @@ fn copy_unix_runtime_libs(lib_dir: &Path, target_os: &str) -> Result<(), DynErro
 }
 
 fn copy_windows_runtime_dlls(lib_dir: &Path) -> Result<(), DynError> {
-    let dlls: Vec<PathBuf> = fs::read_dir(lib_dir)?
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .filter(|path| path.extension() == Some(OsStr::new("dll")))
-        .collect();
+    // CMake installs the import libraries into lib/ and the DLLs into bin/, and
+    // the released archives follow that layout. Scan both so the runtime
+    // libraries end up next to the built binary.
+    let mut search_dirs = vec![lib_dir.to_path_buf()];
+    if let Some(bin_dir) = lib_dir.parent().map(|dir| dir.join("bin")) {
+        if bin_dir.is_dir() {
+            search_dirs.push(bin_dir);
+        }
+    }
+
+    let mut dlls: Vec<PathBuf> = Vec::new();
+    for dir in &search_dirs {
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.extension() == Some(OsStr::new("dll")) {
+                dlls.push(path);
+            }
+        }
+    }
 
     if dlls.is_empty() {
         return Ok(());
