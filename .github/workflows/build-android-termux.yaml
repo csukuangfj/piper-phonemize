@@ -9,9 +9,13 @@ name: build-android-termux
 # is undefined. These builds use Termux's clang/libc++ and therefore work in
 # Termux, while the plain -android archives keep serving NDK/app consumers.
 #
+# The termux-docker images are native binaries per architecture, so each arch
+# must run on a matching GitHub runner (an aarch64 image cannot exec on an
+# x86_64 runner -- "exec format error").
+#
 # Archives produced here (same layout as the NDK ones, so piper-phonemize-sys's
 # build.rs finds them unchanged):
-#   piper-phonemize-v${VERSION}-android-termux.tar.bz2          jniLibs/{abi}/*.so
+#   piper-phonemize-v${VERSION}-android-termux.tar.bz2             jniLibs/{abi}/*.so
 #   piper-phonemize-v${VERSION}-android-termux-static-lib.tar.bz2  libs/{abi}/*.a
 
 on:
@@ -27,104 +31,72 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-android-termux-shared:
-    runs-on: ubuntu-latest
+  build-android-termux-static:
+    name: Build static ${{ matrix.abi }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            abi: arm64-v8a
+          - arch: arm
+            runner: ubuntu-24.04-arm
+            abi: armeabi-v7a
+          - arch: x86_64
+            runner: ubuntu-latest
+            abi: x86_64
+          - arch: i686
+            runner: ubuntu-latest
+            abi: x86
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build android libs (shared) with the Termux toolchain
+      - name: Build with the Termux toolchain
         shell: bash
         run: |
           # Create the staging directory on the host first: the container
           # cannot always create directories in the mounted workspace.
-          mkdir -p jniLibs
+          mkdir -p libs/${{ matrix.abi }}
 
-          for arch in aarch64 arm x86_64 i686; do
-            case $arch in
-              aarch64) abi=arm64-v8a ;;
-              arm) abi=armeabi-v7a ;;
-              x86_64) abi=x86_64 ;;
-              i686) abi=x86 ;;
-            esac
-            mkdir -p jniLibs/$abi
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/work \
+            --workdir /work \
+            termux/termux-docker:${{ matrix.arch }} \
+          bash -c '
+            set -ex
+            apt update -y
+            apt install -y cmake make git clang libc++
+            BUILD_SHARED_LIBS=OFF ./build-termux.sh
+          '
 
-            docker run --rm \
-              --volume ${{ github.workspace }}/:/work \
-              --workdir /work \
-              termux/termux-docker:$arch \
-            bash -c '
-              set -ex
-              apt update -y
-              apt install -y cmake make git clang libc++
-              BUILD_SHARED_LIBS=ON ./build-termux.sh
-            '
-
-            cp -v ./build-termux-shared/install/lib/*.so ./jniLibs/$abi/
-          done
-
-      - name: Create archive
-        shell: bash
-        run: |
-          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          echo "VERSION=$VERSION"
-
-          filename=piper-phonemize-v${VERSION}-android-termux.tar.bz2
-          tar cjvf $filename ./jniLibs
-
-          ls -lh $filename
+          cp -v ./build-termux/install/lib/*.a ./libs/${{ matrix.abi }}/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: piper-phonemize-android-termux-shared-libs
-          path: ./jniLibs
+          name: piper-termux-static-${{ matrix.abi }}
+          path: |
+            ./libs
+            ./build-termux/install/include
 
-      - name: Release android termux shared libs
-        uses: svenstaro/upload-release-action@v2
-        with:
-          file_glob: true
-          overwrite: true
-          file: piper-phonemize-*-android-termux.tar.bz2
-          tag: v1.5.3
-
-  build-android-termux-static:
+  create-android-termux-static-archive:
+    needs: build-android-termux-static
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build android libs (static) with the Termux toolchain
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: piper-termux-static-*
+          path: artifacts
+
+      - name: Merge artifacts
         shell: bash
         run: |
-          # Create the staging directories on the host first: the container
-          # cannot always create directories in the mounted workspace.
-          mkdir -p libs
-
-          for arch in aarch64 arm x86_64 i686; do
-            case $arch in
-              aarch64) abi=arm64-v8a ;;
-              arm) abi=armeabi-v7a ;;
-              x86_64) abi=x86_64 ;;
-              i686) abi=x86 ;;
-            esac
-            mkdir -p libs/$abi
-
-            docker run --rm \
-              --volume ${{ github.workspace }}/:/work \
-              --workdir /work \
-              termux/termux-docker:$arch \
-            bash -c '
-              set -ex
-              apt update -y
-              apt install -y cmake make git clang libc++
-              BUILD_SHARED_LIBS=OFF ./build-termux.sh
-            '
-
-            cp -v ./build-termux/install/lib/*.a ./libs/$abi/
-          done
-
-      - name: Copy headers
-        shell: bash
-        run: |
-          cp -rv build-termux/install/include ./include
+          mkdir -p libs include
+          cp -rv artifacts/*/libs/* libs/
+          cp -rv artifacts/piper-termux-static-arm64-v8a/build-termux/install/include/. include/
 
       - name: Create archive
         shell: bash
@@ -150,4 +122,92 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android-termux-static-lib.tar.bz2
-          tag: v1.5.3
+          tag: v1.5.2
+
+  build-android-termux-shared:
+    name: Build shared ${{ matrix.abi }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            abi: arm64-v8a
+          - arch: arm
+            runner: ubuntu-24.04-arm
+            abi: armeabi-v7a
+          - arch: x86_64
+            runner: ubuntu-latest
+            abi: x86_64
+          - arch: i686
+            runner: ubuntu-latest
+            abi: x86
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with the Termux toolchain
+        shell: bash
+        run: |
+          # Create the staging directory on the host first: the container
+          # cannot always create directories in the mounted workspace.
+          mkdir -p jniLibs/${{ matrix.abi }}
+
+          docker run --rm \
+            --volume ${{ github.workspace }}/:/work \
+            --workdir /work \
+            termux/termux-docker:${{ matrix.arch }} \
+          bash -c '
+            set -ex
+            apt update -y
+            apt install -y cmake make git clang libc++
+            BUILD_SHARED_LIBS=ON ./build-termux.sh
+          '
+
+          cp -v ./build-termux-shared/install/lib/*.so ./jniLibs/${{ matrix.abi }}/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-termux-shared-${{ matrix.abi }}
+          path: ./jniLibs
+
+  create-android-termux-shared-archive:
+    needs: build-android-termux-shared
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: piper-termux-shared-*
+          path: artifacts
+
+      - name: Merge artifacts
+        shell: bash
+        run: |
+          mkdir -p jniLibs
+          cp -rv artifacts/*/jniLibs/* jniLibs/
+
+      - name: Create archive
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "VERSION=$VERSION"
+
+          filename=piper-phonemize-v${VERSION}-android-termux.tar.bz2
+          tar cjvf $filename ./jniLibs
+
+          ls -lh $filename
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-android-termux-shared-libs
+          path: ./jniLibs
+
+      - name: Release android termux shared libs
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*-android-termux.tar.bz2
+          tag: v1.5.2
