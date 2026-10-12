@@ -1,0 +1,153 @@
+name: build-android-termux
+
+# Builds the Android libraries inside termux/termux-docker instead of with the
+# Android NDK.
+#
+# Why: the NDK toolchain compiles C++ against the NDK libc++ (inline namespace
+# std::__ndk1). Termux links its own libc++ (inline namespace std::__1), so the
+# NDK-built archives cannot be linked there -- every "std::__ndk1::..." symbol
+# is undefined. These builds use Termux's clang/libc++ and therefore work in
+# Termux, while the plain -android archives keep serving NDK/app consumers.
+#
+# Archives produced here (same layout as the NDK ones, so piper-phonemize-sys's
+# build.rs finds them unchanged):
+#   piper-phonemize-v${VERSION}-android-termux.tar.bz2          jniLibs/{abi}/*.so
+#   piper-phonemize-v${VERSION}-android-termux-static-lib.tar.bz2  libs/{abi}/*.a
+
+on:
+  push:
+    branches:
+      - fix-rust
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag-pattern on pub.dev: 'v{{version}}'
+  workflow_dispatch:
+
+concurrency:
+  group: build-android-termux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-termux-shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build android libs (shared) with the Termux toolchain
+        shell: bash
+        run: |
+          # Create the staging directory on the host first: the container
+          # cannot always create directories in the mounted workspace.
+          mkdir -p jniLibs
+
+          for arch in aarch64 arm x86_64 i686; do
+            case $arch in
+              aarch64) abi=arm64-v8a ;;
+              arm) abi=armeabi-v7a ;;
+              x86_64) abi=x86_64 ;;
+              i686) abi=x86 ;;
+            esac
+            mkdir -p jniLibs/$abi
+
+            docker run --rm \
+              --volume ${{ github.workspace }}/:/work \
+              --workdir /work \
+              termux/termux-docker:$arch \
+            bash -c '
+              set -ex
+              apt update -y
+              apt install -y cmake make git clang libc++
+              BUILD_SHARED_LIBS=ON ./build-termux.sh
+            '
+
+            cp -v ./build-termux-shared/install/lib/*.so ./jniLibs/$abi/
+          done
+
+      - name: Create archive
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "VERSION=$VERSION"
+
+          filename=piper-phonemize-v${VERSION}-android-termux.tar.bz2
+          tar cjvf $filename ./jniLibs
+
+          ls -lh $filename
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-android-termux-shared-libs
+          path: ./jniLibs
+
+      - name: Release android termux shared libs
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*-android-termux.tar.bz2
+          tag: v1.5.3
+
+  build-android-termux-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build android libs (static) with the Termux toolchain
+        shell: bash
+        run: |
+          # Create the staging directories on the host first: the container
+          # cannot always create directories in the mounted workspace.
+          mkdir -p libs
+
+          for arch in aarch64 arm x86_64 i686; do
+            case $arch in
+              aarch64) abi=arm64-v8a ;;
+              arm) abi=armeabi-v7a ;;
+              x86_64) abi=x86_64 ;;
+              i686) abi=x86 ;;
+            esac
+            mkdir -p libs/$abi
+
+            docker run --rm \
+              --volume ${{ github.workspace }}/:/work \
+              --workdir /work \
+              termux/termux-docker:$arch \
+            bash -c '
+              set -ex
+              apt update -y
+              apt install -y cmake make git clang libc++
+              BUILD_SHARED_LIBS=OFF ./build-termux.sh
+            '
+
+            cp -v ./build-termux/install/lib/*.a ./libs/$abi/
+          done
+
+      - name: Copy headers
+        shell: bash
+        run: |
+          cp -rv build-termux/install/include ./include
+
+      - name: Create archive
+        shell: bash
+        run: |
+          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
+          echo "VERSION=$VERSION"
+
+          filename=piper-phonemize-v${VERSION}-android-termux-static-lib.tar.bz2
+          tar cjvf $filename ./libs ./include
+
+          ls -lh $filename
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: piper-phonemize-android-termux-static-libs
+          path: |
+            ./libs
+            ./include
+
+      - name: Release android termux static libs
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: piper-phonemize-*-android-termux-static-lib.tar.bz2
+          tag: v1.5.3

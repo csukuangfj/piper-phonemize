@@ -1,3 +1,7 @@
+## 1.5.3
+
+* Fix rust
+
 ## 1.5.2
 * Fix publishing go packages for windows arm64
 

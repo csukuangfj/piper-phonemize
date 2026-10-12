@@ -93,17 +93,21 @@ jobs:
             VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
             archive_name="piper-phonemize-v${VERSION}-${platform}-${{ matrix.link }}-lib.tar.bz2"
 
-            mkdir -p "$RUNNER_TEMP/piper-phonemize-archive"
+            archive_dir="$RUNNER_TEMP/piper-phonemize-archive"
+            # GNU tar reads "D:/..." as a remote host:path spec ("Cannot connect
+            # to D:"), so hand tar a POSIX path and keep the native path for Rust.
+            archive_dir_unix="$(cygpath -u "$archive_dir" 2>/dev/null || echo "$archive_dir")"
+            mkdir -p "$archive_dir_unix"
             (
               cd build/install
               # Windows shared builds install DLLs under bin/, import libs under lib/
               if [[ "${{ matrix.os }}" == windows-* && "${{ matrix.link }}" == "shared" ]]; then
-                tar cjf "$RUNNER_TEMP/piper-phonemize-archive/$archive_name" bin/ lib/ include/
+                tar cjf "$archive_dir_unix/$archive_name" bin/ lib/ include/
               else
-                tar cjf "$RUNNER_TEMP/piper-phonemize-archive/$archive_name" lib/ include/
+                tar cjf "$archive_dir_unix/$archive_name" lib/ include/
               fi
             )
-            echo "PIPER_PHONEMIZE_ARCHIVE_DIR=$RUNNER_TEMP/piper-phonemize-archive" >> "$GITHUB_ENV"
+            echo "PIPER_PHONEMIZE_ARCHIVE_DIR=$archive_dir" >> "$GITHUB_ENV"
           fi
 
           if [[ "${{ matrix.link }}" == "shared" ]]; then
