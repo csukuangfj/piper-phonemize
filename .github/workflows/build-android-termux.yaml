@@ -195,8 +195,13 @@ jobs:
       - name: Merge artifacts
         shell: bash
         run: |
+          # Note: upload-artifact strips a single top-level directory, so each
+          # artifact contains the *contents* of ./jniLibs (i.e. one {abi}/ dir).
           mkdir -p jniLibs
-          cp -rv artifacts/*/jniLibs/* jniLibs/
+          for d in artifacts/piper-termux-shared-*; do
+            cp -rv "$d"/. jniLibs/
+          done
+          ls -R jniLibs
 
       - name: Create archive
         shell: bash
