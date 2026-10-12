@@ -1,5 +1,7 @@
-## 1.5.3
+## 1.5.4
+* Fix rust for android
 
+## 1.5.3
 * Fix rust
 
 ## 1.5.2

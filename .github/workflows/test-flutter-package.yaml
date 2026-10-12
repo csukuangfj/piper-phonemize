@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - release-v1.5.3
+      - release-v1.5.4
 
   workflow_dispatch:
 
