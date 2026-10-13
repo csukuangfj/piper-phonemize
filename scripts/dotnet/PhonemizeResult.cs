@@ -46,12 +46,12 @@ namespace PiperPhonemize
             if (phonemesPtr == IntPtr.Zero)
                 return string.Empty;
 
-            // Each phoneme is a uint32_t (Unicode code point)
+            // Each phoneme is an int32_t (Unicode code point)
             var sb = new StringBuilder(count);
             for (int i = 0; i < count; i++)
             {
-                uint codePoint = (uint)Marshal.ReadInt32(phonemesPtr, i * 4);
-                sb.Append(char.ConvertFromUtf32((int)codePoint));
+                int codePoint = Marshal.ReadInt32(phonemesPtr, i * 4);
+                sb.Append(char.ConvertFromUtf32(codePoint));
             }
             return sb.ToString();
         }

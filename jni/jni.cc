@@ -64,7 +64,7 @@ Java_com_github_csukuangfj_piper_phonemize_PiperPhonemize_nativeGetPhonemes(
     return env->NewIntArray(0);
   }
 
-  const uint32_t *phonemes =
+  const int32_t *phonemes =
       PiperPhonemizeResultGetPhonemes(result, sentence_id);
   if (phonemes == nullptr) {
     return env->NewIntArray(0);

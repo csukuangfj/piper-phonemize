@@ -59,6 +59,6 @@ defer pp.DeletePhonemizeResult(result)
 
 for i := 0; i < result.GetNumSentences(); i++ {
     phonemes := result.GetPhonemes(i)
-    // phonemes is []uint32 of Unicode code points
+    // phonemes is []int32 of Unicode code points
 }
 ```

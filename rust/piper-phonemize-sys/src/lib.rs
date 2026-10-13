@@ -1,6 +1,6 @@
 //! Raw FFI bindings to the piper-phonemize C API.
 
-use std::os::raw::{c_char, c_int, c_uint};
+use std::os::raw::{c_char, c_int};
 
 /// Opaque handle for phonemize results.
 #[repr(C)]
@@ -34,11 +34,11 @@ extern "C" {
         sentence_id: c_int,
     ) -> c_int;
 
-    /// Get pointer to phoneme array (uint32 Unicode code points) for a sentence.
+    /// Get pointer to phoneme array (int32 Unicode code points) for a sentence.
     pub fn PiperPhonemizeResultGetPhonemes(
         result: *const PiperPhonemizeResult,
         sentence_id: c_int,
-    ) -> *const c_uint;
+    ) -> *const c_int;
 
     /// Free a result handle.
     pub fn PiperPhonemizeDestroyResult(result: *mut PiperPhonemizeResult);

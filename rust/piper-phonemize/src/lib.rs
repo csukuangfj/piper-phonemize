@@ -57,7 +57,7 @@ impl PiperPhonemizeResult {
 
     /// Returns phonemes for a given sentence as Unicode code points.
     /// Returns None if sentence_id is out of range.
-    pub fn get_phonemes(&self, sentence_id: usize) -> Option<Vec<u32>> {
+    pub fn get_phonemes(&self, sentence_id: usize) -> Option<Vec<i32>> {
         let n = self.num_phonemes(sentence_id)?;
         if n == 0 {
             return Some(Vec::new());
@@ -78,7 +78,7 @@ impl PiperPhonemizeResult {
         let phonemes = self.get_phonemes(sentence_id)?;
         let s: String = phonemes
             .iter()
-            .filter_map(|&cp| char::from_u32(cp))
+            .filter_map(|&cp| u32::try_from(cp).ok().and_then(char::from_u32))
             .collect();
         Some(s)
     }
