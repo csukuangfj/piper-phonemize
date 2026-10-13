@@ -8,7 +8,9 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 26
+        // The native libs are built with -DANDROID_PLATFORM=android-21 and the
+        // wrapper only uses Context/File/FileOutputStream, so API 21 is enough.
+        minSdk = 21
     }
 
     compileOptions {
