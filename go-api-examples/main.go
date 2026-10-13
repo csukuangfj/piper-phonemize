@@ -8,7 +8,7 @@ import (
 	pp "github.com/csukuangfj/piper-phonemize-go/piper_phonemize"
 )
 
-func phonemesToString(phonemes []uint32) string {
+func phonemesToString(phonemes []int32) string {
 	var sb strings.Builder
 	for _, cp := range phonemes {
 		sb.WriteRune(rune(cp))

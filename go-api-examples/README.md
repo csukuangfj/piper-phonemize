@@ -23,7 +23,7 @@ go run main.go /path/to/espeak-ng-data
 ## Expected output
 
 ```
-Version: 1.5.4
+Version: 1.5.5
 Initialize: 22050
 
 Input: "hello world"
@@ -59,6 +59,6 @@ defer pp.DeletePhonemizeResult(result)
 
 for i := 0; i < result.GetNumSentences(); i++ {
     phonemes := result.GetPhonemes(i)
-    // phonemes is []uint32 of Unicode code points
+    // phonemes is []int32 of Unicode code points
 }
 ```

@@ -32,7 +32,7 @@ PIPER_PHONEMIZE_API PhonemizeResult Phonemize(const std::string &text,
     if (n <= 0) {
       continue;
     }
-    const uint32_t *phonemes = PiperPhonemizeResultGetPhonemes(c_result, i);
+    const int32_t *phonemes = PiperPhonemizeResultGetPhonemes(c_result, i);
     if (phonemes) {
       result.sentences[i].assign(phonemes, phonemes + n);
     }

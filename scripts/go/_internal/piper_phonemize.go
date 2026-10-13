@@ -45,8 +45,8 @@ func (r *PhonemizeResult) GetNumPhonemes(sentenceId int) int {
 }
 
 // GetPhonemes returns the phonemes for a given sentence as a slice of Unicode
-// code points (uint32). Returns nil if sentenceId is out of range.
-func (r *PhonemizeResult) GetPhonemes(sentenceId int) []uint32 {
+// code points (int32). Returns nil if sentenceId is out of range.
+func (r *PhonemizeResult) GetPhonemes(sentenceId int) []int32 {
 	n := r.GetNumPhonemes(sentenceId)
 	if n <= 0 {
 		return nil
@@ -55,7 +55,7 @@ func (r *PhonemizeResult) GetPhonemes(sentenceId int) []uint32 {
 	if p == nil {
 		return nil
 	}
-	return unsafe.Slice((*uint32)(unsafe.Pointer(p)), n)
+	return unsafe.Slice((*int32)(unsafe.Pointer(p)), n)
 }
 
 // GetVersionStr returns the piper-phonemize version string.

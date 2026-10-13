@@ -43,10 +43,10 @@ typedef ResultGetNumPhonemesNative = Int32 Function(
 typedef ResultGetNumPhonemes = int Function(
     Pointer<PiperPhonemizeResult> result, int sentenceId);
 
-// const uint32_t *PiperPhonemizeResultGetPhonemes(const PiperPhonemizeResult *result, int32_t sentence_id);
-typedef ResultGetPhonemesNative = Pointer<Uint32> Function(
+// const int32_t *PiperPhonemizeResultGetPhonemes(const PiperPhonemizeResult *result, int32_t sentence_id);
+typedef ResultGetPhonemesNative = Pointer<Int32> Function(
     Pointer<PiperPhonemizeResult> result, Int32 sentenceId);
-typedef ResultGetPhonemes = Pointer<Uint32> Function(
+typedef ResultGetPhonemes = Pointer<Int32> Function(
     Pointer<PiperPhonemizeResult> result, int sentenceId);
 
 // void PiperPhonemizeDestroyResult(PiperPhonemizeResult *result);

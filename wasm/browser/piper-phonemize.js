@@ -38,7 +38,7 @@ function piperPhonemizeGetVersionStr() {
  *
  * @param {string} text - Text to phonemize
  * @param {string} [voice='en-us'] - espeak-ng voice (e.g., 'en-us', 'de', 'fr')
- * @returns {Array<Array<number>>|null} Array of sentences, each containing phoneme code points (uint32), or null on failure
+ * @returns {Array<Array<number>>|null} Array of sentences, each containing phoneme code points (int32), or null on failure
  */
 function piperPhonemize(text, voice) {
   if (!voice) {
@@ -78,10 +78,10 @@ function piperPhonemize(text, voice) {
           continue;
         }
 
-        // Read uint32 array from WASM heap
+        // Read int32 array from WASM heap
         const phonemes = [];
         for (let j = 0; j < numPhonemes; j++) {
-          phonemes.push(Module.HEAPU32[(phonemesPtr >> 2) + j]);
+          phonemes.push(Module.HEAP32[(phonemesPtr >> 2) + j]);
         }
         sentences.push(phonemes);
       }

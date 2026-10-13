@@ -37,7 +37,7 @@ Phonemize text and return raw phoneme code points.
 
 - `text` (string): Text to phonemize
 - `voice` (string, optional): espeak-ng voice (e.g., 'en-us', 'de', 'fr'). Default: 'en-us'
-- Returns: Array of sentences, each containing an array of uint32 code points, or null on failure
+- Returns: Array of sentences, each containing an array of int32 code points, or null on failure
 
 ### `phonemizeToString(text, voice)`
 

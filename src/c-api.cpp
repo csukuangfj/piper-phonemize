@@ -18,7 +18,7 @@ struct PiperPhonemizeResult {
 
 static std::once_flag g_init_flag;
 
-const char *PiperPhonemizeGetVersionStr() { return "1.5.4"; }
+const char *PiperPhonemizeGetVersionStr() { return "1.5.5"; }
 
 int32_t PiperPhonemizeInitialize(const char *data_dir) {
   int32_t result = 0;
@@ -73,7 +73,7 @@ int32_t PiperPhonemizeResultGetNumPhonemes(const PiperPhonemizeResult *result,
   return static_cast<int32_t>(result->phonemes[sentence_id].size());
 }
 
-const uint32_t *PiperPhonemizeResultGetPhonemes(
+const int32_t *PiperPhonemizeResultGetPhonemes(
     const PiperPhonemizeResult *result, int32_t sentence_id) {
   if (!result || sentence_id < 0 ||
       sentence_id >= static_cast<int32_t>(result->phonemes.size())) {
@@ -82,7 +82,7 @@ const uint32_t *PiperPhonemizeResultGetPhonemes(
   if (result->phonemes[sentence_id].empty()) {
     return nullptr;
   }
-  return reinterpret_cast<const uint32_t *>(
+  return reinterpret_cast<const int32_t *>(
       result->phonemes[sentence_id].data());
 }
 

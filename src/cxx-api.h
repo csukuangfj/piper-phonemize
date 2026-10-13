@@ -29,7 +29,7 @@
  * pp::Initialize("./espeak-ng-data");
  * auto result = pp::Phonemize("hello world", "en-us");
  * for (const auto &sentence : result.sentences) {
- *   for (uint32_t phoneme : sentence) {
+ *   for (int32_t phoneme : sentence) {
  *     // process phoneme codepoint
  *   }
  * }
@@ -58,7 +58,7 @@ namespace piper_phonemize::cxx {
  */
 struct PhonemizeResult {
   /** Phoneme sequences, one vector per sentence. */
-  std::vector<std::vector<uint32_t>> sentences;
+  std::vector<std::vector<int32_t>> sentences;
 };
 
 /**
@@ -87,7 +87,7 @@ PIPER_PHONEMIZE_API PhonemizeResult Phonemize(const std::string &text,
 /**
  * @brief Return the piper-phonemize version string.
  *
- * @return Version string, for example `"1.5.4"`.
+ * @return Version string, for example `"1.5.5"`.
  */
 PIPER_PHONEMIZE_API std::string GetVersionStr();
 

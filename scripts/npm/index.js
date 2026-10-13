@@ -68,7 +68,7 @@ function getVersion() {
  *
  * @param {string} text - Text to phonemize
  * @param {string} [voice='en-us'] - espeak-ng voice (e.g., 'en-us', 'de', 'fr')
- * @returns {Array<Array<number>>|null} Array of sentences, each containing phoneme code points (uint32), or null on failure
+ * @returns {Array<Array<number>>|null} Array of sentences, each containing phoneme code points (int32), or null on failure
  */
 function phonemize(text, voice) {
   ensureInitialized();

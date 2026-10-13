@@ -12,7 +12,7 @@
 
 static int num_errors = 0;
 
-static std::string CodepointToUtf8(uint32_t cp) {
+static std::string CodepointToUtf8(int32_t cp) {
   std::string result;
   if (cp <= 0x7F) {
     result += static_cast<char>(cp);
@@ -32,9 +32,9 @@ static std::string CodepointToUtf8(uint32_t cp) {
   return result;
 }
 
-static std::string PhonemesToString(const std::vector<uint32_t> &phonemes) {
+static std::string PhonemesToString(const std::vector<int32_t> &phonemes) {
   std::string s;
-  for (uint32_t cp : phonemes) {
+  for (int32_t cp : phonemes) {
     s += CodepointToUtf8(cp);
   }
   return s;

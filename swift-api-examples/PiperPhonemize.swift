@@ -38,14 +38,14 @@ public class PiperPhonemizeResult {
     return Int(PiperPhonemizeResultGetNumPhonemes(handle, Int32(sentenceId)))
   }
 
-  public func getPhonemes(sentenceId: Int) -> [UInt32] {
+  public func getPhonemes(sentenceId: Int) -> [Int32] {
     let n = getNumPhonemes(sentenceId: sentenceId)
     if n <= 0 { return [] }
 
     let ptr = PiperPhonemizeResultGetPhonemes(handle, Int32(sentenceId))
     if ptr == nil { return [] }
 
-    var result = [UInt32]()
+    var result = [Int32]()
     result.reserveCapacity(n)
     for i in 0..<n {
       result.append(ptr![i])
@@ -55,7 +55,7 @@ public class PiperPhonemizeResult {
 
   public func getPhonemesAsString(sentenceId: Int) -> String {
     let phonemes = getPhonemes(sentenceId: sentenceId)
-    return String(phonemes.compactMap { UnicodeScalar($0) }.map { Character($0) })
+    return String(phonemes.compactMap { UnicodeScalar(UInt32(bitPattern: $0)) }.map { Character($0) })
   }
 }
 

@@ -1,3 +1,6 @@
+## 1.5.5
+* Fix Android AAR
+
 ## 1.5.4
 * Fix rust for android
 

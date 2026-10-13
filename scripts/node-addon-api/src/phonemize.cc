@@ -67,7 +67,7 @@ static Napi::Value Phonemize(const Napi::CallbackInfo &info) {
       continue;
     }
 
-    const uint32_t *phonemes = PiperPhonemizeResultGetPhonemes(result, i);
+    const int32_t *phonemes = PiperPhonemizeResultGetPhonemes(result, i);
 
     if (!phonemes) {
       sentences.Set(i, Napi::Array::New(env, 0));

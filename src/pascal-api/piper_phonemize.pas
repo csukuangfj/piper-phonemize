@@ -77,8 +77,7 @@ implementation
 
 type
   cint32 = Int32;
-  cuint32 = UInt32;
-  pcuint32 = ^cuint32;
+  pcint32 = ^cint32;
 
   { Opaque pointer to PiperPhonemizeResult }
   PPiperPhonemizeResult = Pointer;
@@ -112,7 +111,7 @@ function PiperPhonemizeResultGetNumSentences_c(const result: PPiperPhonemizeResu
 function PiperPhonemizeResultGetNumPhonemes_c(const result: PPiperPhonemizeResult; sentence_id: cint32): cint32; cdecl;
   external PiperPhonemizeLibName name 'PiperPhonemizeResultGetNumPhonemes';
 
-function PiperPhonemizeResultGetPhonemes_c(const result: PPiperPhonemizeResult; sentence_id: cint32): pcuint32; cdecl;
+function PiperPhonemizeResultGetPhonemes_c(const result: PPiperPhonemizeResult; sentence_id: cint32): pcint32; cdecl;
   external PiperPhonemizeLibName name 'PiperPhonemizeResultGetPhonemes';
 
 procedure PiperPhonemizeDestroyResult_c(result: PPiperPhonemizeResult); cdecl;
@@ -170,7 +169,7 @@ end;
 function TPiperPhonemizeResult.GetPhonemes(SentenceId: Integer): TPhonemeArray;
 var
   NumPhonemes: Integer;
-  PhonemesPtr: pcuint32;
+  PhonemesPtr: pcint32;
   I: Integer;
 begin
   Result := nil;
