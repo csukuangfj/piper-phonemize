@@ -73,7 +73,7 @@ int32_t PiperPhonemizeResultGetNumPhonemes(const PiperPhonemizeResult *result,
   return static_cast<int32_t>(result->phonemes[sentence_id].size());
 }
 
-const uint32_t *PiperPhonemizeResultGetPhonemes(
+const int32_t *PiperPhonemizeResultGetPhonemes(
     const PiperPhonemizeResult *result, int32_t sentence_id) {
   if (!result || sentence_id < 0 ||
       sentence_id >= static_cast<int32_t>(result->phonemes.size())) {
@@ -82,7 +82,7 @@ const uint32_t *PiperPhonemizeResultGetPhonemes(
   if (result->phonemes[sentence_id].empty()) {
     return nullptr;
   }
-  return reinterpret_cast<const uint32_t *>(
+  return reinterpret_cast<const int32_t *>(
       result->phonemes[sentence_id].data());
 }
 

@@ -95,7 +95,7 @@ PIPER_PHONEMIZE_API int32_t PiperPhonemizeResultGetNumPhonemes(
 /**
  * @brief Get a pointer to the phoneme array for a given sentence.
  *
- * Each phoneme is a char32_t (uint32_t) Unicode code point.
+ * Each phoneme is an int32_t holding a Unicode code point.
  * The returned pointer is valid for the lifetime of the result handle.
  *
  * @param result      A valid result handle.
@@ -103,7 +103,7 @@ PIPER_PHONEMIZE_API int32_t PiperPhonemizeResultGetNumPhonemes(
  * @return Pointer to the phoneme array, or NULL if sentence_id is out of
  *         range.
  */
-PIPER_PHONEMIZE_API const uint32_t *PiperPhonemizeResultGetPhonemes(
+PIPER_PHONEMIZE_API const int32_t *PiperPhonemizeResultGetPhonemes(
     const PiperPhonemizeResult *result, int32_t sentence_id);
 
 /**

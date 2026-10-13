@@ -11,7 +11,7 @@
 
 static int num_errors = 0;
 
-static std::string CodepointToUtf8(uint32_t cp) {
+static std::string CodepointToUtf8(int32_t cp) {
   std::string result;
   if (cp <= 0x7F) {
     result += static_cast<char>(cp);
@@ -35,7 +35,7 @@ static std::string PhonemesToString(const PiperPhonemizeResult *result,
                                     int32_t sentence_id) {
   std::string s;
   int32_t n = PiperPhonemizeResultGetNumPhonemes(result, sentence_id);
-  const uint32_t *phonemes = PiperPhonemizeResultGetPhonemes(result, sentence_id);
+  const int32_t *phonemes = PiperPhonemizeResultGetPhonemes(result, sentence_id);
   if (phonemes) {
     for (int32_t j = 0; j < n; ++j) {
       s += CodepointToUtf8(phonemes[j]);
