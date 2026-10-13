@@ -61,7 +61,34 @@ jobs:
         run: |
           ls -lh build-wasm-simd-browser/install/bin/wasm/browser/
 
+      - name: Zip files
+        run: |
+          PIPER_PHONEMIZE_VERSION=v$(grep "PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | cut -d ")" -f 1)
+          cd build-wasm-simd-browser/install/bin/wasm
+          zip -r piper-phonemize-${PIPER_PHONEMIZE_VERSION}-wasm-browser.zip browser
+          ls -lh piper-phonemize-${PIPER_PHONEMIZE_VERSION}-wasm-browser.zip
+
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-browser
-          path: build-wasm-simd-browser/install/bin/wasm/browser/
+          path: build-wasm-simd-browser/install/bin/wasm/*.zip
+
+  release:
+    name: release
+    needs:
+      - build-wasm-browser
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all wasm artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Release wasm
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: false
+          file: artifacts/**/piper-phonemize-*-wasm-browser.zip
+          tag: wasm
