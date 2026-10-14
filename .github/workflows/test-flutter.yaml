@@ -496,7 +496,7 @@ jobs:
         shell: bash
         run: |
           cd flutter-examples/hello_world/build/windows/x64/runner/
-          zip -r -y flutter-hello-world-win-x64.zip Release/
+          powershell -Command "Compress-Archive -Path Release -DestinationPath flutter-hello-world-win-x64.zip"
           ls -lh flutter-hello-world-win-x64.zip
 
       - name: Release
