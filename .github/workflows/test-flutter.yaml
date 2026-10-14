@@ -42,18 +42,6 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -144,18 +132,6 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -242,18 +218,6 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -334,18 +298,6 @@ jobs:
         run: |
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
-
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -454,18 +406,6 @@ jobs:
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
 
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
-
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
         run: flutter pub get
@@ -543,18 +483,6 @@ jobs:
         run: |
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
-
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
       - name: flutter pub get
         working-directory: flutter-examples/hello_world
@@ -647,18 +575,6 @@ jobs:
         run: |
           cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
           cp LICENSE.md flutter/piper_phonemize/LICENSE
-
-          # Trim asset declarations this build does not use from pubspec.yaml
-          # (Flutter requires every declared asset to exist at build time):
-          #  - native builds never use the web/WASM bundle → drop assets/web/
-          #  - web never reads espeak-ng-data (it is embedded in the WASM .data
-          #    package) → drop espeak-ng-data/
-          if [ "${{ github.job }}" = "web" ]; then
-            sed -i.bak '/espeak-ng-data/d' flutter/piper_phonemize/pubspec.yaml
-          else
-            sed -i.bak '/- assets\/web\//d' flutter/piper_phonemize/pubspec.yaml
-          fi
-          rm -f flutter/piper_phonemize/pubspec.yaml.bak
 
       - name: Build Flutter web app
         shell: bash
