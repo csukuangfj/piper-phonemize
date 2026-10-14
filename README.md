@@ -13,7 +13,7 @@ Phonemization library for [Piper](https://github.com/rhasspy/piper) text-to-spee
 
 Converts text to IPA phonemes using [espeak-ng](https://github.com/espeak-ng/espeak-ng).
 
-Supports **Python**, **Go**, **Rust**, **Swift**, **Pascal**, **JavaScript (Node.js/WASM)**, **C/C++**, **Tauri**, **Android**, and **iOS**.
+Supports **Python**, **Go**, **Rust**, **Swift**, **Dart/Flutter**, **Pascal**, **JavaScript (Node.js/WASM)**, **C/C++**, **Tauri**, **Android**, and **iOS**.
 
 ## Installation
 
@@ -62,6 +62,20 @@ npm install piper-phonemize
 ```bash
 npm install piper-phonemize-node
 ```
+
+### Flutter / Dart
+
+**WASM-backed**: works on Android, iOS, macOS, Linux, Windows, and **Web**.
+The espeak-ng-data is bundled inside the package (Flutter assets on native,
+embedded in the WASM bundle on web) — no extra downloads.
+
+```yaml
+dependencies:
+  piper_phonemize: ^1.5.6
+```
+
+Pre-built `hello_world` demo apps (macOS, iOS, Linux, Windows, Web) are
+released at the [`flutter` tag](https://github.com/csukuangfj/piper-phonemize/releases/tag/flutter).
 
 ### C / C++
 
@@ -135,6 +149,24 @@ const piperPhonemize = require('piper-phonemize-node');
 // espeak-ng-data is bundled — no initialization needed!
 const result = piperPhonemize.phonemizeToString('Hello world', 'en-us');
 console.log(result); // ['həlˈoʊ wˈɜːld']
+```
+
+### Flutter / Dart
+
+```dart
+import 'package:piper_phonemize/piper_phonemize.dart' as piper;
+
+void main() async {
+  // Loads the WASM module on web, the native library elsewhere.
+  await piper.initBindingsAsync();
+
+  // On web the argument is ignored: espeak-ng-data is embedded in the WASM
+  // bundle. On Flutter (non-web), use `await piper.extractEspeakNgData()`.
+  piper.PiperPhonemize.initialize('');
+
+  final phonemes = piper.PiperPhonemize.phonemize('Hello world', voice: 'en-us');
+  print(phonemes); // [[104, 601, 108, 712, 111, 650, ...]] — code points
+}
 ```
 
 ### C
