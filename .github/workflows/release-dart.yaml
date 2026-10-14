@@ -137,6 +137,25 @@ jobs:
               $GITHUB_WORKSPACE/flutter/piper_phonemize/android/src/main/jniLibs/$abi/
           done
 
+      - name: Download pre-built web/WASM bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download wasm \
+            --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-wasm-browser.zip" \
+            --dir /tmp/web
+
+          cd /tmp/web
+          unzip -q ./*.zip
+
+          mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/assets/web
+          cp -v browser/piper-phonemize-wasm-main.js \
+                browser/piper-phonemize-wasm-main.wasm \
+                browser/piper-phonemize-wasm-main.data \
+                browser/piper-phonemize.js \
+                $GITHUB_WORKSPACE/flutter/piper_phonemize/assets/web/
+          ls -lh $GITHUB_WORKSPACE/flutter/piper_phonemize/assets/web/
+
       - name: Copy example, README, and CHANGELOG
         shell: bash
         run: |

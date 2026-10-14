@@ -18,12 +18,21 @@ struct PiperPhonemizeResult {
 
 static std::once_flag g_init_flag;
 
-const char *PiperPhonemizeGetVersionStr() { return "1.5.5"; }
+const char *PiperPhonemizeGetVersionStr() { return "1.5.6"; }
 
 int32_t PiperPhonemizeInitialize(const char *data_dir) {
   int32_t result = 0;
   std::call_once(g_init_flag, [&]() {
-    result = espeak_Initialize(AUDIO_OUTPUT_SYNCHRONOUS, 0, data_dir, 0);
+    // espeakINITIALIZE_DONT_EXIT: on failure espeak_Initialize() would
+    // otherwise call exit(1) and kill the host process/page. Return -1
+    // instead so the caller can report the error.
+    result = espeak_Initialize(AUDIO_OUTPUT_SYNCHRONOUS, 0, data_dir,
+                               espeakINITIALIZE_DONT_EXIT);
+    if (result <= 0) {
+      // espeak may return 0 when its data files are missing; the documented
+      // contract is -1 on failure.
+      result = -1;
+    }
   });
   return result;
 }

@@ -3,13 +3,13 @@ description: >
   Dart and Flutter bindings for piper-phonemize, a fast phonemization library
   backed by espeak-ng. Converts text to phoneme code points for use with
   text-to-speech systems.
-version: 1.5.5
+version: 1.5.6
 homepage: https://github.com/csukuangfj/piper-phonemize
 repository: https://github.com/csukuangfj/piper-phonemize
 license: GPL-3.0
 
 environment:
-  sdk: ">=3.2.0 <4.0.0"
+  sdk: ">=3.4.0 <4.0.0"
   flutter: ">=2.8.1"
 
 dependencies:
@@ -71,3 +71,9 @@ flutter:
     - espeak-ng-data/lang/zlw/
     - espeak-ng-data/voices/
     - espeak-ng-data/voices/!v/
+    # Web/WASM bundle. The .data package embeds espeak-ng-data for web, so
+    # web builds do not need the espeak-ng-data/ assets above.
+    - assets/web/piper-phonemize-wasm-main.js
+    - assets/web/piper-phonemize-wasm-main.wasm
+    - assets/web/piper-phonemize-wasm-main.data
+    - assets/web/piper-phonemize.js

@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:piper_phonemize/piper_phonemize.dart' as piper;
 
@@ -52,10 +53,15 @@ class _PhonemizePageState extends State<PhonemizePage> {
 
   Future<void> _initialize() async {
     try {
-      final dataDir = await piper.extractEspeakNgData();
-      debugPrint('espeak-ng-data at: $dataDir');
-      debugPrint('exists: ${Directory(dataDir).existsSync()}');
-      debugPrint('files: ${Directory(dataDir).listSync().length}');
+      // On web, espeak-ng-data is embedded in the WASM bundle: nothing to
+      // extract and initialize()'s dataDir argument is ignored.
+      String dataDir = '';
+      if (!kIsWeb) {
+        dataDir = await piper.extractEspeakNgData();
+        debugPrint('espeak-ng-data at: $dataDir');
+        debugPrint('exists: ${Directory(dataDir).existsSync()}');
+        debugPrint('files: ${Directory(dataDir).listSync().length}');
+      }
 
       final result = piper.PiperPhonemize.initialize(dataDir);
       debugPrint('initialize result: $result (sample rate)');
