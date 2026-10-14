@@ -89,6 +89,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
-          overwrite: false
+          overwrite: true
           file: artifacts/**/piper-phonemize-*-wasm-browser.zip
           tag: wasm
