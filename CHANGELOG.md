@@ -1,3 +1,9 @@
+## 1.5.7
+* Flutter plugins: lower the CocoaPods platform floors to match what the
+  native libraries are actually built for — macOS `s.platform` 12.0 -> 10.14
+  (`CMAKE_OSX_DEPLOYMENT_TARGET`), iOS 15.0 -> 12.0. Apps no longer need to
+  raise their deployment target to depend on `piper_phonemize`.
+
 ## 1.5.6
 * Add web/WASM support to the `piper_phonemize` Flutter package:
 * `PiperPhonemizeInitialize` returns -1 on failure instead of calling

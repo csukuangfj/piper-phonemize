@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'piper_phonemize'
-  s.version          = '1.5.6'
+  s.version          = '1.5.7'
   s.summary          = 'Flutter FFI plugin for piper-phonemize.'
   s.description      = <<-DESC
 Dart and Flutter bindings for piper-phonemize, a fast phonemization library
@@ -12,7 +12,7 @@ backed by espeak-ng.
 
   s.source           = { :path => '.' }
   s.dependency 'Flutter'
-  s.platform = :ios, '15.0'
+  s.platform = :ios, '12.0'
 
   s.vendored_frameworks = 'piper_phonemize/PiperPhonemizeC.xcframework'
 
