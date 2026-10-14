@@ -3,6 +3,11 @@ espeak-ng-data/
 LICENSE
 CHANGELOG.md
 
+# assets/web/ (the WASM bundle) IS committed: flutter builds hard-fail on
+# missing declared assets (unlike espeak-ng-data, which CI copies in before
+# building). Refresh it from build-wasm-simd-browser/install/bin/wasm/browser/
+# when the bundle is rebuilt.
+
 # Native libraries are not committed — downloaded by CI from releases
 macos/piper_phonemize/piper-phonemize.xcframework/
 ios/piper_phonemize/piper-phonemize.xcframework/

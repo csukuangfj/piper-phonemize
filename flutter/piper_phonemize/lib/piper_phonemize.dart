@@ -15,8 +15,11 @@ import 'package:piper_phonemize/src/init_stub.dart'
     if (dart.library.js_interop) 'package:piper_phonemize/src/web/init_stub.dart'
     as web;
 
-export 'src/piper_phonemize_bindings.dart';
-export 'src/piper_phonemize_impl.dart';
+// Conditional export: dart:ffi on native, dart:js_interop on web.
+export 'src/piper_phonemize_bindings.dart'
+    if (dart.library.js_interop) 'src/web/piper_phonemize_bindings_stub.dart';
+export 'src/piper_phonemize_impl.dart'
+    if (dart.library.js_interop) 'src/web/piper_phonemize_impl_web.dart';
 export 'src/piper_phonemize_flutter_stub.dart'
     if (dart.library.ui) 'src/piper_phonemize_flutter.dart';
 

@@ -22,7 +22,7 @@ project(
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES C CXX
 )
-set(PIPER_PHONEMIZE_VERSION 1.5.5)
+set(PIPER_PHONEMIZE_VERSION 1.5.6)
 
 # ---- Cross-platform build settings (following sherpa-onnx) ----
 
@@ -127,8 +127,17 @@ if(MSVC)
   add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 elseif(NOT APPLE)
   # Linux flags
-  string(APPEND CMAKE_C_FLAGS " -Wall -Wextra -pthread")
-  string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -pthread -fexceptions")
+  if(EMSCRIPTEN)
+    # Do not pass -pthread here: for Emscripten it enables wasm threads and
+    # shared memory (SharedArrayBuffer), which needs cross-origin isolation
+    # (COOP/COEP). The wasm targets are single-threaded, just like
+    # sherpa-onnx's wasm builds.
+    string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -fexceptions")
+  else()
+    string(APPEND CMAKE_C_FLAGS " -Wall -Wextra -pthread")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -pthread -fexceptions")
+  endif()
 endif()
 
 # ---- espeak-ng (FetchContent, always built as static) ----

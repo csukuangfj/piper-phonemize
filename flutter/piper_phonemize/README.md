@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  piper_phonemize: ^1.4.8
+  piper_phonemize: ^1.5.6
 ```
 
 ## Usage
@@ -63,9 +63,33 @@ void main() {
 }
 ```
 
+### Web (WASM)
+
+The same API works on web. The WASM bundle (with espeak-ng-data embedded) is
+bundled as package assets and loaded automatically — no `<script>` tags, no
+runtime downloads, and no `extractEspeakNgData()`.
+
+```dart
+import 'package:piper_phonemize/piper_phonemize.dart' as piper;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Loads the WASM module (on web) or the native library (elsewhere).
+  await piper.initBindingsAsync();
+
+  // On web, dataDir is ignored: espeak-ng-data is embedded in the WASM bundle.
+  piper.PiperPhonemize.initialize('');
+
+  final phonemes = piper.PiperPhonemize.phonemize('Hello world');
+  print(phonemes);  // List<List<int>> — code points per sentence
+}
+```
+
 ## Platform Setup
 
 Native libraries are bundled with the package. No manual installation needed.
+The web/WASM bundle is included as package assets as well.
 
 ## License
 

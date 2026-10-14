@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -115,12 +116,22 @@ const _espeakNgDataFiles = [
 /// a filesystem directory path, but Flutter assets are only accessible
 /// via [rootBundle].
 ///
-/// Usage (Flutter only):
+/// Not needed on web: the WASM bundle embeds espeak-ng-data in its `.data`
+/// package, so just call `PiperPhonemize.initialize('')`.
+///
+/// Usage (Flutter, non-web):
 /// ```dart
 /// final dataDir = await extractEspeakNgData();
 /// PiperPhonemize.initialize(dataDir);
 /// ```
 Future<String> extractEspeakNgData() async {
+  if (kIsWeb) {
+    throw UnsupportedError(
+      'extractEspeakNgData() is not supported on web: the WASM bundle '
+      'embeds espeak-ng-data. Call PiperPhonemize.initialize(\'\') instead.',
+    );
+  }
+
   final appDir = await getApplicationSupportDirectory();
   final targetDir = '${appDir.path}/espeak-ng-data';
   final targetDirectory = Directory(targetDir);

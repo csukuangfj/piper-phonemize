@@ -1,3 +1,8 @@
+## 1.5.6
+* Add web/WASM support to the `piper_phonemize` Flutter package:
+* `PiperPhonemizeInitialize` returns -1 on failure instead of calling
+  `exit(1)`.
+
 ## 1.5.5
 * Fix Android AAR
 

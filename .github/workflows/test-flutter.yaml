@@ -87,6 +87,15 @@ jobs:
             flutter-hello-world-macos-cocoapods/
           zip -r -y flutter-hello-world-macos-cocoapods.zip flutter-hello-world-macos-cocoapods/
 
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/flutter-hello-world-macos-cocoapods.zip
+          tag: flutter
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-hello-world-macos-cocoapods
@@ -164,6 +173,15 @@ jobs:
             flutter-hello-world-macos-spm/
           zip -r -y flutter-hello-world-macos-spm.zip flutter-hello-world-macos-spm/
 
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/flutter-hello-world-macos-spm.zip
+          tag: flutter
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-hello-world-macos-spm
@@ -229,6 +247,22 @@ jobs:
         working-directory: flutter-examples/hello_world
         run: flutter build ios --no-codesign
 
+      - name: Zip app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/ios/iphoneos/
+          zip -r -y flutter-hello-world-ios-cocoapods.zip Runner.app
+          ls -lh flutter-hello-world-ios-cocoapods.zip
+
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/build/ios/iphoneos/flutter-hello-world-ios-cocoapods.zip
+          tag: flutter
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-hello-world-ios-cocoapods
@@ -289,6 +323,22 @@ jobs:
       - name: flutter build ios
         working-directory: flutter-examples/hello_world
         run: flutter build ios --no-codesign
+
+      - name: Zip app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/ios/iphoneos/
+          zip -r -y flutter-hello-world-ios-spm.zip Runner.app
+          ls -lh flutter-hello-world-ios-spm.zip
+
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/build/ios/iphoneos/flutter-hello-world-ios-spm.zip
+          tag: flutter
 
       - uses: actions/upload-artifact@v4
         with:
@@ -364,6 +414,22 @@ jobs:
         working-directory: flutter-examples/hello_world
         run: flutter build linux
 
+      - name: Zip app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/linux/x64/release/
+          zip -r -y flutter-hello-world-linux-x64.zip bundle/
+          ls -lh flutter-hello-world-linux-x64.zip
+
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/build/linux/x64/release/flutter-hello-world-linux-x64.zip
+          tag: flutter
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-hello-world-linux-x64
@@ -426,80 +492,119 @@ jobs:
         working-directory: flutter-examples/hello_world
         run: flutter build windows
 
+      - name: Zip app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/windows/x64/runner/
+          powershell -Command "Compress-Archive -Path Release -DestinationPath flutter-hello-world-win-x64.zip"
+          ls -lh flutter-hello-world-win-x64.zip
+
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/build/windows/x64/runner/flutter-hello-world-win-x64.zip
+          tag: flutter
+
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-hello-world-win-x64
           path: flutter-examples/hello_world/build/windows/x64/runner/Release/
 
-  flutter_published:
-    name: flutter-published-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-2022]
+  web:
+    name: Web
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          fetch-depth: 0
 
-      - name: Install build dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build libgtk-3-dev
-
-      - name: flutter pub get
-        working-directory: flutter-examples/hello_world
-        run: flutter pub get
-
-      - name: Show published package contents
+      - name: Update version
         shell: bash
-        continue-on-error: true
         run: |
-          PIPER_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | awk '{print $2}' | tr -d ')')
-          echo "=== Looking for piper_phonemize $PIPER_VERSION in pub cache ==="
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f 2>/dev/null | head -50 || echo "Package not found in pub cache"
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            find ~/.pub-cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION -type f 2>/dev/null | head -50 || echo "Package not found in pub cache"
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            find "$LOCALAPPDATA/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | head -50 || \
-            find "$USERPROFILE/AppData/Local/Pub/Cache/hosted/pub.dev/piper_phonemize-$PIPER_VERSION" -type f 2>/dev/null | head -50 || \
-            echo "Package not found in pub cache"
-          fi
+          ./new-release.sh
+          git diff .
 
-      - name: flutter build (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        working-directory: flutter-examples/hello_world
-        run: flutter build linux
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.23
 
-      - name: flutter build (macOS)
-        if: matrix.os == 'macos-latest'
-        working-directory: flutter-examples/hello_world
-        run: flutter build macos
-
-      - name: flutter build (Windows)
-        if: matrix.os == 'windows-2022'
-        working-directory: flutter-examples/hello_world
-        run: flutter build windows
-
-  flutter_published_ios:
-    name: flutter-published-ios
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: latest
 
-      - name: flutter pub get
-        working-directory: flutter-examples/hello_world
-        run: flutter pub get
+      - name: Display flutter info
+        shell: bash
+        run: |
+          which flutter
+          which dart
+          flutter --version
+          dart --version
+          flutter doctor
 
-      - name: flutter build ios
-        working-directory: flutter-examples/hello_world
-        run: flutter build ios --no-codesign
+      - name: Build WASM module
+        shell: bash
+        run: |
+          ./build-wasm-simd-browser.sh
+
+      - name: Copy WASM assets to the package
+        shell: bash
+        run: |
+          mkdir -p flutter/piper_phonemize/assets/web
+          cp -v build-wasm-simd-browser/install/bin/wasm/browser/piper-phonemize-wasm-main.js \
+                build-wasm-simd-browser/install/bin/wasm/browser/piper-phonemize-wasm-main.wasm \
+                build-wasm-simd-browser/install/bin/wasm/browser/piper-phonemize-wasm-main.data \
+                build-wasm-simd-browser/install/bin/wasm/browser/piper-phonemize.js \
+                flutter/piper_phonemize/assets/web/
+
+      - name: Use local piper_phonemize
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world
+          sed -i.bak 's|  piper_phonemize: \^.*|  # \0\n  piper_phonemize:\n    path: ../../flutter/piper_phonemize|' pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+
+      - name: Copy espeak-ng-data and LICENSE
+        shell: bash
+        run: |
+          cp -r swift-api-examples/espeak-ng-data flutter/piper_phonemize/
+          cp LICENSE.md flutter/piper_phonemize/LICENSE
+
+      - name: Build Flutter web app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world
+
+          flutter pub get
+          flutter build web
+
+          ls -lh build/web/
+
+      - name: Zip web app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/
+          mv web flutter-hello-world-web
+          zip -r -y flutter-hello-world-web.zip flutter-hello-world-web/
+          ls -lh flutter-hello-world-web.zip
+
+      - name: Release
+        if: github.repository_owner == 'csukuangfj'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          overwrite: true
+          file: ./flutter-examples/hello_world/build/flutter-hello-world-web.zip
+          tag: flutter
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-web
+          path: flutter-examples/hello_world/build/flutter-hello-world-web.zip

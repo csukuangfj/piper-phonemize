@@ -7,8 +7,8 @@ cd "$(dirname "$0")"
 # remember to also update
 #  - ./CHANGELOG.md
 #  - ./Package.swift
-old_version="1\.5\.4"
-new_version="1\.5\.5"
+old_version="1\.5\.5"
+new_version="1\.5\.6"
 
 replace_str="s/$old_version/$new_version/g"
 

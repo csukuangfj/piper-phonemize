@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - release-v1.5.5
+      - release-v1.5.6
 
   workflow_dispatch:
 
@@ -303,3 +303,60 @@ jobs:
         with:
           name: flutter-hello-world-pkg-windows
           path: flutter-examples/hello_world/build/windows/x64/runner/Release/
+
+  web:
+    if: github.repository_owner == 'csukuangfj'
+    name: Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version
+        shell: bash
+        run: |
+          ./new-release.sh
+          git diff .
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: latest
+
+      - name: Display flutter info
+        shell: bash
+        run: |
+          which flutter
+          which dart
+          flutter --version
+          dart --version
+          flutter doctor
+
+      # Tests the published piper_phonemize package as-is (like the other
+      # jobs in this workflow): no local staging, so a broken package
+      # (e.g. missing assets/web/) fails here.
+      - name: Build Flutter web app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world
+
+          flutter pub get
+          flutter build web
+
+          ls -lh build/web/
+
+      - name: Zip web app
+        shell: bash
+        run: |
+          cd flutter-examples/hello_world/build/
+          mv web flutter-hello-world-pkg-web
+          zip -r -y flutter-hello-world-pkg-web.zip flutter-hello-world-pkg-web/
+          ls -lh flutter-hello-world-pkg-web.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-hello-world-pkg-web
+          path: flutter-examples/hello_world/build/flutter-hello-world-pkg-web.zip
