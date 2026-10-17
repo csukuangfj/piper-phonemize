@@ -2,10 +2,10 @@ module go-api-examples
 
 go 1.17
 
-require github.com/csukuangfj/piper-phonemize-go v1.5.7
+require github.com/csukuangfj/piper-phonemize-go v1.5.8
 
 require (
-	github.com/csukuangfj/piper-phonemize-go-linux v1.5.7 // indirect
-	github.com/csukuangfj/piper-phonemize-go-macos v1.5.7 // indirect
-	github.com/csukuangfj/piper-phonemize-go-windows v1.5.7 // indirect
+	github.com/csukuangfj/piper-phonemize-go-linux v1.5.8 // indirect
+	github.com/csukuangfj/piper-phonemize-go-macos v1.5.8 // indirect
+	github.com/csukuangfj/piper-phonemize-go-windows v1.5.8 // indirect
 )
