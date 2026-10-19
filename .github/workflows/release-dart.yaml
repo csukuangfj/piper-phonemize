@@ -80,45 +80,44 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Download and extract each architecture into its own directory so the
+          # two libpiper_phonemize_core.so files can't clobber each other.
           for arch in x64 arm64; do
             gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
               --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-linux-${arch}-shared-lib.tar.bz2" \
-              --dir /tmp/linux
+              --dir /tmp/linux-${arch}
+            (cd /tmp/linux-${arch} && tar xjf *.tar.bz2)
           done
 
-          cd /tmp/linux
-          for f in *.tar.bz2; do
-            tar xjf "$f"
-          done
-
+          # Create one subdirectory per architecture (matching the sherpa-onnx
+          # flutter packages: linux/x64 and linux/aarch64) and copy the matching
+          # prebuilt library into each.
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64
-          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
-          cp -v lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64/
+          cp -v /tmp/linux-x64/lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/x64/
+          cp -v /tmp/linux-arm64/lib/libpiper_phonemize_core.so $GITHUB_WORKSPACE/flutter/piper_phonemize/linux/aarch64/
 
       - name: Download pre-built Windows shared libs
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Download and extract each architecture into its own directory so the
+          # two piper_phonemize_core.dll files can't clobber each other.
           for arch in x64 arm64; do
             gh release download ${{ steps.version.outputs.NATIVE_LIBS_VERSION }} \
               --pattern "piper-phonemize-${{ steps.version.outputs.NATIVE_LIBS_VERSION }}-windows-${arch}-shared-lib.tar.bz2" \
-              --dir /tmp/win
+              --dir /tmp/win-${arch}
+            (cd /tmp/win-${arch} && tar xjf *.tar.bz2)
           done
 
-          cd /tmp/win
-          for f in *.tar.bz2; do
-            mkdir -p "extract-${f%.tar.bz2}"
-            cd "extract-${f%.tar.bz2}"
-            tar xjf "../$f"
-            cd ..
-          done
-
+          # Create one subdirectory per architecture (matching the sherpa-onnx
+          # flutter packages: windows/x64 and windows/arm64) and copy the
+          # matching prebuilt library into each.
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64
           mkdir -p $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64
-          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
-          cp -v extract-*/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64/
+          cp -v /tmp/win-x64/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/x64/
+          cp -v /tmp/win-arm64/bin/piper_phonemize_core.dll $GITHUB_WORKSPACE/flutter/piper_phonemize/windows/arm64/
 
       - name: Download pre-built Android shared libs
         shell: bash

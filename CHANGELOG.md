@@ -1,3 +1,7 @@
+## 1.5.8
+
+* Fix releasing flutter package.
+
 ## 1.5.7
 * Flutter plugins: lower the CocoaPods platform floors to match what the
   native libraries are actually built for — macOS `s.platform` 12.0 -> 10.14
