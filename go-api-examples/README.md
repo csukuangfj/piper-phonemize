@@ -23,7 +23,7 @@ go run main.go /path/to/espeak-ng-data
 ## Expected output
 
 ```
-Version: 1.5.8
+Version: 1.5.9
 Initialize: 22050
 
 Input: "hello world"

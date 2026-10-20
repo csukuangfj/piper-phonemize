@@ -127,7 +127,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android-termux-static-lib.tar.bz2
-          tag: v1.5.8
+          tag: v1.5.9
 
   build-android-termux-shared:
     name: Build shared ${{ matrix.abi }} (${{ matrix.arch }})
@@ -225,4 +225,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android-termux.tar.bz2
-          tag: v1.5.8
+          tag: v1.5.9

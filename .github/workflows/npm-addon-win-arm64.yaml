@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - node-addon
+      - node-win-arm64
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
