@@ -35,7 +35,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-piper-phonemize = "1.5.8"
+piper-phonemize = "1.5.9"
 ```
 
 The crate automatically downloads prebuilt libraries and embeds espeak-ng-data.
@@ -71,7 +71,7 @@ embedded in the WASM bundle on web) — no extra downloads.
 
 ```yaml
 dependencies:
-  piper_phonemize: ^1.5.8
+  piper_phonemize: ^1.5.9
 ```
 
 Pre-built `hello_world` demo apps (macOS, iOS, Linux, Windows, Web) are
@@ -192,16 +192,16 @@ int main() {
 A cross-platform desktop/mobile app built with [Tauri v2](https://tauri.app).
 See [tauri-examples/](tauri-examples/) for details.
 
-Pre-built apps are available on the [GitHub Releases](https://github.com/csukuangfj/piper-phonemize/releases/tag/v1.5.8) page:
+Pre-built apps are available on the [GitHub Releases](https://github.com/csukuangfj/piper-phonemize/releases/tag/v1.5.9) page:
 
 | Platform | File |
 |---|---|
-| macOS (Apple Silicon) | [piper-phonemize-tauri-macos-arm64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/piper-phonemize-tauri-macos-arm64.app.zip) |
-| macOS (Intel) | [piper-phonemize-tauri-macos-x64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/piper-phonemize-tauri-macos-x64.app.zip) |
-| Linux (x64) | [piper-phonemize-tauri-linux-x64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/piper-phonemize-tauri-linux-x64.tar.bz2) |
-| Linux (arm64) | [piper-phonemize-tauri-linux-arm64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/piper-phonemize-tauri-linux-arm64.tar.bz2) |
-| Windows (x64) | [piper-phonemize-tauri-windows-x64.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/piper-phonemize-tauri-windows-x64.zip) |
-| Android (APK) | [app-universal-release-unsigned.apk](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.8/app-universal-release-unsigned.apk) |
+| macOS (Apple Silicon) | [piper-phonemize-tauri-macos-arm64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/piper-phonemize-tauri-macos-arm64.app.zip) |
+| macOS (Intel) | [piper-phonemize-tauri-macos-x64.app.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/piper-phonemize-tauri-macos-x64.app.zip) |
+| Linux (x64) | [piper-phonemize-tauri-linux-x64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/piper-phonemize-tauri-linux-x64.tar.bz2) |
+| Linux (arm64) | [piper-phonemize-tauri-linux-arm64.tar.bz2](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/piper-phonemize-tauri-linux-arm64.tar.bz2) |
+| Windows (x64) | [piper-phonemize-tauri-windows-x64.zip](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/piper-phonemize-tauri-windows-x64.zip) |
+| Android (APK) | [app-universal-release-unsigned.apk](https://github.com/csukuangfj/piper-phonemize/releases/download/v1.5.9/app-universal-release-unsigned.apk) |
 
 ## Building from Source
 

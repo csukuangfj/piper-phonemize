@@ -15,7 +15,9 @@ try {
       addon = require('../piper-phonemize-linux-x64/piper-phonemize.node')
     }
   } else if (arch === 'arm64') {
-    if (platform === 'darwin') {
+    if (platform === 'win') {
+      addon = require('../piper-phonemize-win-arm64/piper-phonemize.node')
+    } else if (platform === 'darwin') {
       addon = require('../piper-phonemize-darwin-arm64/piper-phonemize.node')
     } else if (platform === 'linux') {
       addon = require('../piper-phonemize-linux-arm64/piper-phonemize.node')
@@ -40,7 +42,9 @@ if (!addon) {
         addon = require('./node_modules/piper-phonemize-linux-x64/piper-phonemize.node')
       }
     } else if (arch === 'arm64') {
-      if (platform === 'darwin') {
+      if (platform === 'win') {
+        addon = require('./node_modules/piper-phonemize-win-arm64/piper-phonemize.node')
+      } else if (platform === 'darwin') {
         addon = require('./node_modules/piper-phonemize-darwin-arm64/piper-phonemize.node')
       } else if (platform === 'linux') {
         addon = require('./node_modules/piper-phonemize-linux-arm64/piper-phonemize.node')
