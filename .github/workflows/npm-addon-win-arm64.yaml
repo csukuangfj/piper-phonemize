@@ -63,14 +63,15 @@ jobs:
           export PIPER_PHONEMIZE_INSTALL_DIR=$d/build/install
 
           cd scripts/node-addon-api
-          npm install cmake-js@7.3.0 node-addon-api@8.0.0
 
-          # windows-11-arm configures ARM64 by default (see build-rust-libs.yaml),
-          # but the addon is built via cmake-js, so pin the target explicitly in
-          # case the installed Node reports a different architecture.
-          # Note: do not use `npm config set cmake_js_A` — npm 11 rejects unknown
-          # config keys (`cmake_js_A is not a valid npm option`).
-          cmake_js_A="ARM64" ./node_modules/.bin/cmake-js compile -A ARM64 --log-level verbose
+          # Use `npm i` (not `npm install cmake-js@<pinned>`): package.json allows
+          # cmake-js ^7.3.0 and only 7.4.0+ recognises Visual Studio 2026, which is
+          # what windows-11-arm ships. Pinning 7.3.0 fails with
+          # "Could not find any Visual Studio installation to use". Matches
+          # sherpa-onnx's npm-addon-win-arm64 workflow.
+          npm i
+
+          ./node_modules/.bin/cmake-js compile -A ARM64 --log-level verbose
 
       - name: Package
         shell: bash
@@ -80,6 +81,12 @@ jobs:
           cp -fv build/install/bin/piper_phonemize_core* piper-phonemize-win-arm64/ 2>/dev/null || true
           rm -fv piper-phonemize-win-arm64/*cxx*
           ls -lh piper-phonemize-win-arm64/
+
+      - name: Load the addon
+        shell: bash
+        run: |
+          cd ./piper-phonemize-win-arm64
+          node -e "const a = require('./piper-phonemize.node'); console.log(process.arch, a.getVersionStr())"
 
       - name: Pack
         shell: bash
