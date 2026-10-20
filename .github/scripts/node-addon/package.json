@@ -39,6 +39,7 @@
     "piper-phonemize-linux-x64": "PIPER_PHONEMIZE_VERSION",
     "piper-phonemize-linux-arm64": "PIPER_PHONEMIZE_VERSION",
     "piper-phonemize-win-x64": "PIPER_PHONEMIZE_VERSION",
+    "piper-phonemize-win-arm64": "PIPER_PHONEMIZE_VERSION",
     "piper-phonemize-win-ia32": "PIPER_PHONEMIZE_VERSION"
   }
 }

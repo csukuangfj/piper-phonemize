@@ -1,3 +1,7 @@
+## 1.5.9
+
+* Publish windows arm64 npm package
+
 ## 1.5.8
 
 * Fix releasing flutter package.
