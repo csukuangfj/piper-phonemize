@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - node-addon
+      - node-win-arm64
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
@@ -67,7 +68,8 @@ jobs:
           # windows-11-arm configures ARM64 by default (see build-rust-libs.yaml),
           # but the addon is built via cmake-js, so pin the target explicitly in
           # case the installed Node reports a different architecture.
-          npm config set cmake_js_A "ARM64"
+          # Note: do not use `npm config set cmake_js_A` — npm 11 rejects unknown
+          # config keys (`cmake_js_A is not a valid npm option`).
           cmake_js_A="ARM64" ./node_modules/.bin/cmake-js compile -A ARM64 --log-level verbose
 
       - name: Package
