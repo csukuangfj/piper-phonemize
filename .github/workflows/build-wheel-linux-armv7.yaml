@@ -15,7 +15,10 @@ concurrency:
 jobs:
   build_wheels:
     name: ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    # an aarch64 host executes armv7 binaries natively, so no QEMU is needed --
+    # same setup as sherpa-onnx build-wheels-armv7l.yaml. Do NOT move this back
+    # to ubuntu-latest + qemu: emulation is far slower and flakier.
+    runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
@@ -26,17 +29,16 @@ jobs:
           - "cp312"
           - "cp313"
           - "cp314"
+          - "cp315"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm
-
+      # cp315 needs cibuildwheel 4.x; there is no old-Python split here
+      # because the manylinux_2_31_armv7l image never shipped a CPython 3.8
+      # interpreter.
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v4.3.2
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_SKIP: "pp* *-musllinux*"
