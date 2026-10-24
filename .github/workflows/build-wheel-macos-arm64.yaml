@@ -26,12 +26,15 @@ jobs:
           - "cp312"
           - "cp313"
           - "cp314"
+          - "cp315"
 
     steps:
       - uses: actions/checkout@v4
 
+      # cp315 needs cibuildwheel 4.x; the interpreter comes from python.org,
+      # so no manylinux-style image pin is involved.
       - name: Build wheel
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v4.3.2
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "arm64"

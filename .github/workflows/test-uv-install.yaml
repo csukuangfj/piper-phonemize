@@ -1,0 +1,165 @@
+name: test-uv-install
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: test-uv-install-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test_uv_install:
+    if: github.repository_owner == 'csukuangfj' || github.repository_owner == 'k2-fsa'
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.architecture || ((contains(matrix.os, 'arm') || matrix.os == 'macos-14' || matrix.os == 'macos-latest') && 'arm64' || 'x64') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # See https://github.com/actions/runner-images
+        include:
+          # Linux x64
+          - os: ubuntu-latest
+            python-version: "3.8"
+          - os: ubuntu-latest
+            python-version: "3.9"
+          - os: ubuntu-latest
+            python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: ubuntu-latest
+            python-version: "3.14"
+          - os: ubuntu-latest
+            python-version: "3.15"
+
+          # Linux arm64
+          - os: ubuntu-24.04-arm
+            python-version: "3.10"
+          - os: ubuntu-24.04-arm
+            python-version: "3.11"
+          - os: ubuntu-24.04-arm
+            python-version: "3.12"
+          - os: ubuntu-24.04-arm
+            python-version: "3.13"
+          - os: ubuntu-24.04-arm
+            python-version: "3.14"
+          - os: ubuntu-24.04-arm
+            python-version: "3.15"
+
+          # macOS x64
+          - os: macos-15-intel
+            python-version: "3.8"
+          - os: macos-15-intel
+            python-version: "3.9"
+
+          # macOS arm64
+          - os: macos-14
+            python-version: "3.10"
+          - os: macos-14
+            python-version: "3.11"
+          - os: macos-latest
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.14"
+          - os: macos-latest
+            python-version: "3.15"
+
+          # Windows x64
+          - os: windows-2022
+            python-version: "3.8"
+          - os: windows-2022
+            python-version: "3.9"
+          - os: windows-2022
+            python-version: "3.10"
+          - os: windows-2022
+            python-version: "3.11"
+          - os: windows-2022
+            python-version: "3.12"
+          - os: windows-2022
+            python-version: "3.13"
+          - os: windows-2022
+            python-version: "3.14"
+          - os: windows-2022
+            python-version: "3.15"
+
+          # Windows arm64
+          - os: windows-11-arm
+            python-version: "3.11"
+          - os: windows-11-arm
+            python-version: "3.12"
+          - os: windows-11-arm
+            python-version: "3.13"
+          - os: windows-11-arm
+            python-version: "3.14"
+          - os: windows-11-arm
+            python-version: "3.15"
+
+          # Windows x86
+          - os: windows-2022
+            python-version: "3.8"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.9"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.10"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.11"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.12"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.13"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.14"
+            architecture: x86
+          - os: windows-2022
+            python-version: "3.15"
+            architecture: x86
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create virtual environment
+        shell: bash
+        run: |
+          # Create the venv outside the source tree: `uv run` discovers the
+          # .venv next to the cwd, and running from the source tree would make
+          # `import piper_phonemize` pick up the local directory instead of
+          # the installed wheel.
+          cd "$RUNNER_TEMP"
+          uv venv
+
+      - name: Install piper_phonemize
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          uv pip install --verbose -U piper_phonemize -f https://k2-fsa.github.io/icefall/piper_phonemize.html
+
+      - name: Test piper_phonemize
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+
+          uv run python -c "import piper_phonemize; print(piper_phonemize.__file__)"
+          uv run python -c "import piper_phonemize; print(piper_phonemize.__version__)"
+          uv run python "$GITHUB_WORKSPACE/src/python_test.py"

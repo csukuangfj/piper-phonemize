@@ -95,17 +95,26 @@ jobs:
           - "cp312"
           - "cp313"
           - "cp314"
+          - "cp315"
 
     steps:
       - uses: actions/checkout@v4
 
+      # cp315 needs cibuildwheel 4.x. cibuildwheel 4.x dropped support for
+      # Python < 3.9, so those stay in the build_wheels_old job above.
       - name: Build wheel
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v4.3.2
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "x86"
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+          # cibuildwheel 4.x runs delvewheel repair by default on Windows.
+          # piper_phonemize_cpp.pyd is self-contained (espeak-ng is linked
+          # statically), so there is nothing for delvewheel to bundle and the
+          # repair step is a pure re-pack. Skip it to keep the wheel identical
+          # to what cibuildwheel 3.x produced.
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
       - name: Display wheels
         shell: bash

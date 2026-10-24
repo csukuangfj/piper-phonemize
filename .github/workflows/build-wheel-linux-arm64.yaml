@@ -26,6 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pin the manylinux image explicitly instead of relying on the
+      # "manylinux2014" alias, same idea as sherpa-onnx build-wheels-aarch64.yaml.
+      # This tag is the one cibuildwheel 2.22.0 resolves the alias to and it
+      # still ships the CPython 3.7/3.8 interpreters that current manylinux2014
+      # images have dropped, so the old jobs keep working as cibuildwheel
+      # moves on.
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
@@ -33,7 +39,7 @@ jobs:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_ARCHS: "aarch64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_AARCH64_IMAGE: quay.io/pypa/manylinux2014_aarch64:2024.11.16-1
           CIBW_ENVIRONMENT_LINUX: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
@@ -97,12 +103,15 @@ jobs:
           - "cp312"
           - "cp313"
           - "cp314"
+          - "cp315"
 
     steps:
       - uses: actions/checkout@v4
 
+      # cp315 needs cibuildwheel 4.x. cibuildwheel 4.x dropped support for
+      # Python < 3.9, so those stay in the build_wheels_old job above.
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v4.3.2
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_SKIP: "pp* *-musllinux*"

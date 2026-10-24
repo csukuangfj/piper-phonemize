@@ -20,9 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # cp39..cp314 all have win_arm64 builds in cibuildwheel v3.1.4
-          # (nuget "pythonarm64": 3.9.10 / 3.10.11 / 3.11.9 / 3.12.10 /
-          # 3.13.7 / 3.14.0-rc2). Same range as build-wheel-macos-arm64.yaml.
+          # cp311..cp315 all have win_arm64 builds in cibuildwheel v4.3.2
+          # (nuget "pythonarm64": 3.11.9 / 3.12.10 / 3.13.16 / 3.14.8 / 3.15.0).
+          # Same range as build-wheel-macos-arm64.yaml.
           # python-short is for actions/setup-python, used only by the smoke test.
           - python-version: "cp311"
             python-short: "3.11"
@@ -32,17 +32,21 @@ jobs:
             python-short: "3.13"
           - python-version: "cp314"
             python-short: "3.14"
+          - python-version: "cp315"
+            python-short: "3.15"
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Python ${{ matrix.python-short }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-short }}
 
+      # cp315 needs cibuildwheel 4.x; there is no old-Python split here because
+      # Windows on ARM has no CPython 3.8.
       - name: Build wheel
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v4.3.2
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "ARM64"
@@ -52,8 +56,12 @@ jobs:
           # No PIPER_PHONEMIZE_CMAKE_ARGS / -A ARM64: windows-11-arm already
           # configures ARM64 by default (see build-rust-libs.yaml), and setting
           # PIPER_PHONEMIZE_CMAKE_ARGS would drop the default -DCMAKE_BUILD_TYPE.
-          # No CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: cibuildwheel v3.1.4 ships no
-          # default Windows repair, and the module is self-contained.
+          # cibuildwheel 4.x runs delvewheel repair by default on Windows.
+          # piper_phonemize_cpp.pyd is self-contained (espeak-ng is linked
+          # statically), so there is nothing for delvewheel to bundle and the
+          # repair step is a pure re-pack. Skip it to keep the wheel identical
+          # to what cibuildwheel 3.x produced.
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
       - name: Display wheels
         shell: bash
