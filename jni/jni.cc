@@ -9,6 +9,41 @@
 
 #include "c-api.h"
 
+static std::string JStringToUtf8(JNIEnv *env, jstring s) {
+  jsize n = env->GetStringLength(s);
+  std::u16string u16(n, u'\0');
+  env->GetStringRegion(s, 0, n, reinterpret_cast<jchar *>(&u16[0]));
+
+  std::string result;
+  for (size_t i = 0; i < u16.size(); ++i) {
+    int32_t cp = u16[i];
+    if (cp >= 0xD800 && cp <= 0xDBFF && i + 1 < u16.size() &&
+        u16[i + 1] >= 0xDC00 && u16[i + 1] <= 0xDFFF) {
+      cp = 0x10000 + ((cp - 0xD800) << 10) + (u16[i + 1] - 0xDC00);
+      ++i;
+    } else if (cp >= 0xD800 && cp <= 0xDFFF) {
+      cp = 0xFFFD;
+    }
+
+    if (cp <= 0x7F) {
+      result += static_cast<char>(cp);
+    } else if (cp <= 0x7FF) {
+      result += static_cast<char>(0xC0 | ((cp >> 6) & 0x1F));
+      result += static_cast<char>(0x80 | (cp & 0x3F));
+    } else if (cp <= 0xFFFF) {
+      result += static_cast<char>(0xE0 | ((cp >> 12) & 0x0F));
+      result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      result += static_cast<char>(0x80 | (cp & 0x3F));
+    } else {
+      result += static_cast<char>(0xF0 | ((cp >> 18) & 0x07));
+      result += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+      result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      result += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+  }
+  return result;
+}
+
 extern "C" {
 
 JNIEXPORT jstring JNICALL
@@ -21,22 +56,18 @@ Java_com_github_csukuangfj_piper_phonemize_PiperPhonemize_nativeGetVersionStr(
 JNIEXPORT jint JNICALL
 Java_com_github_csukuangfj_piper_phonemize_PiperPhonemize_nativeInitialize(
     JNIEnv *env, jclass /*cls*/, jstring data_dir) {
-  const char *dir = env->GetStringUTFChars(data_dir, nullptr);
-  int32_t result = PiperPhonemizeInitialize(dir);
-  env->ReleaseStringUTFChars(data_dir, dir);
-  return result;
+  std::string dir = JStringToUtf8(env, data_dir);
+  return PiperPhonemizeInitialize(dir.c_str());
 }
 
 JNIEXPORT jlong JNICALL
 Java_com_github_csukuangfj_piper_phonemize_PiperPhonemize_nativeText(
     JNIEnv *env, jclass /*cls*/, jstring text, jstring voice) {
-  const char *text_str = env->GetStringUTFChars(text, nullptr);
-  const char *voice_str = env->GetStringUTFChars(voice, nullptr);
+  std::string text_str = JStringToUtf8(env, text);
+  std::string voice_str = JStringToUtf8(env, voice);
 
-  PiperPhonemizeResult *result = PiperPhonemizeText(text_str, voice_str);
-
-  env->ReleaseStringUTFChars(text, text_str);
-  env->ReleaseStringUTFChars(voice, voice_str);
+  PiperPhonemizeResult *result =
+      PiperPhonemizeText(text_str.c_str(), voice_str.c_str());
 
   return reinterpret_cast<jlong>(result);
 }
