@@ -121,13 +121,20 @@ jobs:
             ./libs
             ./include
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Release android termux static libs
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android-termux-static-lib.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-android-termux-shared:
     name: Build shared ${{ matrix.abi }} (${{ matrix.arch }})
@@ -219,10 +226,17 @@ jobs:
           name: piper-phonemize-android-termux-shared-libs
           path: ./jniLibs
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Release android termux shared libs
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*-android-termux.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}

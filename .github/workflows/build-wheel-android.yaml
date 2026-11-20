@@ -125,6 +125,13 @@ jobs:
             python3 /test/python_test.py
           '
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Release wheels
         if: true
         uses: svenstaro/upload-release-action@v2
@@ -132,4 +139,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}

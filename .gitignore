@@ -35,3 +35,6 @@ bin
 obj
 .dart_tool
 pubspec.lock
+.project
+.settings
+.classpath
