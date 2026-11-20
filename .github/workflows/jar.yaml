@@ -26,9 +26,11 @@ jobs:
         include:
           - os: ubuntu-22.04-arm
             arch: "linux-aarch64"
+            image: quay.io/pypa/manylinux2014_aarch64
 
           - os: ubuntu-latest
             arch: "linux-x64"
+            image: quay.io/pypa/manylinux2014_x86_64
 
           - os: macos-latest
             arch: "osx-aarch64"
@@ -55,7 +57,32 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
+      - name: Build JNI (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}:/work \
+            ${{ matrix.image }} \
+          bash -c '
+            set -ex
+            yum install -y java-11-openjdk-devel
+            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+            cd /work
+            cmake -Bbuild \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DBUILD_PIPER_PHONEMIZE_PYTHON=OFF \
+              -DBUILD_PIPER_PHONEMIZE_CORE_TESTS=OFF \
+              -DBUILD_PIPER_PHONEMIZE_JNI=ON \
+              -DCMAKE_INSTALL_PREFIX=build/install
+            cmake --build build --config Release --target install -j4
+          '
+
+          objdump -T build/install/lib/libpiper-phonemize-jni.so | grep -o "GLIBC_[0-9.]*" | sort -Vu | tail -1
+
       - name: Build JNI
+        if: runner.os != 'Linux'
         shell: bash
         run: |
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
