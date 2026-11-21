@@ -1,3 +1,11 @@
+## 1.6.1
+
+* Fix publishing
+
+## 1.6.0
+
+* Fix linux libs for glibc 2.17
+
 ## 1.5.9
 
 * Publish windows arm64 npm package
