@@ -158,8 +158,10 @@ jobs:
           mvn package -q
           ls -lh target/*.jar
 
-          VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ../CMakeLists.txt | sed 's/.*set(PIPER_PHONEMIZE_VERSION \(.*\))/\1/' | tr -d ' ")')
-          cp target/piper-phonemize-jvm-${VERSION}.jar ../
+          # The jar name carries the version from java-api/pom.xml; use a glob
+          # so this step does not depend on pom.xml and CMakeLists.txt being
+          # bumped in lockstep.
+          cp target/piper-phonemize-jvm-*.jar ../
           ls -lh ../piper-phonemize-jvm-*.jar
 
       - name: Get piper-phonemize version

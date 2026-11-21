@@ -22,7 +22,7 @@ project(
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES C CXX
 )
-set(PIPER_PHONEMIZE_VERSION 1.6.0)
+set(PIPER_PHONEMIZE_VERSION 1.6.1)
 
 # ---- Cross-platform build settings (following sherpa-onnx) ----
 
@@ -176,6 +176,22 @@ if(NOT espeak_ng_POPULATED)
 endif()
 message(STATUS "espeak-ng is downloaded to ${espeak_ng_SOURCE_DIR}")
 message(STATUS "espeak-ng binary dir is ${espeak_ng_BINARY_DIR}")
+
+# ---- Make the espeak-ng compat shims compile with MSVC ----
+# cl.exe's preprocessor does not implement the __has_include_next(...) operator
+# used by the shims and rejects it (C7780/C1017) on recent toolsets. Route the
+# check through a macro so the operator's operand tokens are only expanded by
+# compilers that define it (GCC/Clang).
+foreach(_shim unistd endian)
+  set(_shim_file "${espeak_ng_SOURCE_DIR}/src/include/compat/${_shim}.h")
+  file(READ "${_shim_file}" _shim_content)
+  string(REPLACE
+    "#if __has_include_next(<${_shim}.h>)"
+    "#if defined(__has_include_next)\n#  define ESPEAK_HAS_INCLUDE_NEXT_${_shim} __has_include_next(<${_shim}.h>)\n#else\n#  define ESPEAK_HAS_INCLUDE_NEXT_${_shim} 0\n#endif\n#if ESPEAK_HAS_INCLUDE_NEXT_${_shim}"
+    _shim_content "${_shim_content}")
+  file(WRITE "${_shim_file}" "${_shim_content}")
+endforeach()
+
 include_directories(${espeak_ng_SOURCE_DIR}/src/include)
 
 set(BUILD_ESPEAK_NG_TESTS OFF CACHE BOOL "" FORCE)

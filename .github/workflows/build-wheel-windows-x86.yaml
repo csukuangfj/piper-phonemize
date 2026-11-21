@@ -32,7 +32,7 @@ jobs:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "x86"
           # The CMake Visual Studio generator defaults to x64; without
-          # "-A Win32" the wheel packs a win_amd64 .pyd (that is how the v1.5.9
+          # "-A Win32" the wheel packs a win_amd64 .pyd (that is how the v1.6.1
           # win32 wheels shipped a cp315-win_amd64.pyd). Same idea as
           # kaldi-native-fbank build-wheels-win32.yaml.
           CIBW_SKIP: "*-win_amd64"
