@@ -81,13 +81,20 @@ jobs:
           ls -la tauri-examples/src-tauri/target/release/
           7z a "piper-phonemize-tauri-${{ matrix.artifact }}.zip" tauri-examples/src-tauri/target/release/piper-phonemize-tauri.exe
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-tauri-*
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-android:
     runs-on: ubuntu-latest
@@ -144,10 +151,17 @@ jobs:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           NDK_HOME: ${{ env.NDK_HOME }}
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload APK
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: tauri-examples/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}

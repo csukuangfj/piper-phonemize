@@ -70,6 +70,10 @@ class BuildExtension(build_ext):
         extra_cmake_args += " -DBUILD_SHARED_LIBS=ON "
         extra_cmake_args += f" -DVERSION_INFO={version} "
 
+        if "PYTHON_EXECUTABLE" not in cmake_args:
+            print(f"Setting PYTHON_EXECUTABLE to {sys.executable}")
+            cmake_args += f" -DPYTHON_EXECUTABLE={sys.executable}"
+
         cmake_args += extra_cmake_args
 
         if is_windows():

@@ -37,13 +37,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-linux-x64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-linux-arm64-static:
     runs-on: ubuntu-22.04-arm
@@ -71,13 +78,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-linux-arm64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-linux-x64-shared:
     runs-on: ubuntu-latest
@@ -105,13 +119,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-linux-x64-shared-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-linux-arm64-shared:
     runs-on: ubuntu-22.04-arm
@@ -139,13 +160,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-linux-arm64-shared-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-macos-x64-static:
     runs-on: macos-15-intel
@@ -168,13 +196,20 @@ jobs:
           cd install
           tar cjf ../../piper-phonemize-v${VERSION}-macos-x64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-macos-arm64-static:
     runs-on: macos-latest
@@ -197,13 +232,20 @@ jobs:
           cd install
           tar cjf ../../piper-phonemize-v${VERSION}-macos-arm64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-macos-x64-shared:
     runs-on: macos-15-intel
@@ -226,13 +268,20 @@ jobs:
           cd install
           tar cjf ../../piper-phonemize-v${VERSION}-macos-x64-shared-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-macos-arm64-shared:
     runs-on: macos-latest
@@ -255,13 +304,20 @@ jobs:
           cd install
           tar cjf ../../piper-phonemize-v${VERSION}-macos-arm64-shared-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-windows-x64-static:
     runs-on: windows-2022
@@ -281,13 +337,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-windows-x64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-windows-x64-shared:
     runs-on: windows-2022
@@ -307,13 +370,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-windows-x64-shared-lib.tar.bz2 bin/ lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-windows-arm64-static:
     runs-on: windows-11-arm
@@ -333,13 +403,20 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-windows-arm64-static-lib.tar.bz2 lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build-windows-arm64-shared:
     runs-on: windows-11-arm
@@ -359,10 +436,17 @@ jobs:
           cd build/install
           tar cjf ../../piper-phonemize-v${VERSION}-windows-arm64-shared-lib.tar.bz2 bin/ lib/ include/
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Upload
         uses: svenstaro/upload-release-action@v2
         with:
           file_glob: true
           overwrite: true
           file: piper-phonemize-*.tar.bz2
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}

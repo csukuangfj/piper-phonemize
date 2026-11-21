@@ -31,8 +31,13 @@ jobs:
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "x86"
+          # The CMake Visual Studio generator defaults to x64; without
+          # "-A Win32" the wheel packs a win_amd64 .pyd (that is how the v1.5.9
+          # win32 wheels shipped a cp315-win_amd64.pyd). Same idea as
+          # kaldi-native-fbank build-wheels-win32.yaml.
+          CIBW_SKIP: "*-win_amd64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_CMAKE_ARGS="-A Win32" PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
 
       - name: Display wheels
         shell: bash
@@ -73,6 +78,13 @@ jobs:
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Release wheels
         if: true
         uses: svenstaro/upload-release-action@v2
@@ -80,7 +92,7 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
 
   build_wheels:
     name: ${{ matrix.python-version }}
@@ -107,8 +119,11 @@ jobs:
         env:
           CIBW_BUILD: "${{ matrix.python-version}}-* "
           CIBW_ARCHS: "x86"
+          # See the comment in build_wheels_old above: "-A Win32" is required
+          # so the wheel packs a win32 .pyd, not a win_amd64 one.
+          CIBW_SKIP: "*-win_amd64"
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
+          CIBW_ENVIRONMENT_WINDOWS: PIPER_PHONEMIZE_CMAKE_ARGS="-A Win32" PIPER_PHONEMIZE_MAKE_ARGS="-j$(nproc)"
           # cibuildwheel 4.x runs delvewheel repair by default on Windows.
           # piper_phonemize_cpp.pyd is self-contained (espeak-ng is linked
           # statically), so there is nothing for delvewheel to bundle and the
@@ -155,6 +170,13 @@ jobs:
             git commit -m "add more wheels"
             git push https://csukuangfj:$HF_TOKEN@huggingface.co/csukuangfj/piper-phonemize-wheels main
 
+      - name: Get piper-phonemize version
+        shell: bash
+        run: |
+          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
+          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
+          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
+
       - name: Release wheels
         if: true
         uses: svenstaro/upload-release-action@v2
@@ -162,4 +184,4 @@ jobs:
           file_glob: true
           overwrite: true
           file: wheelhouse/*.whl
-          tag: v1.5.9
+          tag: v${{ env.PIPER_PHONEMIZE_VERSION }}
