@@ -40,18 +40,14 @@ jobs:
           cd java-api
           mvn package -q
 
-      - name: Get piper-phonemize version
-        shell: bash
-        run: |
-          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
-          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
-          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
-
       - name: Test Java example
         run: |
           cd java-api-examples
+          # The jar name carries the version from java-api/pom.xml; use a glob
+          # so this step does not depend on pom.xml and CMakeLists.txt being
+          # bumped in lockstep.
           java \
-            -cp "../java-api/target/piper-phonemize-jvm-${PIPER_PHONEMIZE_VERSION}.jar" \
+            -cp "../java-api/target/*" \
             -Dpiper_phonemize.native.path=../build-jni/install/lib \
             PhonemizeText.java
 
@@ -66,18 +62,13 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Get piper-phonemize version
-        shell: bash
-        run: |
-          PIPER_PHONEMIZE_VERSION=$(grep "set(PIPER_PHONEMIZE_VERSION" ./CMakeLists.txt | cut -d " " -f 2 | tr -d '")')
-          echo "PIPER_PHONEMIZE_VERSION=$PIPER_PHONEMIZE_VERSION" >> "$GITHUB_ENV"
-          echo "PIPER_PHONEMIZE_VERSION: $PIPER_PHONEMIZE_VERSION"
-
       - name: Build and run Maven example
         run: |
           cd java-api-examples/maven-examples
           mvn package -q
-          java -jar target/piper-phonemize-maven-example-v${PIPER_PHONEMIZE_VERSION}.jar
+          # Glob: the jar name carries the pom.xml version, which need not
+          # match CMakeLists.txt (see the comment in the test-java-api job).
+          java -jar target/piper-phonemize-maven-example-*.jar
 
   test-gradle-examples:
     name: test-gradle

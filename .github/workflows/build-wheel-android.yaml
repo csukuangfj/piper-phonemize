@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           # Runner/image split mirrors sherpa-onnx build-wheels-android-*.yaml:
-          # aarch64 + arm run on ubuntu-24.04-arm, i686 + x86_64 on ubuntu-latest.
+          # aarch64 + arm run on ubuntu-24.04-arm, x86_64 on ubuntu-latest.
           - abi: aarch64
             os: ubuntu-24.04-arm
             docker: aarch64
@@ -30,10 +30,6 @@ jobs:
             os: ubuntu-24.04-arm
             docker: arm
             plat: android_24_armeabi_v7a
-          - abi: i686
-            os: ubuntu-latest
-            docker: i686
-            plat: android_24_x86
           - abi: x86_64
             os: ubuntu-latest
             docker: x86_64
