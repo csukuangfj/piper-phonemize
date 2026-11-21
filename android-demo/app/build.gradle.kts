@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.5.9"
+        versionName = "1.6.1"
     }
 
     buildTypes {
@@ -39,12 +39,12 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.9"
+        kotlinCompilerExtensionVersion = "1.6.1"
     }
 }
 
 dependencies {
-    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize:v1.5.9")
+    implementation("com.github.csukuangfj.piper-phonemize:piper-phonemize:v1.6.1")
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
